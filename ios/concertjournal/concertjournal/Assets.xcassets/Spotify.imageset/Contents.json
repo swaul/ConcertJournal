@@ -1,0 +1,22 @@
+{
+  "images" : [
+    {
+      "filename" : "Spotify_Full_Logo_RGB_Green 1.png",
+      "idiom" : "universal"
+    },
+    {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "filename" : "Spotify_Full_Logo_RGB_Green.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
