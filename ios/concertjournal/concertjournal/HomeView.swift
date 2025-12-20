@@ -12,9 +12,10 @@ import SwiftUI
 struct HomeView: View {
     
     @StateObject private var vm = ConcertsViewModel()
+    @State private var path = NavigationPath()
     
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             ScrollView {
                 VStack(alignment: .leading) {
                     ForEach(vm.visits) { visit in
@@ -26,7 +27,8 @@ struct HomeView: View {
                                         .aspectRatio(contentMode: .fit)
                                         .frame(width: 100)
                                 }
-                                VStack {
+                            
+                                VStack(alignment: .leading) {
                                     Text(visit.artist.name)
                                         .lineLimit(nil)
                                         .foregroundStyle(.white)
@@ -39,6 +41,9 @@ struct HomeView: View {
                                             .foregroundStyle(.white)
                                     }
                                 }
+                                .padding(.horizontal)
+                                
+                                Spacer()
                             }
                             .background {
                                 Color.black
@@ -51,7 +56,33 @@ struct HomeView: View {
                 .padding()
                 .frame(maxWidth: .infinity)
             }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        path.append("create")
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                    }
+                }
+            }
             .navigationTitle("Concerts")
+            .navigationDestination(for: String.self) { route in
+                switch route {
+                case "create":
+                    CreateConcertSelectArtistView()
+                default:
+                    EmptyView()
+                }
+            }
+        }
+    }
+    
+    private func refreshVisits() async {
+        do {
+            let results = try await vm.loadData()
+            await MainActor.run { vm.visits = results }
+        } catch {
+            print("could not refresh concerts: \(error)")
         }
     }
     
@@ -105,3 +136,4 @@ class ConcertsViewModel: ObservableObject {
         return visits
     }
 }
+

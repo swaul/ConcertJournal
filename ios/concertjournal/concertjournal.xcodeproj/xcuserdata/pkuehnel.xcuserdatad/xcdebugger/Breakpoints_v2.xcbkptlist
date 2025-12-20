@@ -3,4 +3,66 @@
    uuid = "F3D75803-E5DC-4CA7-AC60-02B69CE660CE"
    type = "1"
    version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "EF66BD0A-62F3-4400-BDE6-1B59CF4A2C80"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "concertjournal/CreateConcert/CreateConcertVisitView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "161"
+            endingLineNumber = "161"
+            landmarkName = "searchArtists(with:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "EF66BD0A-62F3-4400-BDE6-1B59CF4A2C80 - ab6e35e0127f5c80"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(5) suspend resume partial function for closure #1 () async throws -&gt; () in concertjournal.CreateConcertSelectArtistViewModel.searchArtists(with: Swift.String) -&gt; ()"
+                  moduleName = "concertjournal.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/pkuehnel/ConcertJournal/ios/concertjournal/concertjournal/CreateConcert/CreateConcertVisitView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "161"
+                  endingLineNumber = "161">
+               </Location>
+               <Location
+                  uuid = "EF66BD0A-62F3-4400-BDE6-1B59CF4A2C80 - c023f5b942fc3ea1"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(6) suspend resume partial function for closure #1 () async throws -&gt; () in concertjournal.CreateConcertSelectArtistViewModel.searchArtists(with: Swift.String) -&gt; ()"
+                  moduleName = "concertjournal.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/pkuehnel/ConcertJournal/ios/concertjournal/concertjournal/CreateConcert/CreateConcertVisitView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "161"
+                  endingLineNumber = "161">
+               </Location>
+               <Location
+                  uuid = "EF66BD0A-62F3-4400-BDE6-1B59CF4A2C80 - 79d7b571b37d18c6"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(7) suspend resume partial function for closure #1 () async throws -&gt; () in concertjournal.CreateConcertSelectArtistViewModel.searchArtists(with: Swift.String) -&gt; ()"
+                  moduleName = "concertjournal.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/pkuehnel/ConcertJournal/ios/concertjournal/concertjournal/CreateConcert/CreateConcertVisitView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "161"
+                  endingLineNumber = "161">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
 </Bucket>
