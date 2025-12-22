@@ -183,6 +183,11 @@
             data.forEach(concert => {
                 const el = document.createElement("div");
                 el.className = "concert";
+                
+                el.onclick = () => {
+                window.location.href = `concert.html?id=${concert.id}`;
+                };
+                el.style.cursor = "pointer";
 
                 const imageUrl = concert.artists?.image_url;
 
