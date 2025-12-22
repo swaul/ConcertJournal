@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>FAQ – ConcertJournal</title>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: #0f0f14;
+      color: #ffffff;
+      max-width: 800px;
+      margin-inline: auto;
+    }
+
+    h1 {
+      margin-bottom: 2rem;
+    }
+
+    details {
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      background: #16161d;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 600;
+      list-style: none;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::after {
+      content: "＋";
+      float: right;
+      opacity: 0.7;
+    }
+
+    details[open] summary::after {
+      content: "－";
+    }
+
+    details p {
+      margin-top: 1rem;
+      line-height: 1.6;
+      opacity: 0.9;
+    }
+
+    a {
+      color: #8ab4f8;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    footer {
+      margin-top: 4rem;
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+
+    .loading,
+    .error {
+      opacity: 0.8;
+      font-style: italic;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Häufige Fragen (FAQ)</h1>
+
+<div id="faq">
+  <p class="loading">Lade Inhalte …</p>
+</div>
+
+<footer>
+  <p>
+    <a href="impressum.html">Impressum</a> ·
+    <a href="datenschutz.html">Datenschutz</a>
+  </p>
+</footer>
+
+<!-- Supabase Client -->
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+<script>
+  const SUPABASE_URL = "https://brjekjxckpdlwffcdndn.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_9arAE6MQR0Cj0m-jE3lXCQ_BfNy0PK7";
+
+  const client = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+
+  async function loadFAQ() {
+    const container = document.getElementById("faq");
+    container.innerHTML = "";
+
+    const { data, error } = await client
+      .from("faq_items")
+      .select("question, answer")
+      .eq("is_public", true)
+      .order("order", { ascending: true });
+
+    if (error) {
+      console.error(error);
+      container.innerHTML = `
+        <p class="error">
+          Die FAQ konnten leider nicht geladen werden.
+        </p>
+      `;
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      container.innerHTML = `
+        <p class="loading">
+          Aktuell sind keine Fragen verfügbar.
+        </p>
+      `;
+      return;
+    }
+
+    data.forEach(item => {
+      const details = document.createElement("details");
+      const summary = document.createElement("summary");
+      const answer = document.createElement("p");
+
+      summary.textContent = item.question;
+      answer.textContent = item.answer;
+
+      details.appendChild(summary);
+      details.appendChild(answer);
+
+      container.appendChild(details);
+    });
+  }
+
+  loadFAQ();
+</script>
+
+
+</body>
+</html>

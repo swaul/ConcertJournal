@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Meine Konzerte – ConcertJournal</title>
+
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background: #0f0f14;
+            color: #ffffff;
+            max-width: 900px;
+            margin-inline: auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        button {
+            padding: 0.5rem 0.9rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: transparent;
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+
+        .concert {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .concert img {
+            width: 64px;
+            height: 64px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #222;
+            flex-shrink: 0;
+        }
+
+        .concert-info h2 {
+            margin: 0;
+            font-size: 1.05rem;
+        }
+
+        .concert-info .meta {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        .meta {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        .empty,
+        .loading,
+        .error {
+            opacity: 0.8;
+            font-style: italic;
+            margin-top: 2rem;
+        }
+
+        footer {
+            margin-top: 4rem;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        a {
+            color: #8ab4f8;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Meine Konzerte</h1>
+        <button onclick="logout()">Logout</button>
+    </header>
+
+    <div id="content">
+        <p class="loading">Lade deine Konzerte …</p>
+    </div>
+
+    <footer>
+        <p>
+            <a href="faq.html">FAQ</a> ·
+            <a href="impressum.html">Impressum</a> ·
+            <a href="datenschutz.html">Datenschutz</a>
+        </p>
+    </footer>
+
+    <!-- Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+    <script>
+        const SUPABASE_URL = "https://brjekjxckpdlwffcdndn.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_9arAE6MQR0Cj0m-jE3lXCQ_BfNy0PK7";
+
+        const client = window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_ANON_KEY
+        );
+
+        const content = document.getElementById("content");
+
+        // 🔐 Session prüfen
+        async function requireAuth() {
+            const { data } = await client.auth.getSession();
+
+            if (!data.session) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            loadConcerts(data.session.user.id);
+        }
+
+        // 🎵 Konzerte laden (read-only)
+        async function loadConcerts(userId) {
+            content.innerHTML = "";
+
+            const { data, error } = await client
+                .from("concert_visits")
+                .select(`
+        id,
+        title,
+        venue,
+        date,
+        artists (
+        id,
+        name,
+        image_url
+        )
+    `)
+                .eq("user_id", userId)
+                .order("date", { ascending: false });
+
+            if (error) {
+                console.error(error);
+                content.innerHTML = `
+        <p class="error">
+          Deine Konzerte konnten nicht geladen werden.
+        </p>
+      `;
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                content.innerHTML = `
+        <p class="empty">
+          Du hast noch keine Konzerte gespeichert.
+        </p>
+      `;
+                return;
+            }
+
+            data.forEach(concert => {
+                const el = document.createElement("div");
+                el.className = "concert";
+
+                const imageUrl = concert.artists?.image_url;
+
+                el.innerHTML = `
+    <img
+      src="${imageUrl ?? "https://via.placeholder.com/64"}"
+      alt="${concert.artists?.name ?? "Artist"}"
+      loading="lazy"
+    />
+
+    <div class="concert-info">
+      <h2>${concert.artists?.name ?? "Unbekannter Artist"}</h2>
+      <div class="meta">
+        ${concert.venue ?? "Unbekannter Ort"} ·
+        ${concert.date ?? ""}
+      </div>
+    </div>
+  `;
+
+                content.appendChild(el);
+            });
+
+        }
+
+        // 🚪 Logout
+        async function logout() {
+            await client.auth.signOut();
+            window.location.href = "login.html";
+        }
+
+        requireAuth();
+    </script>
+
+</body>
+
+</html>

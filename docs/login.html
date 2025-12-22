@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login – ConcertJournal</title>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: #0f0f14;
+      color: #ffffff;
+      max-width: 420px;
+      margin-inline: auto;
+    }
+
+    h1 {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.6rem;
+      margin-top: 0.4rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.3);
+      background: #16161d;
+      color: #ffffff;
+      font-size: 0.95rem;
+    }
+
+    button {
+      margin-top: 1.2rem;
+      width: 100%;
+      padding: 0.6rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.3);
+      background: transparent;
+      color: #ffffff;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    button:hover {
+      opacity: 0.85;
+    }
+
+    .divider {
+      text-align: center;
+      margin: 1.5rem 0;
+      opacity: 0.6;
+      font-size: 0.9rem;
+    }
+
+    .error {
+      color: #ff6b6b;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>ConcertJournal</h1>
+
+<label>
+  E-Mail
+  <input id="email" type="email" placeholder="you@example.com" />
+</label>
+
+<label>
+  Passwort
+  <input id="password" type="password" />
+</label>
+
+<button onclick="login()">Einloggen</button>
+<button onclick="signup()">Registrieren</button>
+
+<div class="divider">oder</div>
+
+<button onclick="loginSpotify()">Mit Spotify anmelden</button>
+
+<p id="error" class="error"></p>
+
+<!-- Supabase -->
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+<script>
+  const SUPABASE_URL = "https://brjekjxckpdlwffcdndn.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_9arAE6MQR0Cj0m-jE3lXCQ_BfNy0PK7";
+
+  const client = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+
+  const errorEl = document.getElementById("error");
+
+  async function login() {
+    errorEl.textContent = "";
+
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    const { error } = await client.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      errorEl.textContent = error.message;
+      return;
+    }
+
+    window.location.href = "concerts.html";
+  }
+
+  async function signup() {
+    errorEl.textContent = "";
+
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    const { error } = await client.auth.signUp({
+      email,
+      password
+    });
+
+    if (error) {
+      errorEl.textContent = error.message;
+      return;
+    }
+
+    window.location.href = "concerts.html";
+  }
+
+  async function loginSpotify() {
+    const { error } = await client.auth.signInWithOAuth({
+      provider: "spotify",
+      options: {
+        redirectTo: window.location.origin + "/concerts.html"
+      }
+    });
+
+    if (error) {
+      errorEl.textContent = error.message;
+    }
+  }
+</script>
+
+</body>
+</html>
