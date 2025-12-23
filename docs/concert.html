@@ -147,6 +147,7 @@
 
     <header>
         <a class="back" href="concerts.html">← Zurück zu meinen Konzerten</a>
+        <h1 id="title"></h1>
     </header>
 
     <div id="content">
@@ -164,6 +165,22 @@
             SUPABASE_URL,
             SUPABASE_ANON_KEY
         );
+
+        // format ISO date strings to a readable German date, e.g. "15. Nov. 2024"
+        function formatDate(dateStr) {
+            if (!dateStr) return "";
+            try {
+                const d = new Date(dateStr);
+                if (Number.isNaN(d.getTime())) return dateStr;
+                return new Intl.DateTimeFormat("de-DE", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric"
+                }).format(d);
+            } catch {
+                return dateStr;
+            }
+        }
 
         const content = document.getElementById("content");
 
@@ -222,6 +239,8 @@
                 return;
             }
 
+            document.getElementById("title").textContent = data.title ?? data.artists.name;
+
             content.innerHTML = `
 		  <div class="concert-header">
 			<img
@@ -234,8 +253,8 @@
 			<div class="concert-info">
 			  <h1>${data.artists?.name ?? "Unbekannter Artist"}</h1>
 			  <div class="meta">
-				${data.venue ?? "Unbekannter Ort"} ·
-				${data.date ?? ""}
+				${formatDate(data.date)} · 
+				${data.venue ?? "Unbekannter Ort"}
 			  </div>
 			</div>
 		  </div>

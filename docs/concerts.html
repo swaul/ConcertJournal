@@ -119,6 +119,22 @@
             SUPABASE_ANON_KEY
         );
 
+                // format ISO date strings to a readable German date, e.g. "15. Nov. 2024"
+        function formatDate(dateStr) {
+            if (!dateStr) return "";
+            try {
+                const d = new Date(dateStr);
+                if (Number.isNaN(d.getTime())) return dateStr;
+                return new Intl.DateTimeFormat("de-DE", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric"
+                }).format(d);
+            } catch {
+                return dateStr;
+            }
+        }
+
         const content = document.getElementById("content");
 
         // 🔐 Session prüfen
@@ -195,7 +211,7 @@
       <h2>${concert.artists?.name ?? "Unbekannter Artist"}</h2>
       <div class="meta">
         ${concert.venue ?? "Unbekannter Ort"} ·
-        ${concert.date ?? ""}
+        ${formatDate(concert.date)}
       </div>
     </div>
   `;
