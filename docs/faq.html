@@ -3,8 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <title>FAQ – ConcertJournal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
+    /* global box sizing & font smoothing */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       margin: 0;
@@ -13,65 +18,36 @@
       color: #ffffff;
       max-width: 800px;
       margin-inline: auto;
+      width: 100%;
     }
 
-    h1 {
-      margin-bottom: 2rem;
-    }
+    h1 { margin-bottom: 2rem; }
 
     details {
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255,255,255,0.15);
       border-radius: 8px;
       padding: 1rem;
       margin-bottom: 1rem;
       background: #16161d;
     }
 
-    summary {
-      cursor: pointer;
-      font-weight: 600;
-      list-style: none;
-    }
+    summary { cursor: pointer; font-weight: 600; list-style: none; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "＋"; float: right; opacity: 0.7; }
+    details[open] summary::after { content: "－"; }
+    details p { margin-top: 1rem; line-height: 1.6; opacity: 0.9; }
 
-    summary::-webkit-details-marker {
-      display: none;
-    }
+    a { color: #8ab4f8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    footer { margin-top: 4rem; font-size: 0.9rem; opacity: 0.7; }
+    .loading, .error { opacity: 0.8; font-style: italic; }
 
-    summary::after {
-      content: "＋";
-      float: right;
-      opacity: 0.7;
-    }
-
-    details[open] summary::after {
-      content: "－";
-    }
-
-    details p {
-      margin-top: 1rem;
-      line-height: 1.6;
-      opacity: 0.9;
-    }
-
-    a {
-      color: #8ab4f8;
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    footer {
-      margin-top: 4rem;
-      font-size: 0.9rem;
-      opacity: 0.7;
-    }
-
-    .loading,
-    .error {
-      opacity: 0.8;
-      font-style: italic;
+    @media (max-width: 600px) {
+      body { padding: 1rem; }
+      details { padding: 0.75rem; }
+      summary { font-size: 0.95rem; }
+      details p { font-size: 0.95rem; }
+      footer { margin-top: 2.5rem; }
     }
   </style>
 </head>

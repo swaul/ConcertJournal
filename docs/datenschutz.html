@@ -5,24 +5,29 @@
   <title>Datenschutzerklärung - ConcertJournal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    /* global box sizing & font smoothing */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       margin: 0;
       padding: 2rem;
       background: #0f0f14;
       color: #ffffff;
+      max-width: 900px;
+      margin-inline: auto;
+      width: 100%;
     }
-    footer {
-      margin-top: 4rem;
-      font-size: 0.9rem;
-      opacity: 0.7;
-    }
-    a {
-      color: #8ab4f8;
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
+
+    footer { margin-top: 4rem; font-size: 0.9rem; opacity: 0.7; }
+    a { color: #8ab4f8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    @media (max-width: 600px) {
+      body { padding: 1rem; }
+      h1 { font-size: 1.25rem; }
+      footer { margin-top: 2.5rem; }
     }
   </style>
 </head>

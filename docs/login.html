@@ -3,8 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <title>Login – ConcertJournal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
+    /* global box sizing & font smoothing */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       margin: 0;
@@ -13,34 +18,29 @@
       color: #ffffff;
       max-width: 420px;
       margin-inline: auto;
+      width: 100%;
     }
 
-    h1 {
-      margin-bottom: 1.5rem;
-    }
+    h1 { margin-bottom: 1.5rem; }
 
-    label {
-      display: block;
-      margin-top: 1rem;
-      font-size: 0.9rem;
-      opacity: 0.8;
-    }
+    label { display: block; margin-top: 1rem; font-size: 0.9rem; opacity: 0.8; }
 
     input {
       width: 100%;
-      padding: 0.6rem;
+      padding: 0.7rem;
       margin-top: 0.4rem;
       border-radius: 8px;
       border: 1px solid rgba(255,255,255,0.3);
       background: #16161d;
       color: #ffffff;
       font-size: 0.95rem;
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
     }
 
     button {
-      margin-top: 1.2rem;
+      margin-top: 1rem;
       width: 100%;
-      padding: 0.6rem;
+      padding: 0.7rem;
       border-radius: 8px;
       border: 1px solid rgba(255,255,255,0.3);
       background: transparent;
@@ -49,21 +49,13 @@
       font-size: 0.95rem;
     }
 
-    button:hover {
-      opacity: 0.85;
-    }
+    .divider { text-align: center; margin: 1.5rem 0; opacity: 0.6; font-size: 0.9rem; }
+    .error { color: #ff6b6b; margin-top: 1rem; font-size: 0.9rem; }
 
-    .divider {
-      text-align: center;
-      margin: 1.5rem 0;
-      opacity: 0.6;
-      font-size: 0.9rem;
-    }
-
-    .error {
-      color: #ff6b6b;
-      margin-top: 1rem;
-      font-size: 0.9rem;
+    @media (max-width: 420px) {
+      body { padding: 1rem; }
+      input, button { font-size: 0.95rem; padding: 0.65rem; }
+      .divider { margin: 1rem 0; }
     }
   </style>
 </head>

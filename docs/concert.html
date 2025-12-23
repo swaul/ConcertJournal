@@ -4,8 +4,16 @@
 <head>
     <meta charset="UTF-8" />
     <title>Konzert – ConcertJournal</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
+        /* global box sizing for predictable layout on small screens */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        /* subtle font smoothing for better rendering on mobile */
+        html, body { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+
         body {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
             margin: 0;
@@ -14,6 +22,7 @@
             color: #ffffff;
             max-width: 800px;
             margin-inline: auto;
+            width: 100%;
         }
 
         a {
@@ -30,8 +39,13 @@
         }
 
         .back {
-            font-size: 0.9rem;
-            opacity: 0.8;
+            font-size: 0.95rem;
+            opacity: 0.9;
+            display: inline-block;
+            padding: 0.45rem 0.6rem;
+            /* larger tap target */
+            border-radius: 8px;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
         }
 
         .concert-header {
@@ -41,18 +55,21 @@
             margin-top: 1.5rem;
         }
 
-        .concert-header img {
+        /* default (desktop) artist image */
+        .artist-image {
             width: 96px;
             height: 96px;
             border-radius: 12px;
             object-fit: cover;
             background: #222;
             flex-shrink: 0;
+            display: block;
         }
 
         .concert-info h1 {
             margin: 0;
             font-size: 1.6rem;
+            word-break: break-word;
         }
 
         .meta {
@@ -74,6 +91,54 @@
             margin-top: 3rem;
             opacity: 0.8;
             font-style: italic;
+        }
+
+        /* responsive adjustments for small screens */
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+
+            .concert-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            /* make the image fluid on narrow screens */
+            .artist-image {
+                width: 72px;
+                height: 72px;
+                border-radius: 10px;
+                max-width: 100%;
+            }
+
+            .concert-info h1 {
+                font-size: 1.2rem;
+            }
+
+            .meta {
+                font-size: 0.9rem;
+            }
+
+            .section,
+            .loading,
+            .error {
+                margin-top: 1.5rem;
+                padding-top: 1rem;
+            }
+
+            .back {
+                font-size: 0.95rem;
+                padding: 0.5rem;
+            }
+        }
+
+        /* ensure very small screens keep readable layout */
+        @media (max-width: 360px) {
+            .artist-image { width: 64px; height: 64px; }
+            body { padding-left: 0.75rem; padding-right: 0.75rem; }
+            .concert-info h1 { font-size: 1.05rem; }
         }
     </style>
 </head>
@@ -158,25 +223,27 @@
             }
 
             content.innerHTML = `
-      <div class="concert-header">
-        <img
-          src="${data.artists?.image_url ?? "https://via.placeholder.com/96"}"
-          alt="${data.artists?.name ?? "Artist"}"
-        />
+		  <div class="concert-header">
+			<img
+			  class="artist-image"
+			  src="${data.artists?.image_url ?? "https://via.placeholder.com/96"}"
+			  alt="${data.artists?.name ?? "Artist"}"
+			  loading="lazy"
+			/>
 
-        <div class="concert-info">
-          <h1>${data.artists?.name ?? "Unbekannter Artist"}</h1>
-          <div class="meta">
-            ${data.venue ?? "Unbekannter Ort"} ·
-            ${data.date ?? ""}
-          </div>
-        </div>
-      </div>
+			<div class="concert-info">
+			  <h1>${data.artists?.name ?? "Unbekannter Artist"}</h1>
+			  <div class="meta">
+				${data.venue ?? "Unbekannter Ort"} ·
+				${data.date ?? ""}
+			  </div>
+			</div>
+		  </div>
 
-      <div class="section">
-        Weitere Details (Notizen, Setlist, Bewertung) folgen bald 🎶
-      </div>
-    `;
+		  <div class="section">
+			Weitere Details (Notizen, Setlist, Bewertung) folgen bald 🎶
+		  </div>
+		`;
         }
 
         async function init() {

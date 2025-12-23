@@ -4,8 +4,13 @@
 <head>
     <meta charset="UTF-8" />
     <title>Meine Konzerte – ConcertJournal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <style>
+        /* global box sizing & font smoothing for mobile */
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+
         body {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
             margin: 0;
@@ -14,6 +19,7 @@
             color: #ffffff;
             max-width: 900px;
             margin-inline: auto;
+            width: 100%;
         }
 
         header {
@@ -21,77 +27,63 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 2rem;
+            gap: 1rem;
         }
 
-        h1 {
-            margin: 0;
-        }
+        h1 { margin: 0; }
 
         button {
             padding: 0.5rem 0.9rem;
             border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255,255,255,0.3);
             background: transparent;
-            color: #ffffff;
+            color: #fff;
             cursor: pointer;
             font-size: 0.9rem;
-        }
-
-        button:hover {
-            opacity: 0.8;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
         }
 
         .concert {
             display: flex;
             gap: 1rem;
             align-items: center;
+            padding: 0.5rem 0;
         }
 
-        .concert img {
+        /* reusable artist image */
+        .artist-image {
             width: 64px;
             height: 64px;
             border-radius: 8px;
             object-fit: cover;
             background: #222;
             flex-shrink: 0;
+            display: block;
         }
 
-        .concert-info h2 {
-            margin: 0;
-            font-size: 1.05rem;
+        .concert-info h2 { margin: 0; font-size: 1.05rem; }
+        .concert-info .meta { font-size: 0.9rem; opacity: 0.7; }
+
+        .empty, .loading, .error { opacity: 0.8; font-style: italic; margin-top: 2rem; }
+
+        footer { margin-top: 4rem; font-size: 0.9rem; opacity: 0.7; }
+        a { color: #8ab4f8; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* responsive */
+        @media (max-width: 600px) {
+            body { padding: 1rem; }
+            header { flex-direction: column; align-items: stretch; gap: 0.75rem; }
+            button { padding: 0.6rem; align-self: flex-end; }
+            .concert { flex-direction: row; gap: 0.75rem; align-items: center; }
+            .artist-image { width: 56px; height: 56px; }
+            .concert-info h2 { font-size: 1rem; }
         }
 
-        .concert-info .meta {
-            font-size: 0.9rem;
-            opacity: 0.7;
-        }
-
-        .meta {
-            font-size: 0.9rem;
-            opacity: 0.7;
-        }
-
-        .empty,
-        .loading,
-        .error {
-            opacity: 0.8;
-            font-style: italic;
-            margin-top: 2rem;
-        }
-
-        footer {
-            margin-top: 4rem;
-            font-size: 0.9rem;
-            opacity: 0.7;
-        }
-
-        a {
-            color: #8ab4f8;
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
+        @media (max-width: 360px) {
+            .artist-image { width: 48px; height: 48px; }
+            body { padding-left: 0.75rem; padding-right: 0.75rem; }
+            .concert-info h2 { font-size: 0.95rem; }
         }
     </style>
 </head>
@@ -193,6 +185,7 @@
 
                 el.innerHTML = `
     <img
+      class="artist-image"
       src="${imageUrl ?? "https://via.placeholder.com/64"}"
       alt="${concert.artists?.name ?? "Artist"}"
       loading="lazy"
