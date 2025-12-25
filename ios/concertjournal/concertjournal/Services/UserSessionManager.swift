@@ -2,70 +2,37 @@ import Foundation
 import Supabase
 import Combine
 
+enum UserContext {
+    case loggedOut
+    case initializing
+    case loggedIn(User)
+}
+
 @MainActor
-final class UserSessionManager: ObservableObject {
+final class UserSessionManager: ObservableObject, UserProviding {
     
-    static let shared = UserSessionManager()
+    @Published private(set) var session: Session?
+    @Published private(set) var user: User?
     
-    @Published var currentUser: User?
-    @Published var isAuthenticated: Bool = false
-    @Published var isLoading: Bool = false
-    @Published var errorMessage: String?
-
-    private let client: SupabaseClient
-    private var authTask: Task<Void, Never>?
-
-    init() {
-        self.client = SupabaseManager.shared.client
-    }
-
-    func start() {
-        // Initial fetch
-        Task { await refreshSession() }
-        // Subscribe to auth state changes
-        authTask?.cancel()
-        authTask = Task { [weak self] in
-            guard let self else { return }
-            for await state in self.client.auth.authStateChanges {
-                switch state.event {
-                case .signedIn, .tokenRefreshed, .userUpdated:
-                    await self.refreshSession()
-                case .signedOut, .userDeleted:
-                    self.currentUser = nil
-                    self.isAuthenticated = false
-                default:
-                    break
-                }
+    func start() async {
+        let client = SupabaseManager.shared.client
+        Task {
+            let session = try await client.auth.session
+            update(session: session)
+            
+            for await event in client.auth.authStateChanges {
+                update(session: event.session)
             }
         }
     }
-
-    func stop() {
-        authTask?.cancel()
-        authTask = nil
+    
+    private func update(session: Session?) {
+        self.session = session
+        self.user = session?.user
     }
-
-    func refreshSession() async {
-        isLoading = true
-        defer { isLoading = false }
-        do {
-            let session = try await client.auth.session
-            self.currentUser = session.user
-            self.isAuthenticated = session.user != nil
-        } catch {
-            self.currentUser = nil
-            self.isAuthenticated = false
-        }
-    }
-
-    // Convenience passthroughs (optional)
-    func signOut() async {
-        isLoading = true
-        defer { isLoading = false }
-        do {
-            try await client.auth.signOut()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
+    
+    func loadUser() async throws -> User {
+        let user = try await SupabaseManager.shared.client.auth.user()
+        return user
     }
 }

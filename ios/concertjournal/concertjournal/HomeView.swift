@@ -9,72 +9,145 @@ import Combine
 import Supabase
 import SwiftUI
 
+enum NavigationRoute: Hashable {
+    case profile
+    case createVisitArtist
+    case createVisit(CreateConcertVisitViewModel)
+    case faq
+}
+
+class NavigationManager: ObservableObject {
+    @Published var path: [NavigationRoute] = []
+    
+    func push(view: NavigationRoute) {
+        path.append(view)
+    }
+    
+    func pop(to target: NavigationRoute? = nil) {
+        if let targetIndex = path.firstIndex(where: { $0 == target }) {
+            path = []
+        } else {
+            path = []
+        }
+    }
+}
+
 struct HomeView: View {
     
-    @StateObject private var vm = ConcertsViewModel()
-    @State private var path = NavigationPath()
+    init(userManager: UserSessionManager) {
+        self.userManager = userManager
+    }
     
+    @ObservedObject private var userManager: UserSessionManager
+    
+    @StateObject private var navigationManager = NavigationManager()
+    @StateObject private var vm = ConcertsViewModel()
+        
     var body: some View {
-        NavigationStack(path: $path) {
+        NavigationStack(path: $navigationManager.path) {
             ScrollView {
                 VStack(alignment: .leading) {
                     ForEach(vm.visits) { visit in
                         Section(visit.title ?? visit.artist.name) {
-                            HStack {
-                                AsyncImage(url: URL(string: visit.artist.imageUrl)) { result in
-                                    result.image?
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(width: 100)
-                                }
-                            
-                                VStack(alignment: .leading) {
-                                    Text(visit.artist.name)
-                                        .lineLimit(nil)
-                                        .foregroundStyle(.white)
-                                    if let venue = visit.venue {
-                                        Text(venue)
-                                            .foregroundStyle(.white)
-                                    }
-                                    if let city = visit.city {
-                                        Text(city)
-                                            .foregroundStyle(.white)
-                                    }
-                                }
-                                .padding(.horizontal)
-                                
-                                Spacer()
-                            }
-                            .background {
-                                Color.black
-                            }
-                            .cornerRadius(10)
-                            .frame(maxWidth: .infinity)
+                            visitSection(visit: visit)
                         }
                     }
                 }
                 .padding()
                 .frame(maxWidth: .infinity)
             }
+            .safeAreaInset(edge: .bottom) {
+                createButton
+            }
+            .onChange(of: navigationManager.path) { oldValue, newValue in
+                if oldValue != newValue, newValue.isEmpty {
+                    vm.reloadData()
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        path.append("create")
+                        navigationManager.push(view: .profile)
                     } label: {
-                        Image(systemName: "plus.circle.fill")
+                        Image(systemName: "person")
                     }
                 }
             }
             .navigationTitle("Concerts")
-            .navigationDestination(for: String.self) { route in
+            .navigationDestination(for: NavigationRoute.self) { route in
                 switch route {
-                case "create":
+                case .createVisitArtist:
                     CreateConcertSelectArtistView()
-                default:
-                    EmptyView()
+                        .environmentObject(navigationManager)
+                case .createVisit(let viewModel):
+                    CreateConcertVisitView(viewModel: viewModel)
+                        .environmentObject(navigationManager)
+                case .profile:
+                    ProfileView(viewModel: ProfileViewModel(userProvider: userManager))
+                        .environmentObject(navigationManager)
+                case .faq:
+                    FAQView()
                 }
             }
         }
+    }
+    
+    func visitSection(visit: FullConcertVisit) -> some View {
+        HStack {
+            Group {
+                AsyncImage(url: URL(string: visit.artist.imageUrl ?? "")) { result in
+                    switch result {
+                    case .empty:
+                        Color.gray
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                    case .failure:
+                        Color.red
+                    @unknown default:
+                        Color.blue
+                    }
+                }
+            }
+            .frame(width: 100)
+        
+            VStack(alignment: .leading) {
+                Text(visit.artist.name)
+                    .lineLimit(nil)
+                    .foregroundStyle(.white)
+                if let venue = visit.venue {
+                    Text(venue)
+                        .foregroundStyle(.white)
+                }
+                if let city = visit.city {
+                    Text(city)
+                        .foregroundStyle(.white)
+                }
+            }
+            .padding(.horizontal)
+            
+            Spacer()
+        }
+        .background {
+            Color.black
+        }
+        .cornerRadius(10)
+        .frame(maxWidth: .infinity)
+
+    }
+    
+    var createButton: some View {
+        HStack {
+            Spacer()
+            Button {
+                navigationManager.push(view: .createVisitArtist)
+            } label: {
+                Image(systemName: "plus.circle.fill")
+            }
+            .buttonStyle(.glassProminent)
+        }
+        .padding()
     }
     
     private func refreshVisits() async {
@@ -88,9 +161,9 @@ struct HomeView: View {
     
 }
 
-#Preview {
-    HomeView()
-}
+//#Preview {
+//    HomeView()
+//}
 
 class ConcertsViewModel: ObservableObject {
     @Published var visits = [FullConcertVisit]()
@@ -103,6 +176,12 @@ class ConcertsViewModel: ObservableObject {
             } catch {
                 print("could not load concerts")
             }
+        }
+    }
+    
+    func reloadData() {
+        Task {
+            visits = try await loadData()
         }
     }
     

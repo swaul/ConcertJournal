@@ -11,7 +11,8 @@ import Supabase
 @main
 struct concertjournalApp: App {
     
-    @StateObject private var session = UserSessionManager()
+    @StateObject private var userManager = UserSessionManager()
+    
     @State var isLoading: Bool = true
     
     var body: some Scene {
@@ -22,15 +23,15 @@ struct concertjournalApp: App {
                         .progressViewStyle(.circular)
                         .scaleEffect(1.2)
                 } else {
-                    if session.isAuthenticated {
-                        HomeView()
+                    if userManager.user != nil {
+                        HomeView(userManager: userManager)
                     } else {
                         LoginView()
                     }
                 }
             }
             .task {
-                session.start()
+                await userManager.start()
             }
             .task {
                 await LocalizationManager.shared.loadLocale("de")

@@ -35,7 +35,7 @@ final class AuthViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
         do {
-            _ = try await client.auth.signUp(email: email, password: password)
+            let result = try await client.auth.signUp(email: email, password: password)
             await refreshSessionState()
         } catch {
             errorMessage = error.localizedDescription
