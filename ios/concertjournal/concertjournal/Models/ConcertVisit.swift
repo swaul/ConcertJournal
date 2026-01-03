@@ -37,7 +37,15 @@ public struct ConcertVisit: Codable {
     }
 }
 
-public struct FullConcertVisit: Codable, Identifiable {
+public struct FullConcertVisit: Codable, Identifiable, Equatable, Hashable {
+    public static func == (lhs: FullConcertVisit, rhs: FullConcertVisit) -> Bool {
+        lhs.id == rhs.id
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
     public let id: String
     public let createdAt: Date
     public let updatedAt: Date

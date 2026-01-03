@@ -9,7 +9,7 @@ import SwiftUI
 
 struct CreateConcertSelectArtistView: View {
     
-    @EnvironmentObject var navigationManager: NavigationManager
+    var didSelectArtist: (Artist) -> Void?
     
     @StateObject var viewModel = CreateConcertSelectArtistViewModel()
     
@@ -23,6 +23,7 @@ struct CreateConcertSelectArtistView: View {
     @Namespace var selection
     
     var body: some View {
+        NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(viewModel.artistsResponse) { artist in
@@ -30,59 +31,62 @@ struct CreateConcertSelectArtistView: View {
                             selectedArtist = artist.id
                         } label: {
                             makeArtistView(artist: artist)
+                                .contentShape(.rect)
                         }
                         .buttonStyle(.plain)
                     }
                 }
                 .padding()
             }
-        .toolbar {
-            if selectedArtist != nil {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        guard let artist = viewModel.artistsResponse.first(where: { $0.id == selectedArtist }) else { return }
-                        navigationManager.push(view: .createVisit(CreateConcertVisitViewModel(artist: artist)))
-                    } label: {
-                        Text("Next")
+            .toolbar {
+                if selectedArtist != nil {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            guard let artist = viewModel.artistsResponse.first(where: { $0.id == selectedArtist }) else { return }
+                            didSelectArtist(Artist(artist: artist))
+                        } label: {
+                            Text("Next")
+                        }
                     }
                 }
             }
-        }
-        .safeAreaInset(edge: .bottom) {
-            HStack {
-                TextField(text: $artistName) {
-                    Text("Select an artist")
-                }
-                .focused($textFieldFocused)
-                .submitLabel(.search)
-                .onSubmit {
-                    viewModel.searchArtists(with: artistName)
-                    textFieldFocused = false
-                }
-                .onChange(of: artistName) { _, newValue in
+            .safeAreaInset(edge: .bottom) {
+                HStack {
+                    TextField(text: $artistName) {
+                        Text("Select an artist")
+                    }
+                    .focused($textFieldFocused)
+                    .submitLabel(.search)
+                    .onSubmit {
+                        viewModel.searchArtists(with: artistName)
+                        textFieldFocused = false
+                    }
+                    .onChange(of: artistName) { _, newValue in
                         withAnimation {
                             hasText = !newValue.isEmpty
                         }
                     }
-                .padding()
-                .glassEffect()
-
-                if hasText {
-                    Button {
-                        viewModel.searchArtists(with: artistName)
-                        textFieldFocused = false
-                    } label: {
-                        Text("Search")
+                    .padding()
+                    .glassEffect()
+                    
+                    if hasText {
+                        Button {
+                            viewModel.searchArtists(with: artistName)
+                            textFieldFocused = false
+                        } label: {
+                            Text("Search")
+                        }
+                        .buttonStyle(.glassProminent)
                     }
-                    .buttonStyle(.glassProminent)
+                }
+                .padding(.horizontal)
+            }
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    textFieldFocused = true
                 }
             }
-            .padding(.horizontal)
-        }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                textFieldFocused = true
-            }
+            .navigationTitle("Select an Artist")
         }
     }
     

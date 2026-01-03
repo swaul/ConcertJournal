@@ -8,15 +8,40 @@
 import Foundation
 
 public struct Artist: Codable {
+    
     let id: String
     let name: String
     let imageUrl: String?
-    let spotifyArtistId: String
+    let spotifyArtistId: String?
     
     enum CodingKeys: String, CodingKey {
         case id
         case name
         case imageUrl = "image_url"
         case spotifyArtistId = "spotify_artist_id"
+    }
+    
+    init(artist: SpotifyArtist) {
+        id = UUID().uuidString
+        name = artist.name
+        imageUrl = artist.firstImageURL?.absoluteString
+        spotifyArtistId = artist.id
+    }
+    
+    init(name: String, imageUrl: String? = nil, spotifyArtistId: String?) {
+        self.id = UUID().uuidString
+        self.name = name
+        self.imageUrl = imageUrl
+        self.spotifyArtistId = spotifyArtistId
+    }
+    
+    func toData() -> [String: String] {
+        let data: [String: String] = [
+            "name": name,
+            "image_url": imageUrl ?? "",
+            "spotify_artist_id": spotifyArtistId ?? ""
+        ]
+        
+        return data
     }
 }

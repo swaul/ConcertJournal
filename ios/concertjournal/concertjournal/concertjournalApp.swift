@@ -12,6 +12,7 @@ import Supabase
 struct concertjournalApp: App {
     
     @StateObject private var userManager = UserSessionManager()
+    @StateObject private var colorTheme = ColorThemeManager()
     
     @State var isLoading: Bool = true
     
@@ -21,15 +22,18 @@ struct concertjournalApp: App {
                 if isLoading {
                     ProgressView()
                         .progressViewStyle(.circular)
-                        .scaleEffect(1.2)
+                        .scaleEffect(2.5)
                 } else {
                     if userManager.user != nil {
-                        HomeView(userManager: userManager)
+                        ConcertsView(userManager: userManager)
                     } else {
                         LoginView()
                     }
                 }
             }
+            .tint(colorTheme.appTint)
+            .environment(\.appTintColor, colorTheme.appTint)
+            .environmentObject(colorTheme)
             .task {
                 await userManager.start()
             }

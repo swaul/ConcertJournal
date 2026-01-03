@@ -64,6 +64,16 @@ final class ProfileViewModel: ObservableObject {
             }
         }
     }
+    
+    func signOut() {
+        Task { @MainActor in
+            do {
+                _ = try await SupabaseManager.shared.client.auth.signOut()
+            } catch {
+                print(error)
+            }
+        }
+    }
 }
 
 struct ProfileView: View {
@@ -110,11 +120,23 @@ struct ProfileView: View {
                                 }
                             }
                             .accessibilityIdentifier("faqButton")
+
+                            Button {
+                                navigationManager.push(view: .colorPicker)
+                            } label: {
+                                HStack {
+                                    Text("Color")
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                }
+                            }
+                            .accessibilityIdentifier("colorButton")
                         }
                         
                         Section {
                             Button(role: .destructive) {
                                 print("sign out")
+                                viewModel.signOut()
                             } label: {
                                 HStack {
                                     Image(systemName: "rectangle.portrait.and.arrow.right")

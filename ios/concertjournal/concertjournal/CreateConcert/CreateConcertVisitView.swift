@@ -37,11 +37,10 @@ class CreateConcertVisitViewModel: ObservableObject, Hashable, Equatable {
     }
     
     let id: String
-    let artist: SpotifyArtist
+    @Published var artist: Artist?
     
-    init(artist: SpotifyArtist) {
+    init() {
         self.id = UUID().uuidString
-        self.artist = artist
     }
     
 }
@@ -50,91 +49,125 @@ struct CreateConcertVisitView: View {
     
     @EnvironmentObject var navigationManager: NavigationManager
 
-    @StateObject var viewModel: CreateConcertVisitViewModel
+    @StateObject var viewModel = CreateConcertVisitViewModel()
     
     @State private var draft = NewConcertVisit()
     @State private var presentConfirmation = false
     
+    @State private var selectArtistPresenting = false
+    
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading) {
-                Section(header: Text("Artist")) {
-                    HStack {
-                        Group {
-                            if let url = viewModel.artist.firstImageURL {
-                                AsyncImage(url: url) { result in
-                                    result.image?
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                        .frame(width: 80)
-                                }
-                            } else {
-                                ZStack {
-                                    Rectangle()
-                                        .frame(width: 80, height: 80)
-                                        .background { Color.gray }
-                                    Image(systemName: "note")
-                                        .frame(width: 32)
-                                        .foregroundStyle(.white)
+        Group {
+            if let artist = viewModel.artist {
+                ScrollView {
+                    VStack(alignment: .leading) {
+                        ZStack {
+                            Group {
+                                if let url = artist.imageUrl {
+                                    AsyncImage(url: URL(string: url)) { result in
+                                        result.image?
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                            .frame(maxWidth: .infinity)
+                                    }
+                                } else {
+                                    ZStack {
+                                        Rectangle()
+                                            .frame(maxWidth: .infinity)
+                                            .background { Color.gray }
+                                        Image(systemName: "note")
+                                            .frame(width: 32)
+                                            .foregroundStyle(.white)
+                                    }
                                 }
                             }
+                            // Fade overlay at the bottom (transparent to match background)
+                            LinearGradient(
+                                colors: [Color.clear, Color.clear, Color.black.opacity(0.15), Color.black.opacity(0.35), Color.black.opacity(0.6)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                            .allowsHitTesting(false)
                         }
-                        .clipShape(.circle)
-                        .frame(height: 80)
+                        .mask(
+                            LinearGradient(
+                                gradient: Gradient(stops: [
+                                    .init(color: .black, location: 0.0),
+                                    .init(color: .black, location: 0.75),
+                                    .init(color: .clear, location: 1.0)
+                                ]),
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .ignoresSafeArea()
+                        .frame(maxWidth: .infinity)
+                        .overlay {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Spacer()
+                                Text(artist.name)
+                                    .bold()
+                                    .font(.system(size: 40))
+                                    .padding()
+                                    .glassEffect()
+
+                            }
+                            .padding(.vertical)
+                            .padding(.trailing)
+                        }
+                        
+                        DatePicker("Concert date", selection: $draft.date, displayedComponents: .date)
+                            .padding()
+                            .glassEffect()
+                            .padding()
+                        
+                        TextField("Title (optional)", text: $draft.title)
+                            .textInputAutocapitalization(.words)
+                            .padding()
+                            .glassEffect()
+                        
+                        TextField("Venue (optional)", text: $draft.venue)
+                            .textInputAutocapitalization(.words)
+                            .padding()
+                            .glassEffect()
+                        
+                        TextField("City (optional)", text: $draft.city)
+                            .textInputAutocapitalization(.words)
+                            .padding()
+                            .glassEffect()
+                        
+                        
+                        Stepper(value: $draft.rating, in: 0...10) {
+                            HStack {
+                                Text("Rating")
+                                Spacer()
+                                Text("\(draft.rating)")
+                                    .monospacedDigit()
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                         .padding()
+                        .glassEffect()
                         
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(viewModel.artist.name)
-                                .bold()
-                                .font(.system(size: 40))
-                        }
-                        .padding(.vertical)
-                        .padding(.trailing)
-                        
-                        Spacer()
+                        TextEditor(text: $draft.notes)
+                            .background { Color.clear }
+                            .frame(minHeight: 120)
+                            .padding()
+                            .glassEffect()
                     }
                 }
-                .glassEffect()
-                
-                DatePicker("Concert date", selection: $draft.date, displayedComponents: .date)
-                    .padding()
-                    .glassEffect()
-                
-                TextField("Title (optional)", text: $draft.title)
-                    .textInputAutocapitalization(.words)
-                    .padding()
-                    .glassEffect()
-                
-                TextField("Venue (optional)", text: $draft.venue)
-                    .textInputAutocapitalization(.words)
-                    .padding()
-                    .glassEffect()
-                
-                TextField("City (optional)", text: $draft.city)
-                    .textInputAutocapitalization(.words)
-                    .padding()
-                    .glassEffect()
-                
-                
-                Stepper(value: $draft.rating, in: 0...10) {
-                    HStack {
-                        Text("Rating")
-                        Spacer()
-                        Text("\(draft.rating)")
-                            .monospacedDigit()
-                            .foregroundStyle(.secondary)
+            } else {
+                VStack(alignment: .leading) {
+                    Spacer()
+                    
+                    Button {
+                        selectArtistPresenting = true
+                    } label: {
+                        Text("Select Artist")
                     }
+                    .padding(.bottom, 32)
                 }
-                .padding()
-                .glassEffect()
-                
-                TextEditor(text: $draft.notes)
-                    .background { Color.clear }
-                    .frame(minHeight: 120)
-                    .padding()
-                    .glassEffect()
             }
-            .padding()
         }
         .sheet(isPresented: $presentConfirmation, onDismiss: {
             navigationManager.pop()
@@ -143,17 +176,18 @@ struct CreateConcertVisitView: View {
         })
         .navigationTitle("New Concert")
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            draft.artistName = viewModel.artist.name
+        .sheet(isPresented: $selectArtistPresenting) {
+            CreateConcertSelectArtistView(didSelectArtist: { artist in
+                viewModel.artist = artist
+                self.selectArtistPresenting = false
+            })
         }
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") { navigationManager.pop() }
-                    .glassEffect()
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") { save() }
-                    .glassEffect()
             }
         }
     }
@@ -165,42 +199,61 @@ struct CreateConcertVisitView: View {
     private func createVisit(from new: NewConcertVisit) {
         Task {
             do {
-                guard let userId = SupabaseManager.shared.client.auth.currentUser?.id else { return }
+                guard let userId = SupabaseManager.shared.client.auth.currentUser?.id,
+                      let artist = viewModel.artist else {
+                    print("createVisit: Missing user or artist")
+                    return
+                }
 
-                // Get-or-create artist by spotify_artist_id
-                let existingArtists: [Artist] = try await SupabaseManager.shared.client
-                    .from("artists")
-                    .select()
-                    .eq("spotify_artist_id", value: viewModel.artist.id)
-                    .execute()
-                    .value
-
+                let existingArtistId: String?
+                
+                if let spotifyArtistId = artist.spotifyArtistId {
+                    // Get-or-create artist by spotify_artist_id (must match your DB column type)
+                    let existingArtists: [Artist] = try await SupabaseManager.shared.client
+                        .from("artists")
+                        .select()
+                        .eq("spotify_artist_id", value: spotifyArtistId)
+                        .execute()
+                        .value
+                    
+                    existingArtistId = existingArtists.first?.id
+                } else {
+                    let existingArtists: [Artist] = try await SupabaseManager.shared.client
+                        .from("artists")
+                        .select()
+                        .eq("name", value: artist.name)
+                        .execute()
+                        .value
+                    
+                    existingArtistId = existingArtists.first?.id
+                }
+                
                 let artistId: String
 
-                if let existing = existingArtists.first {
-                    // Already exists — use database id
-                    artistId = existing.id
+                if let existingArtistId {
+                    artistId = existingArtistId
                 } else {
-                    // Not found — insert a new artist and return the inserted row
-                    let newArtist = Artist(
-                        id: UUID().uuidString,
-                        name: viewModel.artist.name,
-                        imageUrl: viewModel.artist.firstImageURL?.absoluteString,
-                        spotifyArtistId: viewModel.artist.id
-                    )
-
-                    _ = try await SupabaseManager.shared.client
+                    // Insert artist and prefer returning the inserted row to get canonical id
+                    let artistData = artist.toData()
+                    let inserted: Artist = try await SupabaseManager.shared.client
                         .from("artists")
-                        .insert(newArtist)
+                        .insert(artistData)
                         .select()
                         .single()
                         .execute()
                         .value
-
-                    artistId = newArtist.id
+                    
+                    artistId = inserted.id
                 }
 
-                let dateString = ISO8601DateFormatter().string(from: new.date)
+                // Format date as ISO8601 with fractional seconds in UTC (commonly accepted by Postgres timestamptz)
+                let formatter = ISO8601DateFormatter()
+                formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                formatter.timeZone = TimeZone(secondsFromGMT: 0)
+                let dateString = formatter.string(from: new.date)
+
+                // NOTE: If your `user_id` column is a UUID type, sending a string is typically fine,
+                // but if you have issues, consider mapping to `.string` vs `.uuid` depending on your AnyJSON support.
                 let payload: [String: AnyJSON] = [
                     "user_id": .string(userId.uuidString),
                     "artist_id": .string(artistId),
@@ -211,26 +264,43 @@ struct CreateConcertVisitView: View {
                     "rating": .integer(new.rating),
                     "title": new.title.isEmpty ? .null : .string(new.title)
                 ]
-                _ = try await SupabaseManager.shared.client
+
+                // Insert visit and log returned value for debugging
+                let response = try await SupabaseManager.shared.client
                     .from("concert_visits")
                     .insert(payload)
+                    .select()
+                    .single()
                     .execute()
-                
+
+                // Optional: print the inserted visit for verification
+                #if DEBUG
+                do {
+                    let data = try JSONSerialization.data(withJSONObject: response.data, options: [.prettyPrinted])
+                    if let json = String(data: data, encoding: .utf8) {
+                        print("Inserted concert_visits row:\n\(json)")
+                    }
+                } catch {
+                    print("Debug print of inserted row failed: \(error)")
+                }
+                #endif
+
                 showConfirmation()
             } catch {
+                // Try to surface as much info as possible from Supabase errors
                 print("failed to create visit: \(error)")
             }
         }
     }
-    
+
     func showConfirmation() {
         presentConfirmation = true
     }
 }
 
-//#Preview {
-//    CreateConcertVisitView(availableArtists: ["Taylor Swift", "The National", "boygenius"]) { _ in }
-//}
+#Preview {
+    CreateConcertVisitView()
+}
 
 struct ConfirmationView: View {
     @Environment(\.dismiss) private var dismiss
@@ -290,6 +360,3 @@ struct CheckmarkShape: Shape {
     }
 }
 
-#Preview {
-    ConfirmationView()
-}
