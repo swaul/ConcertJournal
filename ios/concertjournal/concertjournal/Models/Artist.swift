@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Supabase
 
 public struct Artist: Codable {
     
@@ -35,12 +36,21 @@ public struct Artist: Codable {
         self.spotifyArtistId = spotifyArtistId
     }
     
-    func toData() -> [String: String] {
-        let data: [String: String] = [
-            "name": name,
-            "image_url": imageUrl ?? "",
-            "spotify_artist_id": spotifyArtistId ?? ""
+    var toData: [String: AnyJSON] {
+        var data: [String: AnyJSON] = [
+            "name": .string(name),
         ]
+        
+        if let imageUrl {
+            data["image_url"] = .string(imageUrl)
+        } else {
+            data["image_url"] = .null
+        }
+        if let spotifyArtistId {
+            data["spotify_artist_id"] = .string(spotifyArtistId)
+        } else {
+            data["spotify_artist_id"] = .null
+        }
         
         return data
     }

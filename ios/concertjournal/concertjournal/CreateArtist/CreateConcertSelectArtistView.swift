@@ -9,10 +9,13 @@ import SwiftUI
 
 struct CreateConcertSelectArtistView: View {
     
-    var didSelectArtist: (Artist) -> Void?
     
     @StateObject var viewModel = CreateConcertSelectArtistViewModel()
     
+    @Binding var isPresented: Bool
+    
+    var didSelectArtist: (Artist) -> Void?
+
     @State var artistName: String = ""
     @State var hasText: Bool = false
     
@@ -43,6 +46,7 @@ struct CreateConcertSelectArtistView: View {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button {
                             guard let artist = viewModel.artistsResponse.first(where: { $0.id == selectedArtist }) else { return }
+                            isPresented = false
                             didSelectArtist(Artist(artist: artist))
                         } label: {
                             Text("Next")

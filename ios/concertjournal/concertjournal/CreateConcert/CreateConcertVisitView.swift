@@ -1,17 +1,20 @@
 import Combine
+import MapKit
 import SwiftUI
 import Supabase
 import SpotifyiOS
+import PhotosUI
 
 struct NewConcertVisit: Identifiable, Equatable {
     let id: UUID = UUID()
     var date: Date = .now
     var artistName: String = ""
-    var venue: String = ""
-    var city: String = ""
+    var venueName: String = ""
     var title: String = ""
     var notes: String = ""
     var rating: Int = 0
+    
+    var venue: Venue? = nil
 }
 
 extension View {
@@ -55,88 +58,47 @@ struct CreateConcertVisitView: View {
     @State private var presentConfirmation = false
     
     @State private var selectArtistPresenting = false
+    @State private var selectVenuePresenting = false
+    
+    @State private var selectedItem: PhotosPickerItem?
     
     var body: some View {
         Group {
             if let artist = viewModel.artist {
                 ScrollView {
                     VStack(alignment: .leading) {
-                        ZStack {
-                            Group {
-                                if let url = artist.imageUrl {
-                                    AsyncImage(url: URL(string: url)) { result in
-                                        result.image?
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
-                                            .frame(maxWidth: .infinity)
-                                    }
-                                } else {
-                                    ZStack {
-                                        Rectangle()
-                                            .frame(maxWidth: .infinity)
-                                            .background { Color.gray }
-                                        Image(systemName: "note")
-                                            .frame(width: 32)
-                                            .foregroundStyle(.white)
-                                    }
-                                }
-                            }
-                            // Fade overlay at the bottom (transparent to match background)
-                            LinearGradient(
-                                colors: [Color.clear, Color.clear, Color.black.opacity(0.15), Color.black.opacity(0.35), Color.black.opacity(0.6)],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                            .allowsHitTesting(false)
-                        }
-                        .mask(
-                            LinearGradient(
-                                gradient: Gradient(stops: [
-                                    .init(color: .black, location: 0.0),
-                                    .init(color: .black, location: 0.75),
-                                    .init(color: .clear, location: 1.0)
-                                ]),
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .ignoresSafeArea()
-                        .frame(maxWidth: .infinity)
-                        .overlay {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Spacer()
-                                Text(artist.name)
-                                    .bold()
-                                    .font(.system(size: 40))
-                                    .padding()
-                                    .glassEffect()
-
-                            }
-                            .padding(.vertical)
-                            .padding(.trailing)
-                        }
+                        artistHeader(artist: artist)
                         
                         DatePicker("Concert date", selection: $draft.date, displayedComponents: .date)
-                            .padding()
+                            .padding(.horizontal)
                             .glassEffect()
-                            .padding()
+                            .padding(.horizontal)
                         
                         TextField("Title (optional)", text: $draft.title)
                             .textInputAutocapitalization(.words)
                             .padding()
                             .glassEffect()
-                        
-                        TextField("Venue (optional)", text: $draft.venue)
-                            .textInputAutocapitalization(.words)
-                            .padding()
-                            .glassEffect()
-                        
-                        TextField("City (optional)", text: $draft.city)
-                            .textInputAutocapitalization(.words)
-                            .padding()
-                            .glassEffect()
-                        
-                        
+                            .padding(.horizontal)
+
+                        Button {
+                            selectVenuePresenting = true
+                        } label: {
+                            if !draft.venueName.isEmpty {
+                                VStack(alignment: .leading) {
+                                    Text(draft.venueName)
+                                    if let city = draft.venue?.city {
+                                        Text(city)
+                                    }
+                                }
+                                .padding()
+                            } else {
+                                Text("Select Venue (optional)")
+                                    .padding()
+                            }
+                        }
+                        .buttonStyle(.glass)
+                        .padding(.horizontal)
+
                         Stepper(value: $draft.rating, in: 0...10) {
                             HStack {
                                 Text("Rating")
@@ -148,12 +110,22 @@ struct CreateConcertVisitView: View {
                         }
                         .padding()
                         .glassEffect()
-                        
+                        .padding(.horizontal)
+
                         TextEditor(text: $draft.notes)
                             .background { Color.clear }
+                            .scrollContentBackground(.hidden)
                             .frame(minHeight: 120)
                             .padding()
-                            .glassEffect()
+                            .glassEffect(in: RoundedRectangle(cornerRadius: 20, style: .circular))
+                            .padding(.horizontal)
+                        
+                        PhotosPicker(
+                            selection: $selectedItem,
+                            matching: .images
+                        ) {
+                            Label("Fotos hinzufügen", systemImage: "camera")
+                        }
                     }
                 }
             } else {
@@ -165,6 +137,7 @@ struct CreateConcertVisitView: View {
                     } label: {
                         Text("Select Artist")
                     }
+                    .buttonStyle(.glassProminent)
                     .padding(.bottom, 32)
                 }
             }
@@ -177,9 +150,15 @@ struct CreateConcertVisitView: View {
         .navigationTitle("New Concert")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $selectArtistPresenting) {
-            CreateConcertSelectArtistView(didSelectArtist: { artist in
+            CreateConcertSelectArtistView(isPresented: $selectArtistPresenting, didSelectArtist: { artist in
                 viewModel.artist = artist
                 self.selectArtistPresenting = false
+            })
+        }
+        .sheet(isPresented: $selectVenuePresenting) {
+            CreateConcertSelectVenueView(isPresented: $selectVenuePresenting, onSelect: { venue in
+                draft.venueName = venue.name
+                draft.venue = venue
             })
         }
         .toolbar {
@@ -194,6 +173,62 @@ struct CreateConcertVisitView: View {
     
     private func save() {
         createVisit(from: draft)
+    }
+    
+    private func artistHeader(artist: Artist) -> some View {
+        ZStack {
+            Group {
+                if let url = artist.imageUrl {
+                    AsyncImage(url: URL(string: url)) { result in
+                        result.image?
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(maxWidth: .infinity)
+                    }
+                } else {
+                    ZStack {
+                        Rectangle()
+                            .frame(maxWidth: .infinity)
+                            .background { Color.gray }
+                        Image(systemName: "note")
+                            .frame(width: 32)
+                            .foregroundStyle(.white)
+                    }
+                }
+            }
+            LinearGradient(
+                colors: [Color.clear, Color.clear, Color.black.opacity(0.15), Color.black.opacity(0.35), Color.black.opacity(0.6)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .allowsHitTesting(false)
+        }
+        .mask(
+            LinearGradient(
+                gradient: Gradient(stops: [
+                    .init(color: .black, location: 0.0),
+                    .init(color: .black, location: 0.75),
+                    .init(color: .clear, location: 1.0)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+        .ignoresSafeArea()
+        .frame(maxWidth: .infinity)
+        .overlay {
+            VStack(alignment: .leading, spacing: 8) {
+                Spacer()
+                Text(artist.name)
+                    .bold()
+                    .font(.system(size: 40))
+                    .padding()
+                    .glassEffect()
+
+            }
+            .padding(.vertical)
+            .padding(.trailing)
+        }
     }
     
     private func createVisit(from new: NewConcertVisit) {
@@ -234,7 +269,7 @@ struct CreateConcertVisitView: View {
                     artistId = existingArtistId
                 } else {
                     // Insert artist and prefer returning the inserted row to get canonical id
-                    let artistData = artist.toData()
+                    let artistData = artist.toData
                     let inserted: Artist = try await SupabaseManager.shared.client
                         .from("artists")
                         .insert(artistData)
@@ -258,8 +293,8 @@ struct CreateConcertVisitView: View {
                     "user_id": .string(userId.uuidString),
                     "artist_id": .string(artistId),
                     "date": .string(dateString),
-                    "venue": new.venue.isEmpty ? .null : .string(new.venue),
-                    "city": new.city.isEmpty ? .null : .string(new.city),
+                    "venueId": new.venue?.id == nil ? .null : .string(new.venue!.id),
+                    "city": new.venue?.city == nil ? .null : .string(new.venue!.city!),
                     "notes": new.notes.isEmpty ? .null : .string(new.notes),
                     "rating": .integer(new.rating),
                     "title": new.title.isEmpty ? .null : .string(new.title)

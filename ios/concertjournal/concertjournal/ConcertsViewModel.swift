@@ -44,7 +44,7 @@ class ConcertsViewModel: ObservableObject {
                 let results = try await loadData()
                 filterFutureConcerts(concerts: results)
             } catch {
-                print("could not load concerts")
+                print("could not load concerts, reason:", error)
             }
         }
     }
@@ -63,14 +63,14 @@ class ConcertsViewModel: ObservableObject {
                 let results = try await loadData()
                 filterFutureConcerts(concerts: results)
             } catch {
-                print("could not load concerts")
+                print("could not reload concerts, reason:", error)
             }
         }
     }
     
     func returnTestData() {
         let artist = Artist(name: "Paula Hartmann", imageUrl: "https://i.scdn.co/image/ab6761610000e5eb6db6bdfd82c3394a6af3399e", spotifyArtistId: "3Fl31gc0mEUC2H0JWL1vic")
-        let fullVisit = FullConcertVisit(id: "1", createdAt: .now, updatedAt: .now, date: .now, venue: "VenueMania", city: "Citiycation", rating: 2, title: "This is test data", artist: artist)
+        let fullVisit = FullConcertVisit(id: "C1", createdAt: .now, updatedAt: .now, date: .now, venue: Venue(id: "V1", name: "Captiol", formattedAddress: "Bär 1, Hannover", latitude: nil, longitude: nil, appleMapsId: nil), city: "Citiycation", rating: 2, title: "This is test data", artist: artist)
         self.visits = [fullVisit]
     }
     
@@ -87,7 +87,14 @@ class ConcertsViewModel: ObservableObject {
                 created_at,
                 updated_at,
                 date,
-                venue,
+                venues (
+                    id,
+                    name,
+                    formatted_address,
+                    latitude,
+                    longitude,
+                    apple_maps_id
+                ),
                 city,
                 notes,
                 rating,

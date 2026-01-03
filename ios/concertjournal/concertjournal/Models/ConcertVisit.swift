@@ -15,7 +15,7 @@ public struct ConcertVisit: Codable {
     let artistId: String
     let setlistId: String?
     let date: String
-    let venue: String?
+    let venueId: String?
     let city: String?
     let notes: String?
     let rating: Int?
@@ -29,7 +29,7 @@ public struct ConcertVisit: Codable {
         case userId = "user_id"
         case artistId = "artist_id"
         case date
-        case venue
+        case venueId = "venue_id"
         case city
         case notes
         case rating
@@ -50,7 +50,7 @@ public struct FullConcertVisit: Codable, Identifiable, Equatable, Hashable {
     public let createdAt: Date
     public let updatedAt: Date
     public let date: Date
-    public let venue: String?
+    public let venue: Venue?
     public let city: String?
     public let rating: Int?
     public let title: String?
@@ -63,7 +63,7 @@ public struct FullConcertVisit: Codable, Identifiable, Equatable, Hashable {
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case date
-        case venue
+        case venue = "venues"
         case city
         case rating
         case title

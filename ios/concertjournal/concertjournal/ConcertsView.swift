@@ -18,6 +18,8 @@ struct ConcertsView: View {
     
     @StateObject private var navigationManager = NavigationManager()
     @StateObject private var vm = ConcertsViewModel()
+    
+    @State private var searchText: String = ""
         
     var body: some View {
         NavigationStack(path: $navigationManager.path) {
@@ -61,6 +63,8 @@ struct ConcertsView: View {
             .safeAreaInset(edge: .bottom) {
                 createButton
             }
+            .searchable(text: $searchText, placement: .toolbar)
+            .tabBarMinimizeBehavior(.onScrollDown)
             .onChange(of: navigationManager.path) { oldValue, newValue in
                 if oldValue != newValue, newValue.isEmpty {
                     vm.reloadData()
@@ -123,7 +127,7 @@ struct ConcertsView: View {
                     .font(.title2)
                     .foregroundStyle(.white)
                 if let venue = visit.venue {
-                    Text(venue)
+                    Text(venue.name)
                         .foregroundStyle(.white)
                         .lineLimit(1)
                 }
@@ -170,7 +174,7 @@ struct ConcertsView: View {
                     .font(.title2)
                     .foregroundStyle(.white)
                 if let venue = concert.venue {
-                    Text(venue)
+                    Text(venue.name)
                         .foregroundStyle(.white)
                         .lineLimit(1)
                 }
