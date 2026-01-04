@@ -158,7 +158,13 @@
                 .select(`
         id,
         title,
-        venue,
+        venues (
+            id,
+            name,
+            formatted_address,
+            latitude,
+            longitude
+        ),
         date,
         artists (
         id,
@@ -210,7 +216,7 @@
     <div class="concert-info">
       <h2>${concert.artists?.name ?? "Unbekannter Artist"}</h2>
       <div class="meta">
-        ${concert.venue ?? "Unbekannter Ort"} ·
+        ${concert.venues?.name ?? "Unbekannter Ort"} ·
         ${formatDate(concert.date)}
       </div>
     </div>

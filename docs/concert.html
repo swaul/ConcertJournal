@@ -7,12 +7,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
         /* global box sizing for predictable layout on small screens */
-        *, *::before, *::after {
+        *,
+        *::before,
+        *::after {
             box-sizing: border-box;
         }
 
         /* subtle font smoothing for better rendering on mobile */
-        html, body { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+        html,
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
 
         body {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -45,7 +51,7 @@
             padding: 0.45rem 0.6rem;
             /* larger tap target */
             border-radius: 8px;
-            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
         }
 
         .concert-header {
@@ -89,12 +95,13 @@
         /* notes styling */
         .notes {
             margin-top: 0.5rem;
-            background: rgba(255,255,255,0.02);
+            background: rgba(255, 255, 255, 0.02);
             padding: 0.75rem;
             border-radius: 8px;
             font-style: normal;
             opacity: 0.95;
-            white-space: pre-wrap; /* preserve line breaks */
+            white-space: pre-wrap;
+            /* preserve line breaks */
         }
 
         .loading,
@@ -105,31 +112,85 @@
         }
 
         /* setlist styling */
-        .setlist-section { margin-top: 1rem; }
+        .setlist-section {
+            margin-top: 1rem;
+        }
+
         .setlist-header {
             margin: 0 0 0.5rem 0;
             font-size: 1rem;
             font-weight: 600;
         }
+
         .setlist {
             padding-left: 1.1rem;
             margin: 0;
         }
+
         .setlist-item {
             margin: 0.45rem 0;
             line-height: 1.3;
         }
-        .track { display: flex; gap: 0.5rem; align-items: center; }
-        .track-title { flex: 1; }
+
+        .track {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .track-title {
+            flex: 1;
+        }
+
         .track-link {
             color: #8ab4f8;
             text-decoration: none;
             font-size: 0.95rem;
         }
+
         .track-notes {
             margin-top: 0.25rem;
             opacity: 0.8;
             font-size: 0.95rem;
+        }
+
+        .venue-card {
+            margin-top: 1.25rem;
+            padding: 0.75rem;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .venue-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .venue-address {
+            font-size: 0.9rem;
+            opacity: 0.75;
+        }
+
+        .venue-map-link {
+            margin-top: 0.4rem;
+            font-size: 0.9rem;
+            color: #8ab4f8;
+        }
+
+        .venue-map {
+            margin-top: 0.75rem;
+            border-radius: 12px;
+            overflow: hidden;
+            height: 180px;
+        }
+
+        .venue-map iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
         }
 
         @media (max-width: 600px) {
@@ -171,15 +232,30 @@
                 padding: 0.5rem;
             }
 
-            .setlist-header { font-size: 0.95rem; }
-            .setlist-item { font-size: 0.95rem; }
+            .setlist-header {
+                font-size: 0.95rem;
+            }
+
+            .setlist-item {
+                font-size: 0.95rem;
+            }
         }
 
         /* ensure very small screens keep readable layout */
         @media (max-width: 360px) {
-            .artist-image { width: 64px; height: 64px; }
-            body { padding-left: 0.75rem; padding-right: 0.75rem; }
-            .concert-info h1 { font-size: 1.05rem; }
+            .artist-image {
+                width: 64px;
+                height: 64px;
+            }
+
+            body {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+            }
+
+            .concert-info h1 {
+                font-size: 1.05rem;
+            }
         }
     </style>
 </head>
@@ -256,10 +332,17 @@
     id,
     title,
     date,
-    venue,
     city,
     notes,
     rating,
+    
+    venues (
+        id,
+        name,
+        formatted_address,
+        latitude,
+        longitude
+    ),
 
     artists (
       id,
@@ -324,6 +407,39 @@
                 setlistHtml = `<div class="section">Keine Setlist vorhanden.</div>`;
             }
 
+            let venueHtml = "";
+
+if (data.venues) {
+    const v = data.venues;
+
+    const mapUrl =
+        v.latitude && v.longitude
+            ? googleMapsEmbedUrl(v.latitude, v.longitude)
+            : googleMapsSearchEmbed(`${v.name} ${v.formatted_address ?? ""}`);
+
+    venueHtml = `
+      <div class="venue-card">
+        <div class="venue-name">${escapeHtml(v.name)}</div>
+        ${v.formatted_address ? `<div class="venue-address">${escapeHtml(v.formatted_address)}</div>` : ""}
+
+        <div class="venue-map">
+          <iframe
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            src="${mapUrl}"
+          ></iframe>
+        </div>
+
+        <a class="venue-map-link"
+           href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.name)}"
+           target="_blank"
+           rel="noopener">
+           In Google Maps öffnen
+        </a>
+      </div>
+    `;
+}
+
             content.innerHTML = `
 		  <div class="concert-header">
 			<img
@@ -342,9 +458,15 @@
 			</div>
 		  </div>
  
+          <div class="meta">
+            ${formatDate(data.date)} · ${data.venues?.name ?? "Unbekannte Venue"}
+            </div>
+
+            ${venueHtml}
+
           ${setlistHtml}
 
-          ${ data.notes ? `<div class="section"><h3>Notizen</h3><div class="notes">${escapeHtml(data.notes).replace(/\r\n?/g,'\n').replace(/\n/g,'<br>')}</div></div>` : `<div class="section">Weitere Details (Notizen, Setlist, Bewertung) folgen bald 🎶</div>` }
+          ${data.notes ? `<div class="section"><h3>Notizen</h3><div class="notes">${escapeHtml(data.notes).replace(/\r\n?/g, '\n').replace(/\n/g, '<br>')}</div></div>` : `<div class="section">Weitere Details (Notizen, Setlist, Bewertung) folgen bald 🎶</div>`}
 		`;
         }
 
@@ -365,6 +487,10 @@
         }
 
         init();
+
+        function googleMapsEmbedUrl(lat, lng) {
+            return `https://www.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
+        }
     </script>
 
 </body>
