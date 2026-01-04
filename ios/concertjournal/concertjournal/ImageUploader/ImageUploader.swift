@@ -5,7 +5,6 @@
 //  Created by Paul Kühnel on 04.01.26.
 //
 
-import SwiftUI
 import PhotosUI
 import Storage
 import Supabase
@@ -52,7 +51,6 @@ public class ImageUploader {
             .insert(dto)
             .execute()
     }
-    
 }
 
 struct ConcertPhotoInsertDTO: Codable {

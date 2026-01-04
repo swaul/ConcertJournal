@@ -105,7 +105,7 @@ final class VenueSearchViewModel: ObservableObject {
                      city: venue.city,
                      formattedAddress: venue.formattedAddress,
                      latitude: venue.latitude,
-                     longitude: venue.latitude,
+                     longitude: venue.longitude,
                      appleMapsId: venue.appleMapsId)
     }
 }
