@@ -38,22 +38,9 @@
 		2FBC28402EF568CE00BEF981 /* concertjournalUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = concertjournalUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		2F88E77A2F09C8AB008FE527 /* Exceptions for "concertjournal" folder in "concertjournal" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				ImagePicker/ImagePicker.swift,
-			);
-			target = 2FBC28282EF568CC00BEF981 /* concertjournal */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		2FBC282B2EF568CC00BEF981 /* concertjournal */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				2F88E77A2F09C8AB008FE527 /* Exceptions for "concertjournal" folder in "concertjournal" target */,
-			);
 			path = concertjournal;
 			sourceTree = "<group>";
 		};

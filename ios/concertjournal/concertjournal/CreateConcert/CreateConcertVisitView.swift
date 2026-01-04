@@ -30,24 +30,6 @@ extension View {
     }
 }
 
-class CreateConcertVisitViewModel: ObservableObject, Hashable, Equatable {
-    static func == (lhs: CreateConcertVisitViewModel, rhs: CreateConcertVisitViewModel) -> Bool {
-        lhs.id == rhs.id
-    }
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-    
-    let id: String
-    @Published var artist: Artist?
-    
-    init() {
-        self.id = UUID().uuidString
-    }
-    
-}
-
 struct CreateConcertVisitView: View {
     
     @EnvironmentObject var navigationManager: NavigationManager
@@ -60,14 +42,16 @@ struct CreateConcertVisitView: View {
     @State private var selectArtistPresenting = false
     @State private var selectVenuePresenting = false
     
-    @State private var selectedItem: PhotosPickerItem?
+    @State private var selectedPhotoItems: [PhotosPickerItem] = []
     
+    @State var selectedImages: [UIImage] = []
+
     var body: some View {
         Group {
             if let artist = viewModel.artist {
                 ScrollView {
                     VStack(alignment: .leading) {
-                        artistHeader(artist: artist)
+                        ArtistHeader(artist: artist)
                         
                         DatePicker("Concert date", selection: $draft.date, displayedComponents: .date)
                             .padding(.horizontal)
@@ -121,10 +105,54 @@ struct CreateConcertVisitView: View {
                             .padding(.horizontal)
                         
                         PhotosPicker(
-                            selection: $selectedItem,
-                            matching: .images
+                            selection: $selectedPhotoItems,
+                            maxSelectionCount: 5,
+                            matching: .images,
+                            photoLibrary: .shared()
                         ) {
-                            Label("Fotos hinzufügen", systemImage: "camera")
+                            Label("Fotos hinzufügen", systemImage: "photo.on.rectangle.angled")
+                        }
+                        .padding()
+                        .buttonStyle(.glass)
+                        .padding(.horizontal)
+                        .onChange(of: selectedPhotoItems) { _, newItems in
+                            Task {
+                                await loadSelectedImages(from: newItems)
+                            }
+                        }
+                        
+                        if !selectedImages.isEmpty {
+                            LazyVGrid(
+                                columns: [
+                                    GridItem(.flexible()),
+                                    GridItem(.flexible()),
+                                    GridItem(.flexible())
+                                ],
+                                spacing: 12
+                            ) {
+                                ForEach(selectedImages.indices, id: \.self) { index in
+                                    ZStack(alignment: .topTrailing) {
+                                        Image(uiImage: selectedImages[index])
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(height: 100)
+                                            .clipped()
+                                            .cornerRadius(12)
+                                        
+                                        Button {
+                                            selectedPhotoItems.remove(at: index)
+                                            removeImage(at: index)
+                                        } label: {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .foregroundColor(.white)
+                                                .background(Color.black.opacity(0.6))
+                                                .clipShape(Circle())
+                                        }
+                                        .offset(x: 6, y: -6)
+                                    }
+                                }
+                            }
+                            .padding(.horizontal)
                         }
                     }
                 }
@@ -172,162 +200,33 @@ struct CreateConcertVisitView: View {
     }
     
     private func save() {
-        createVisit(from: draft)
-    }
-    
-    private func artistHeader(artist: Artist) -> some View {
-        ZStack {
-            Group {
-                if let url = artist.imageUrl {
-                    AsyncImage(url: URL(string: url)) { result in
-                        result.image?
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(maxWidth: .infinity)
-                    }
-                } else {
-                    ZStack {
-                        Rectangle()
-                            .frame(maxWidth: .infinity)
-                            .background { Color.gray }
-                        Image(systemName: "note")
-                            .frame(width: 32)
-                            .foregroundStyle(.white)
-                    }
-                }
-            }
-            LinearGradient(
-                colors: [Color.clear, Color.clear, Color.black.opacity(0.15), Color.black.opacity(0.35), Color.black.opacity(0.6)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .allowsHitTesting(false)
-        }
-        .mask(
-            LinearGradient(
-                gradient: Gradient(stops: [
-                    .init(color: .black, location: 0.0),
-                    .init(color: .black, location: 0.75),
-                    .init(color: .clear, location: 1.0)
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        )
-        .ignoresSafeArea()
-        .frame(maxWidth: .infinity)
-        .overlay {
-            VStack(alignment: .leading, spacing: 8) {
-                Spacer()
-                Text(artist.name)
-                    .bold()
-                    .font(.system(size: 40))
-                    .padding()
-                    .glassEffect()
-
-            }
-            .padding(.vertical)
-            .padding(.trailing)
-        }
-    }
-    
-    private func createVisit(from new: NewConcertVisit) {
         Task {
             do {
-                guard let userId = SupabaseManager.shared.client.auth.currentUser?.id,
-                      let artist = viewModel.artist else {
-                    print("createVisit: Missing user or artist")
-                    return
-                }
-
-                let existingArtistId: String?
-                
-                if let spotifyArtistId = artist.spotifyArtistId {
-                    // Get-or-create artist by spotify_artist_id (must match your DB column type)
-                    let existingArtists: [Artist] = try await SupabaseManager.shared.client
-                        .from("artists")
-                        .select()
-                        .eq("spotify_artist_id", value: spotifyArtistId)
-                        .execute()
-                        .value
-                    
-                    existingArtistId = existingArtists.first?.id
-                } else {
-                    let existingArtists: [Artist] = try await SupabaseManager.shared.client
-                        .from("artists")
-                        .select()
-                        .eq("name", value: artist.name)
-                        .execute()
-                        .value
-                    
-                    existingArtistId = existingArtists.first?.id
-                }
-                
-                let artistId: String
-
-                if let existingArtistId {
-                    artistId = existingArtistId
-                } else {
-                    // Insert artist and prefer returning the inserted row to get canonical id
-                    let artistData = artist.toData
-                    let inserted: Artist = try await SupabaseManager.shared.client
-                        .from("artists")
-                        .insert(artistData)
-                        .select()
-                        .single()
-                        .execute()
-                        .value
-                    
-                    artistId = inserted.id
-                }
-
-                // Format date as ISO8601 with fractional seconds in UTC (commonly accepted by Postgres timestamptz)
-                let formatter = ISO8601DateFormatter()
-                formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-                formatter.timeZone = TimeZone(secondsFromGMT: 0)
-                let dateString = formatter.string(from: new.date)
-
-                // NOTE: If your `user_id` column is a UUID type, sending a string is typically fine,
-                // but if you have issues, consider mapping to `.string` vs `.uuid` depending on your AnyJSON support.
-                let payload: [String: AnyJSON] = [
-                    "user_id": .string(userId.uuidString),
-                    "artist_id": .string(artistId),
-                    "date": .string(dateString),
-                    "venueId": new.venue?.id == nil ? .null : .string(new.venue!.id),
-                    "city": new.venue?.city == nil ? .null : .string(new.venue!.city!),
-                    "notes": new.notes.isEmpty ? .null : .string(new.notes),
-                    "rating": .integer(new.rating),
-                    "title": new.title.isEmpty ? .null : .string(new.title)
-                ]
-
-                // Insert visit and log returned value for debugging
-                let response = try await SupabaseManager.shared.client
-                    .from("concert_visits")
-                    .insert(payload)
-                    .select()
-                    .single()
-                    .execute()
-
-                // Optional: print the inserted visit for verification
-                #if DEBUG
-                do {
-                    let data = try JSONSerialization.data(withJSONObject: response.data, options: [.prettyPrinted])
-                    if let json = String(data: data, encoding: .utf8) {
-                        print("Inserted concert_visits row:\n\(json)")
-                    }
-                } catch {
-                    print("Debug print of inserted row failed: \(error)")
-                }
-                #endif
-
+                let visitId = try await viewModel.createVisit(from: draft)
+                try await viewModel.uploadSelectedPhotos(selectedImages: selectedImages, visitId: visitId)
                 showConfirmation()
             } catch {
-                // Try to surface as much info as possible from Supabase errors
                 print("failed to create visit: \(error)")
             }
         }
     }
+        
+    @MainActor
+    func loadSelectedImages(from items: [PhotosPickerItem]) async {
+        selectedImages.removeAll()
 
+        for item in items {
+            if let data = try? await item.loadTransferable(type: Data.self),
+               let image = UIImage(data: data) {
+                selectedImages.append(image)
+            }
+        }
+    }
+    
+    func removeImage(at index: Int) {
+        selectedImages.remove(at: index)
+    }
+    
     func showConfirmation() {
         presentConfirmation = true
     }
@@ -336,62 +235,3 @@ struct CreateConcertVisitView: View {
 #Preview {
     CreateConcertVisitView()
 }
-
-struct ConfirmationView: View {
-    @Environment(\.dismiss) private var dismiss
-    
-    @State private var drawProgress: CGFloat = 0
-    @State private var showDone: Bool = false
-    
-    var body: some View {
-        VStack(spacing: 16) {
-            CheckmarkShape()
-                .trim(from: 0, to: drawProgress)
-                .stroke(Color.green, style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
-                .frame(width: 64, height: 64)
-                .contentTransition(.interpolate)
-            
-            Text("Done")
-                .font(.headline)
-                .opacity(showDone ? 1 : 0)
-                .animation(.easeIn(duration: 0.25), value: showDone)
-        }
-        .padding(24)
-        .onAppear {
-            // Animate the checkmark stroke
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.8, blendDuration: 0.1)) {
-                drawProgress = 1
-            }
-            // Fade in the label slightly after the stroke completes
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
-                showDone = true
-            }
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                dismiss()
-            }
-        }
-        .presentationDetents([.height(180)]) // Small sheet height
-        .presentationDragIndicator(.visible)
-        .presentationCornerRadius(20)
-    }
-}
-
-struct CheckmarkShape: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        // A proportional checkmark path
-        let w = rect.width
-        let h = rect.height
-        
-        let start = CGPoint(x: 0.2 * w, y: 0.55 * h)
-        let mid = CGPoint(x: 0.45 * w, y: 0.8 * h)
-        let end = CGPoint(x: 0.8 * w, y: 0.25 * h)
-        
-        path.move(to: start)
-        path.addLine(to: mid)
-        path.addLine(to: end)
-        return path
-    }
-}
-
