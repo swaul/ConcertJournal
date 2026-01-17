@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2F49FD9F2F1C20B000B630EF /* Zoomable in Frameworks */ = {isa = PBXBuildFile; productRef = 2F49FD9E2F1C20B000B630EF /* Zoomable */; };
 		2F68C7A72EF6374B000D9C1B /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 2F68C7A62EF6374B000D9C1B /* Functions */; };
 		2FBC28552EF56A8500BEF981 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 2FBC28542EF56A8500BEF981 /* Auth */; };
 		2FBC28572EF56A8500BEF981 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 2FBC28562EF56A8500BEF981 /* PostgREST */; };
@@ -62,6 +63,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2F68C7A72EF6374B000D9C1B /* Functions in Frameworks */,
+				2F49FD9F2F1C20B000B630EF /* Zoomable in Frameworks */,
 				2FBC28632EF56C3D00BEF981 /* Supabase in Frameworks */,
 				2FBC28592EF56A8500BEF981 /* Storage in Frameworks */,
 				2FBC28572EF56A8500BEF981 /* PostgREST in Frameworks */,
@@ -141,6 +143,7 @@
 				2FBC285B2EF56AE600BEF981 /* SpotifyiOS */,
 				2FBC28622EF56C3D00BEF981 /* Supabase */,
 				2F68C7A62EF6374B000D9C1B /* Functions */,
+				2F49FD9E2F1C20B000B630EF /* Zoomable */,
 			);
 			productName = concertjournal;
 			productReference = 2FBC28292EF568CC00BEF981 /* concertjournal.app */;
@@ -227,6 +230,7 @@
 			packageReferences = (
 				2FBC28532EF56A8500BEF981 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				2FBC285A2EF56AE600BEF981 /* XCRemoteSwiftPackageReference "ios-sdk" */,
+				2F49FD9D2F1C20B000B630EF /* XCRemoteSwiftPackageReference "Zoomable" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 2FBC282A2EF568CC00BEF981 /* Products */;
@@ -431,6 +435,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "Wir benötigen Zugriff auf deinen Kalender, um Konzerte zu speichern.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -475,6 +480,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "Wir benötigen Zugriff auf deinen Kalender, um Konzerte zu speichern.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -650,6 +656,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		2F49FD9D2F1C20B000B630EF /* XCRemoteSwiftPackageReference "Zoomable" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ryohey/Zoomable.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 		2FBC28532EF56A8500BEF981 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/supabase/supabase-swift.git";
@@ -669,6 +683,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		2F49FD9E2F1C20B000B630EF /* Zoomable */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2F49FD9D2F1C20B000B630EF /* XCRemoteSwiftPackageReference "Zoomable" */;
+			productName = Zoomable;
+		};
 		2F68C7A62EF6374B000D9C1B /* Functions */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2FBC28532EF56A8500BEF981 /* XCRemoteSwiftPackageReference "supabase-swift" */;

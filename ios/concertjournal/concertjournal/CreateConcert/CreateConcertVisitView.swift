@@ -28,6 +28,12 @@ extension View {
                 .glassEffectTransition(.matchedGeometry)
         }
     }
+    
+    @ViewBuilder
+    func rectangleGlass() -> some View {
+        self
+            .glassEffect(in: RoundedRectangle(cornerRadius: 20))
+    }
 }
 
 struct CreateConcertVisitView: View {
@@ -53,7 +59,7 @@ struct CreateConcertVisitView: View {
                     VStack(alignment: .leading) {
                         ArtistHeader(artist: artist)
                         
-                        DatePicker("Concert date", selection: $draft.date, displayedComponents: .date)
+                        DatePicker("Concert date and entry time", selection: $draft.date, displayedComponents: [.hourAndMinute, .date])
                             .padding(.horizontal)
                             .glassEffect()
                             .padding(.horizontal)

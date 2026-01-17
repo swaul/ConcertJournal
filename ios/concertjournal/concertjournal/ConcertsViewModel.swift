@@ -15,6 +15,7 @@ enum NavigationRoute: Hashable {
     case faq
     case colorPicker
     case concertDetail(FullConcertVisit)
+    case map([FullConcertVisit])
 }
 
 class NavigationManager: ObservableObject {
@@ -70,7 +71,7 @@ class ConcertsViewModel: ObservableObject {
     
     func returnTestData() {
         let artist = Artist(name: "Paula Hartmann", imageUrl: "https://i.scdn.co/image/ab6761610000e5eb6db6bdfd82c3394a6af3399e", spotifyArtistId: "3Fl31gc0mEUC2H0JWL1vic")
-        let fullVisit = FullConcertVisit(id: "C1", createdAt: .now, updatedAt: .now, date: .now, venue: Venue(id: "V1", name: "Captiol", formattedAddress: "Bär 1, Hannover", latitude: nil, longitude: nil, appleMapsId: nil), city: "Citiycation", rating: 2, title: "This is test data", artist: artist)
+        let fullVisit = FullConcertVisit(id: "C1", createdAt: .now, updatedAt: .now, date: .now, venue: Venue(id: "V1", name: "Captiol", formattedAddress: "Bär 1, Hannover", latitude: nil, longitude: nil, appleMapsId: nil), city: "Citiycation", rating: 2, title: "This is test data", notes: nil, artist: artist)
         self.visits = [fullVisit]
     }
     

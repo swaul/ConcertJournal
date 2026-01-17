@@ -105,18 +105,6 @@ class CreateConcertVisitViewModel: ObservableObject, Hashable, Equatable {
         
         let test = try JSONDecoder().decode(ConcertVisitIdDTO.self, from: response.data)
         return test.id
-        // Optional: print the inserted visit for verification
-        #if DEBUG
-            do {
-                let data = try JSONSerialization.data(withJSONObject: response.data, options: [.prettyPrinted])
-                if let json = String(data: data, encoding: .utf8) {
-                    print("Inserted concert_visits row:\n\(json)")
-                }
-            } catch {
-                print("Debug print of inserted row failed: \(error)")
-            }
-        #endif
-        
     }
     
     func uploadSelectedPhotos(selectedImages: [UIImage], visitId: String) async throws {

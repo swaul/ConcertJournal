@@ -7,8 +7,19 @@
 
 import SwiftUI
 
+struct ConfirmationMessage: Identifiable {
+    let id = UUID()
+    let message: String
+}
+
 struct ConfirmationView: View {
     @Environment(\.dismiss) private var dismiss
+    
+    init(message: String? = nil) {
+        self.message = message ?? "Done"
+    }
+    
+    let message: String
     
     @State private var drawProgress: CGFloat = 0
     @State private var showDone: Bool = false
@@ -21,7 +32,7 @@ struct ConfirmationView: View {
                 .frame(width: 64, height: 64)
                 .contentTransition(.interpolate)
             
-            Text("Done")
+            Text(message)
                 .font(.headline)
                 .opacity(showDone ? 1 : 0)
                 .animation(.easeIn(duration: 0.25), value: showDone)

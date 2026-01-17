@@ -38,6 +38,19 @@ public struct ConcertVisit: Codable {
 }
 
 public struct FullConcertVisit: Codable, Identifiable, Equatable, Hashable {
+    internal init(id: String, createdAt: Date, updatedAt: Date, date: Date, venue: Venue? = nil, city: String? = nil, rating: Int? = nil, title: String? = nil, notes: String? = nil, artist: Artist) {
+        self.id = id
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.date = date
+        self.venue = venue
+        self.city = city
+        self.rating = rating
+        self.title = title
+        self.notes = notes
+        self.artist = artist
+    }
+    
     public static func == (lhs: FullConcertVisit, rhs: FullConcertVisit) -> Bool {
         lhs.id == rhs.id
     }
@@ -54,6 +67,7 @@ public struct FullConcertVisit: Codable, Identifiable, Equatable, Hashable {
     public let city: String?
     public let rating: Int?
     public let title: String?
+    public let notes: String?
 
     public let artist: Artist
     
@@ -66,6 +80,7 @@ public struct FullConcertVisit: Codable, Identifiable, Equatable, Hashable {
         case venue = "venues"
         case city
         case rating
+        case notes
         case title
         case artist = "artists"
     }

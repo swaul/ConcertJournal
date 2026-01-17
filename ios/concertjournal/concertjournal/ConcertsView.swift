@@ -26,28 +26,36 @@ struct ConcertsView: View {
             ScrollView {
                 VStack(alignment: .leading) {
                     if !vm.futureVisits.isEmpty {
-                        Text("FUTURE CONCERTS")
-                            .padding()
-                            .glassEffect()
+                        Text("Deine nächsten Konzerte")
+                            .font(.title)
+                            .padding(.vertical)
+
                         ScrollView(.horizontal) {
                             LazyHStack(spacing: 16) {
                                 ForEach(vm.futureVisits) { visit in
-                                    Button {
-                                        navigationManager.push(view: .concertDetail(visit))
-                                    } label: {
-                                        futureConcert(concert: visit)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(visit.date.dateOnlyString)
+                                            .padding(2)
+                                            .font(.caption)
+                                            .glassEffect()
+                                        Button {
+                                            navigationManager.push(view: .concertDetail(visit))
+                                        } label: {
+                                            futureConcert(concert: visit)
+                                        }
                                     }
                                     .scrollTargetLayout()
                                 }
                             }
                         }
-                        .scrollTargetBehavior(.paging)
+                        .scrollTargetBehavior(.viewAligned(anchor: .leading))
                         .scrollClipDisabled()
                         .scrollIndicators(.hidden)
+                        
+                        Text("Vergangene Konzerte")
+                            .font(.title)
+                            .padding(.vertical)
                     }
-                    Text("PAST CONCERTS")
-                        .padding()
-                        .glassEffect()
                     ForEach(vm.visits) { visit in
                         Section(visit.title ?? visit.artist.name) {
                             Button {
@@ -60,10 +68,10 @@ struct ConcertsView: View {
                 }
                 .padding()
             }
+            .scrollIndicators(.hidden)
             .safeAreaInset(edge: .bottom) {
                 createButton
             }
-            .searchable(text: $searchText, placement: .toolbar)
             .tabBarMinimizeBehavior(.onScrollDown)
             .onChange(of: navigationManager.path) { oldValue, newValue in
                 if oldValue != newValue, newValue.isEmpty {
@@ -96,6 +104,10 @@ struct ConcertsView: View {
                 case .concertDetail(let concert):
                     ConcertDetailView(concert: concert)
                         .environmentObject(colorTheme)
+                case .map(let concerts):
+                    MapView(concerts: concerts)
+                        .environmentObject(colorTheme)
+                        .environmentObject(navigationManager)
                 }
             }
         }
@@ -200,7 +212,9 @@ struct ConcertsView: View {
             Spacer()
             VStack {
                 Button {
-                    print("Show map")
+                    var allConcerts = vm.visits
+                    allConcerts.append(contentsOf: vm.futureVisits)
+                    navigationManager.push(view: .map(allConcerts))
                 } label: {
                     Image(systemName: "map")
                         .resizable()

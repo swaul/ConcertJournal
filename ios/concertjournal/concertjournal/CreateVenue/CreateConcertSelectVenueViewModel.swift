@@ -57,7 +57,7 @@ final class VenueSearchViewModel: ObservableObject {
                           city: venue.addressRepresentations?.cityName,
                           formattedAddress: venue.addressRepresentations?.fullAddress(includingRegion: false, singleLine: true) ?? "",
                           latitude: venue.location.coordinate.latitude,
-                          longitude: venue.location.coordinate.latitude,
+                          longitude: venue.location.coordinate.longitude,
                           appleMapsId: venue.identifier?.rawValue)
         
         let venueId: String
