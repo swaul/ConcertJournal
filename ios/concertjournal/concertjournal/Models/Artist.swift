@@ -8,8 +8,8 @@
 import Foundation
 import Supabase
 
-public struct Artist: Codable {
-    
+public struct Artist: Codable, Hashable, SupabaseEncodable {
+
     let id: String
     let name: String
     let imageUrl: String?
@@ -36,22 +36,13 @@ public struct Artist: Codable {
         self.spotifyArtistId = spotifyArtistId
     }
     
-    var toData: [String: AnyJSON] {
+    func encoded() -> [String: AnyJSON] {
         var data: [String: AnyJSON] = [
-            "name": .string(name),
+            CodingKeys.name.rawValue: .string(name),
+            CodingKeys.imageUrl.rawValue: imageUrl != nil ? .string(imageUrl!) : .null,
+            CodingKeys.spotifyArtistId.rawValue: spotifyArtistId != nil ? .string(spotifyArtistId!) : .null
         ]
-        
-        if let imageUrl {
-            data["image_url"] = .string(imageUrl)
-        } else {
-            data["image_url"] = .null
-        }
-        if let spotifyArtistId {
-            data["spotify_artist_id"] = .string(spotifyArtistId)
-        } else {
-            data["spotify_artist_id"] = .null
-        }
-        
+
         return data
     }
 }

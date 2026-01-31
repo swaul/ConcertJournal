@@ -6,8 +6,9 @@
 //
 
 import Foundation
+import Supabase
 
-public struct ConcertVisit: Codable {
+public struct ConcertVisit: Decodable {
     let id: String
     let createdAt: Date
     let updatedAt: Date
@@ -35,9 +36,25 @@ public struct ConcertVisit: Codable {
         case rating
         case title
     }
+
+    func encoded() -> [String: AnyJSON] {
+        var data: [String: AnyJSON] = [
+            CodingKeys.userId.rawValue: .string(userId),
+            CodingKeys.artistId.rawValue: .string(artistId),
+            CodingKeys.date.rawValue: .string(date),
+            CodingKeys.setlistId.rawValue: setlistId != nil ? .string(setlistId!) : .null ,
+            CodingKeys.title.rawValue: title != nil ? .string(title!) : .null,
+            CodingKeys.venueId.rawValue: venueId != nil ? .string(venueId!) : .null,
+            CodingKeys.city.rawValue: city != nil ? .string(city!) : .null,
+            CodingKeys.notes.rawValue: notes != nil ? .string(notes!) : .null,
+            CodingKeys.rating.rawValue: rating != nil ? .integer(rating!) : .null,
+        ]
+
+        return data
+    }
 }
 
-public struct FullConcertVisit: Codable, Identifiable, Equatable, Hashable {
+public struct FullConcertVisit: Decodable, Identifiable, Equatable, Hashable {
     internal init(id: String, createdAt: Date, updatedAt: Date, date: Date, venue: Venue? = nil, city: String? = nil, rating: Int? = nil, title: String? = nil, notes: String? = nil, artist: Artist) {
         self.id = id
         self.createdAt = createdAt
@@ -50,15 +67,30 @@ public struct FullConcertVisit: Codable, Identifiable, Equatable, Hashable {
         self.notes = notes
         self.artist = artist
     }
-    
+
+    mutating func updateConcert(with update: ConcertUpdate) {
+        self = FullConcertVisit(
+            id: id,
+            createdAt: createdAt,
+            updatedAt: Date(),
+            date: update.date,
+            venue: update.venue,
+            city: update.city,
+            rating: update.rating,
+            title: update.title,
+            notes: update.notes,
+            artist: artist
+        )
+    }
+
     public static func == (lhs: FullConcertVisit, rhs: FullConcertVisit) -> Bool {
         lhs.id == rhs.id
     }
-    
+
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
-    
+
     public let id: String
     public let createdAt: Date
     public let updatedAt: Date
@@ -70,7 +102,7 @@ public struct FullConcertVisit: Codable, Identifiable, Equatable, Hashable {
     public let notes: String?
 
     public let artist: Artist
-    
+
 
     enum CodingKeys: String, CodingKey {
         case id

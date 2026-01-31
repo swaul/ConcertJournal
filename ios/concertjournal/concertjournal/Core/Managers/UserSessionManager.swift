@@ -1,0 +1,44 @@
+import Foundation
+import Supabase
+import Combine
+
+enum UserContext {
+    case loggedOut
+    case initializing
+    case loggedIn(User)
+}
+
+@MainActor
+@Observable
+final class UserSessionManager {
+    
+    private(set) var session: Session?
+    private(set) var user: User?
+
+    private let client: SupabaseClient
+
+    init(client: SupabaseClient) {
+        self.client = client
+    }
+
+    func start() async {
+        Task {
+            let session = try await client.auth.session
+            update(session: session)
+            
+            for await event in client.auth.authStateChanges {
+                update(session: event.session)
+            }
+        }
+    }
+    
+    private func update(session: Session?) {
+        self.session = session
+        self.user = session?.user
+    }
+    
+    func loadUser() async throws -> User {
+        let user = try await client.auth.user()
+        return user
+    }
+}
