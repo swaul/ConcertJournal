@@ -9,7 +9,8 @@ import SwiftUI
 
 struct CreateConcertSelectArtistView: View {
     
-    
+    @Environment(\.dependencies) private var dependencies
+
     @State var viewModel: CreateConcertSelectArtistViewModel?
 
     @Binding var isPresented: Bool
@@ -35,6 +36,10 @@ struct CreateConcertSelectArtistView: View {
                 }
             }
             .navigationTitle("Select an Artist")
+            .task {
+                guard viewModel == nil else { return }
+                viewModel = CreateConcertSelectArtistViewModel(spotifyRepository: dependencies.spotifyRepository)
+            }
         }
     }
 
@@ -63,6 +68,7 @@ struct CreateConcertSelectArtistView: View {
                         didSelectArtist(Artist(artist: artist))
                     } label: {
                         Text("Next")
+                            .font(.cjBody)
                     }
                 }
             }
@@ -71,6 +77,7 @@ struct CreateConcertSelectArtistView: View {
             HStack {
                 TextField(text: $artistName) {
                     Text("Select an artist")
+                        .font(.cjBody)
                 }
                 .focused($textFieldFocused)
                 .submitLabel(.search)
@@ -92,6 +99,7 @@ struct CreateConcertSelectArtistView: View {
                         textFieldFocused = false
                     } label: {
                         Text("Search")
+                            .font(.cjBody)
                     }
                     .buttonStyle(.glassProminent)
                 }
@@ -132,8 +140,10 @@ struct CreateConcertSelectArtistView: View {
             
             VStack(alignment: .leading, spacing: 8) {
                 Text(artist.name)
+                    .font(.cjBody)
                     .bold()
                 Text("Follower: \(artist.followers?.total ?? 0)")
+                    .font(.cjBody)
             }
             .padding(.vertical)
             .padding(.trailing)

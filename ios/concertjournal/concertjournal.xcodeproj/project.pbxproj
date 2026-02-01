@@ -39,9 +39,22 @@
 		2FBC28402EF568CE00BEF981 /* concertjournalUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = concertjournalUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		8720D7A52F2E43790074ACE6 /* Exceptions for "concertjournal" folder in "concertjournal" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 2FBC28282EF568CC00BEF981 /* concertjournal */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		2FBC282B2EF568CC00BEF981 /* concertjournal */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				8720D7A52F2E43790074ACE6 /* Exceptions for "concertjournal" folder in "concertjournal" target */,
+			);
 			path = concertjournal;
 			sourceTree = "<group>";
 		};
@@ -435,6 +448,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = concertjournal/Info.plist;
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "Wir benötigen Zugriff auf deinen Kalender, um Konzerte zu speichern.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -480,6 +494,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = concertjournal/Info.plist;
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "Wir benötigen Zugriff auf deinen Kalender, um Konzerte zu speichern.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;

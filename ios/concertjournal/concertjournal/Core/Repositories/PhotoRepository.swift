@@ -6,6 +6,7 @@
 //
 
 import Supabase
+import UIKit
 
 protocol PhotoRepositoryProtocol {
     func uploadPhoto(image: UIImage, concertVisitId: String, userId: String) async throws -> ConcertPhoto

@@ -40,6 +40,7 @@ struct CreateSetlistView: View {
                             //                        navigationManager.push(view: .createVisit(CreateConcertVisitViewModel(artist: artist)))
                         } label: {
                             Text("Next")
+                                .font(.cjBody)
                         }
                     }
                 }
@@ -74,6 +75,7 @@ struct CreateSetlistView: View {
                     }
                 case .error(let error):
                     Text(error.localizedDescription)
+                        .font(.cjBody)
                 }
             }
             .padding()
@@ -82,6 +84,7 @@ struct CreateSetlistView: View {
             HStack {
                 TextField(text: $songName) {
                     Text("Select a Song")
+                        .font(.cjBody)
                 }
                 .focused($textFieldFocused)
                 .submitLabel(.search)
@@ -103,6 +106,7 @@ struct CreateSetlistView: View {
                         textFieldFocused = false
                     } label: {
                         Text("Search")
+                            .font(.cjBody)
                     }
                     .buttonStyle(.glassProminent)
                 }
@@ -137,9 +141,11 @@ struct CreateSetlistView: View {
             
             VStack(alignment: .leading) {
                 Text(song.name)
+                    .font(.cjBody)
                     .bold()
                     .lineLimit(1)
                 Text(song.album?.name ?? "Album")
+                    .font(.cjBody)
                     .lineLimit(1)
             }
             .padding(.vertical)

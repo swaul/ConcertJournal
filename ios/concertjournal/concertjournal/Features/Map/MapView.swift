@@ -33,6 +33,7 @@ struct MapView: View {
             ForEach(concertLocations) { item in
                 Annotation(item.venueName, coordinate: item.coordinates) {
                     Text("\(item.concerts.count)")
+                        .font(.cjBody)
                         .bold()
                         .padding()
                         .glassEffect(in: Circle())
@@ -67,6 +68,7 @@ struct MapView: View {
                         }
                     } label: {
                         Text("Alle anzeigen")
+                            .font(.cjBody)
                     }
                 }
             }
@@ -100,7 +102,7 @@ struct MapView: View {
             HStack {
                 Text(item.venueName)
                     .bold()
-                    .font(.system(size: 26))
+                    .font(.cjTitle)
                     .padding()
                     .glassEffect()
                 Spacer()
@@ -110,6 +112,7 @@ struct MapView: View {
                     }
                 } label: {
                     Text("Close")
+                        .font(.cjBody)
                 }
                 .buttonStyle(.glass)
             }
@@ -123,7 +126,7 @@ struct MapView: View {
                             HStack {
                                 VStack {
                                     Text(concert.date.shortDateOnlyString)
-                                        .font(.caption)
+                                        .font(.cjCaption)
                                         .foregroundStyle(.secondary)
                                     Group {
                                         AsyncImage(url: URL(string: concert.artist.imageUrl ?? "")) { image in
@@ -139,11 +142,12 @@ struct MapView: View {
                                 }
                                 VStack(alignment: .leading) {
                                     Text(concert.artist.name)
-                                        .font(.system(size: 24))
+                                        .font(.cjTitle2)
                                         .bold()
 
                                     if let title = concert.title {
                                         Text(title)
+                                            .font(.cjBody)
                                     }
                                 }
                                 Spacer(minLength: 5)

@@ -7,6 +7,7 @@
 
 import Foundation
 import Supabase
+import UIKit
 
 protocol StorageServiceProtocol {
     func uploadImage(_ image: UIImage, to bucket: String, path: String) async throws -> URL

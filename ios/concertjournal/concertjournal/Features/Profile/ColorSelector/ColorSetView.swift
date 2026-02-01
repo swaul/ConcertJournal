@@ -35,7 +35,7 @@ struct ColorSetView: View {
     
     var body: some View {
             Form {
-                Section(header: Text("Preview")) {
+                Section(header: Text("Preview").font(.cjBody)) {
                     HStack(spacing: 16) {
                         Circle()
                             .fill(tempColor)
@@ -44,19 +44,19 @@ struct ColorSetView: View {
                                 Circle().stroke(.secondary, lineWidth: 0.5)
                             )
                         Text("This is your app color")
-                            .font(.body)
+                            .font(.cjBody)
                             .foregroundStyle(.primary)
                         Spacer()
                     }
                     .padding(.vertical, 4)
                 }
 
-                Section(header: Text("Pick a color")) {
+                Section(header: Text("Pick a color").font(.cjBody)) {
                     ColorPicker("App Color", selection: $tempColor, supportsOpacity: true)
                         .tint(tempColor)
                     if isInvalidSelection {
                         Text("Black and white are not allowed.")
-                            .font(.footnote)
+                            .font(.cjFootnote)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -73,6 +73,7 @@ struct ColorSetView: View {
                         }
                     } label: {
                         Label("Reset to System Accent", systemImage: "arrow.counterclockwise")
+                            .font(.cjBody)
                     }
                 }
             }
@@ -80,17 +81,25 @@ struct ColorSetView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("Abbrechen")
+                            .font(.cjBody)
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    Button {
                         guard !isInvalidSelection else { return }
                         withAnimation(.easeInOut) {
                             colorTheme.appTint = tempColor
                         }
                         dismiss()
+                    } label: {
+                        Text("Speichern")
+                            .font(.cjBody)
+                            .bold()
                     }
-                    .bold()
                     .tint(tempColor)
                     .disabled(isInvalidSelection)
                 }

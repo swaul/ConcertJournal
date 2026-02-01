@@ -23,13 +23,11 @@ protocol SupabaseEncodable {
 
 extension View {
     @ViewBuilder
-    func selectedGlass(selected: Bool) -> some View {
+    func selectedGlass(selected: Bool, shape: some Shape = DefaultGlassEffectShape()) -> some View {
         if selected {
-            self.glassEffect(.regular.tint(.blue.opacity(0.3)))
-                .glassEffectTransition(.matchedGeometry)
+            self.glassEffect(.regular.tint(.blue.opacity(0.3)), in: shape)
         } else {
-            self.glassEffect(.regular)
-                .glassEffectTransition(.matchedGeometry)
+            self.glassEffect(.regular, in: shape)
         }
     }
     
@@ -81,14 +79,17 @@ struct CreateConcertVisitView: View {
                             if !draft.venueName.isEmpty {
                                 VStack(alignment: .leading) {
                                     Text(draft.venueName)
+                                        .font(.cjBody)
                                     if let city = draft.venue?.city {
                                         Text(city)
+                                            .font(.cjBody)
                                     }
                                 }
                                 .padding()
                             } else {
                                 Text("Select Venue (optional)")
                                     .padding()
+                                    .font(.cjBody)
                             }
                         }
                         .buttonStyle(.glass)
@@ -97,10 +98,12 @@ struct CreateConcertVisitView: View {
                         Stepper(value: $draft.rating, in: 0...10) {
                             HStack {
                                 Text("Rating")
+                                    .font(.cjBody)
                                 Spacer()
                                 Text("\(draft.rating)")
                                     .monospacedDigit()
                                     .foregroundStyle(.secondary)
+                                    .font(.cjBody)
                             }
                         }
                         .padding()
@@ -114,7 +117,8 @@ struct CreateConcertVisitView: View {
                             .padding()
                             .glassEffect(in: RoundedRectangle(cornerRadius: 20, style: .circular))
                             .padding(.horizontal)
-                        
+                            .font(.cjBody)
+
                         PhotosPicker(
                             selection: $selectedPhotoItems,
                             maxSelectionCount: 5,
@@ -122,6 +126,7 @@ struct CreateConcertVisitView: View {
                             photoLibrary: .shared()
                         ) {
                             Label("Fotos hinzufügen", systemImage: "photo.on.rectangle.angled")
+                                .font(.cjBody)
                         }
                         .padding()
                         .buttonStyle(.glass)
@@ -174,7 +179,8 @@ struct CreateConcertVisitView: View {
                     Button {
                         selectArtistPresenting = true
                     } label: {
-                        Text("Select Artist")
+                        Text("Wähle einen Künstler")
+                            .font(.cjBody)
                     }
                     .buttonStyle(.glassProminent)
                     .padding(.bottom, 32)

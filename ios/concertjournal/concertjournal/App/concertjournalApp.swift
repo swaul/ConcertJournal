@@ -10,6 +10,22 @@ import SwiftUI
 @main
 struct ConcertJournalApp: App {
 
+    init() {
+        let appearance = UINavigationBarAppearance()
+
+        appearance.titleTextAttributes = [
+            .font: UIFont(name: "Manrope-SemiBold", size: 18)!
+        ]
+
+        appearance.largeTitleTextAttributes = [
+            .font: UIFont(name: "Manrope-Bold", size: 34)!
+        ]
+
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        UINavigationBar.appearance().compactAppearance = appearance
+    }
+    
     // MARK: - Dependency Container (erstellt alle Dependencies)
 
     @State private var dependencies = DependencyContainer()
@@ -42,6 +58,11 @@ struct ConcertJournalApp: App {
             // Setup Tasks
             .task {
                 await dependencies.userSessionManager.start()
+                
+                for family in UIFont.familyNames.sorted() {
+                    let fonts = UIFont.fontNames(forFamilyName: family)
+                    print("Family: \(family) Fonts: \(fonts)")
+                }
             }
             .task {
                 await dependencies.localizationRepository.loadLocale("de")

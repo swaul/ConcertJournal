@@ -30,7 +30,7 @@ struct CreateConcertSelectVenueView: View {
                     LoadingView()
                 }
             }
-            .navigationTitle("Venue suchen")
+            .navigationTitle("Venue auswählen")
             .task {
                 guard viewModel == nil else { return }
                 viewModel = VenueSearchViewModel(venueRepository: dependencies.venueRepository)
@@ -49,7 +49,7 @@ struct CreateConcertSelectVenueView: View {
                     } label: {
                         VenueRow(venue: venue)
                     }
-                    .selectedGlass(selected: selectedVenue == venue)
+                    .selectedGlass(selected: selectedVenue == venue, shape: RoundedRectangle(cornerRadius: 20))
                 }
             }
             .padding()
@@ -83,7 +83,8 @@ struct CreateConcertSelectVenueView: View {
                             }
                         }
                     } label: {
-                        Text("Next")
+                        Text("Speichern")
+                            .font(.cjBody)
                     }
                 }
             }
@@ -94,6 +95,7 @@ struct CreateConcertSelectVenueView: View {
     private func searchField(query: Binding<String>) -> some View {
         TextField("Venue oder Ort", text: query)
             .focused($searchFeildFocused)
+            .font(.cjBody)
             .padding()
             .glassEffect()
     }
@@ -104,24 +106,19 @@ struct VenueRow: View {
     let venue: MKMapItem
 
     var body: some View {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(venue.name ?? "Unbekannte Venue")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                    Spacer()
-                }
-
-                if let address = venue.addressRepresentations?.fullAddress(includingRegion: false, singleLine: true) {
-                    HStack {
-                        Text(address)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .foregroundStyle(.white)
-                        Spacer()
-                    }
-                }
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(venue.name ?? "Unbekannte Venue")
+                    .font(.cjHeadline)
+                Spacer()
             }
-            .padding()
+            if let address = venue.addressRepresentations?.fullAddress(includingRegion: false, singleLine: true) {
+                    Text(address)
+                        .font(.cjCaption)
+                        .multilineTextAlignment(.leading)
+            }
+        }
+        .padding()
+        .foregroundStyle(Color("textColor"))
     }
 }

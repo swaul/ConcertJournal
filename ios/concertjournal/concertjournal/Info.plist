@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>UIAppFonts</key>
+	<array>
+		<string>PlayfairDisplay-Regular.otf</string>
+		<string>PlayfairDisplay-Bold.otf</string>
+		<string>Manrope-Bold.otf</string>
+		<string>Manrope-Light.otf</string>
+		<string>Manrope-Medium.otf</string>
+		<string>Manrope-Regular.otf</string>
+		<string>Manrope-SemiBold.otf</string>
+	</array>
+</dict>
+</plist>

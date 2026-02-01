@@ -11,9 +11,7 @@ struct ConcertsView: View {
     @Environment(\.dependencies) private var dependencies
     
     @State private var navigationManager = NavigationManager()
-
     @State private var viewModel: ConcertsViewModel? = nil
-
     @State private var searchText: String = ""
         
     var body: some View {
@@ -52,10 +50,10 @@ struct ConcertsView: View {
     @ViewBuilder
     func viewWithViewModel(viewModel: ConcertsViewModel) -> some View {
         ScrollView {
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 10) {
                 if !viewModel.futureConcerts.isEmpty {
                     Text("Deine nächsten Konzerte")
-                        .font(.title)
+                        .font(.cjTitle)
                         .padding(.vertical)
 
                     ScrollView(.horizontal) {
@@ -63,8 +61,8 @@ struct ConcertsView: View {
                             ForEach(viewModel.futureConcerts) { visit in
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(visit.date.dateOnlyString)
+                                        .fontPlayfairSCRegular(16)
                                         .padding(2)
-                                        .font(.caption)
                                         .glassEffect()
                                     Button {
                                         navigationManager.push(.concertDetail(visit))
@@ -81,16 +79,19 @@ struct ConcertsView: View {
                     .scrollIndicators(.hidden)
 
                     Text("Vergangene Konzerte")
-                        .font(.title)
+                        .font(.cjTitle)
                         .padding(.vertical)
                 }
                 ForEach(viewModel.pastConcerts) { visit in
-                    Section(visit.title ?? visit.artist.name) {
+                    Section {
                         Button {
                             navigationManager.push(.concertDetail(visit))
                         } label: {
-                            visitSection(visit: visit)
+                            visitItem(visit: visit)
                         }
+                    } header: {
+                        Text(visit.title ?? visit.artist.name)
+                            .font(.cjCaption)
                     }
                 }
             }
@@ -113,8 +114,8 @@ struct ConcertsView: View {
     }
 
     @ViewBuilder
-    func visitSection(visit: FullConcertVisit) -> some View {
-        HStack {
+    func visitItem(visit: FullConcertVisit) -> some View {
+        HStack(spacing: 0) {
             Group {
                 AsyncImage(url: URL(string: visit.artist.imageUrl ?? "")) { result in
                     switch result {
@@ -125,7 +126,7 @@ struct ConcertsView: View {
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                     case .failure:
-                        Color.red
+                        dependencies.colorThemeManager.appTint
                     @unknown default:
                         Color.blue
                     }
@@ -134,23 +135,24 @@ struct ConcertsView: View {
             .frame(width: 100, height: 100)
         
             VStack(alignment: .leading) {
-                Text(visit.artist.name)
-                    .lineLimit(nil)
-                    .font(.title2)
+                MarqueeText(visit.artist.name, font: .cjTitle)
                     .foregroundStyle(.white)
+                    .frame(height: 30)
                 if let venue = visit.venue {
                     Text(venue.name)
+                        .font(.cjBody)
                         .foregroundStyle(.white)
                         .lineLimit(1)
+                        .padding(.horizontal, 12)
                 }
                 if let city = visit.city {
                     Text(city)
+                        .font(.cjBody)
                         .foregroundStyle(.white)
                         .lineLimit(1)
+                        .padding(.horizontal, 12)
                 }
             }
-            .padding(.horizontal)
-            
             Spacer()
         }
         .compositingGroup()
@@ -190,15 +192,17 @@ struct ConcertsView: View {
             VStack(alignment: .leading) {
                 Text(concert.artist.name)
                     .lineLimit(nil)
-                    .font(.title2)
+                    .font(.cjTitle2)
                     .foregroundStyle(.white)
                 if let venue = concert.venue {
                     Text(venue.name)
+                        .font(.cjBody)
                         .foregroundStyle(.white)
                         .lineLimit(1)
                 }
                 if let city = concert.city {
                     Text(city)
+                        .font(.cjBody)
                         .foregroundStyle(.white)
                         .lineLimit(1)
                 }
@@ -249,6 +253,9 @@ struct ConcertsView: View {
     @ViewBuilder
     private func navigationDestination(for route: NavigationRoute) -> some View {
         switch route {
+        case .createConcert:
+            CreateConcertVisitView()
+            
         case .concertDetail(let concert):
             ConcertDetailView(concert: concert)
 
@@ -263,6 +270,9 @@ struct ConcertsView: View {
 
         case .profile:
             ProfileView()
+
+        case .map(let concerts):
+            MapView(concerts: concerts)
 
         default:
             Text("Not implemented: \(String(describing: route))")

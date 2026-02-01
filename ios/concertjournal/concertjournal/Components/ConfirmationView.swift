@@ -33,7 +33,7 @@ struct ConfirmationView: View {
                 .contentTransition(.interpolate)
             
             Text(message)
-                .font(.headline)
+                .font(.cjHeadline)
                 .opacity(showDone ? 1 : 0)
                 .animation(.easeIn(duration: 0.25), value: showDone)
         }

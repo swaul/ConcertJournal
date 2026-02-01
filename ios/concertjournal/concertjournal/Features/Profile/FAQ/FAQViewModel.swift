@@ -6,6 +6,7 @@
 //
 
 import Supabase
+import Observation
 
 @Observable
 class FAQViewModel {

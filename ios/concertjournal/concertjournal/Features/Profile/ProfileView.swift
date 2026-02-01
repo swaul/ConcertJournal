@@ -28,11 +28,13 @@ struct ProfileView: View {
                             VStack(spacing: 12) {
                                 ProgressView()
                                 Text("Loading profile…")
+                                    .font(.cjBody)
                                     .foregroundStyle(.secondary)
                             }
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                         case .error:
                             Text("ERROR")
+                                .font(.cjBody)
                         case .loaded:
                             List {
                                 Section {
@@ -46,6 +48,7 @@ struct ProfileView: View {
                                     } label: {
                                         HStack {
                                             Text("FAQ")
+                                                .font(.cjBody)
                                             Spacer()
                                             Image(systemName: "chevron.right")
                                         }
@@ -57,6 +60,7 @@ struct ProfileView: View {
                                     } label: {
                                         HStack {
                                             Text("Color")
+                                                .font(.cjBody)
                                             Spacer()
                                             Image(systemName: "chevron.right")
                                         }
@@ -72,6 +76,7 @@ struct ProfileView: View {
                                         HStack {
                                             Image(systemName: "rectangle.portrait.and.arrow.right")
                                             Text("Sign Out")
+                                                .font(.cjBody)
                                         }
                                     }
                                     .accessibilityIdentifier("signOutButton")
@@ -118,7 +123,8 @@ struct ProfileView: View {
                     }
                     HStack {
                         TextField("", text: binding)
-                            .font(.title3).fontWeight(.semibold)
+                            .font(.cjTitle2)
+                            .fontWeight(.semibold)
                             .submitLabel(.done)
                             .focused($nameTextFieldFocused)
                             .onChange(of: viewModel.displayName, { _, newValue in
@@ -142,6 +148,7 @@ struct ProfileView: View {
                                 nameTextFieldFocused = false
                             } label: {
                                 Text("Save")
+                                    .font(.cjBody)
                             }
                             .buttonStyle(.glassProminent)
                         }
@@ -150,7 +157,7 @@ struct ProfileView: View {
                 
                 if let email = viewModel.email {
                     Text(email)
-                        .font(.subheadline)
+                        .font(.cjBody)
                         .foregroundStyle(.secondary)
                 }
             }

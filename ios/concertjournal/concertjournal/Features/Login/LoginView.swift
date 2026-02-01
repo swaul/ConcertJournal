@@ -48,7 +48,7 @@ struct LoginView: View {
                         if let error = viewModel.errorMessage {
                             Text(error)
                                 .foregroundStyle(.red)
-                                .font(.footnote)
+                                .font(.cjFootnote)
                         }
 
                         HStack(spacing: 12) {
@@ -56,6 +56,7 @@ struct LoginView: View {
                                 Task { await viewModel.signInWithEmail() }
                             } label: {
                                 Text("Sign In")
+                                    .font(.cjBody)
                                     .frame(maxWidth: .infinity)
                             }
                             .buttonStyle(.borderedProminent)
@@ -65,6 +66,7 @@ struct LoginView: View {
                                 Task { await viewModel.signUpWithEmail() }
                             } label: {
                                 Text("Sign Up")
+                                    .font(.cjBody)
                                     .frame(maxWidth: .infinity)
                             }
                             .buttonStyle(.bordered)
@@ -82,6 +84,7 @@ struct LoginView: View {
                                     .aspectRatio(contentMode: .fit)
                                     .frame(height: 38)
                                 Text(dependencies.localizationRepository.text(for: "spotifyLoginButton"))
+                                    .font(.cjBody)
                                 Spacer()
                             }
                             .frame(maxWidth: .infinity)

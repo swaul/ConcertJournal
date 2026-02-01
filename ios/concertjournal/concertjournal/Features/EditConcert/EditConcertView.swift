@@ -41,58 +41,77 @@ struct ConcertEditView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Konzert") {
+                Section {
                     TextField("Titel", text: $title)
                     DatePicker("Datum", selection: $date, displayedComponents: .date)
+                } header: {
+                    Text("Konzert")
+                        .font(.cjBody)
                 }
 
-                Button {
-                    selectVenuePresenting = true
-                } label: {
-                    if !venueName.isEmpty {
-                        VStack(alignment: .leading) {
-                            Text(venueName)
-                            if let city = venue?.city {
-                                Text(city)
+                Section {
+                    Button {
+                        selectVenuePresenting = true
+                    } label: {
+                        if !venueName.isEmpty {
+                            VStack(alignment: .leading) {
+                                Text(venueName)
+                                    .font(.cjBody)
+                                if let city = venue?.city {
+                                    Text(city)
+                                        .font(.cjBody)
+                                }
                             }
+                        } else {
+                            Text("Venue auswählen (optional)")
+                                .font(.cjBody)
                         }
-                        .padding()
-                    } else {
-                        Text("Select Venue (optional)")
-                            .padding()
                     }
+                    .buttonStyle(.plain)
+                } header: {
+                    Text("Location")
+                        .font(.cjBody)
                 }
-                .buttonStyle(.glass)
-                .padding(.horizontal)
                 
-                Section("Notizen") {
+                Section {
                     TextEditor(text: $notes)
                         .frame(minHeight: 120)
+                        .font(.cjBody)
+                } header: {
+                    Text("Notizen")
+                        .font(.cjBody)
                 }
 
-                Section("Bewertung") {
+                Section {
                     Stepper(value: $rating, in: 0...10) {
                         HStack {
                             Text("Rating")
+                                .font(.cjBody)
                             Spacer()
                             Text("\(rating)")
                                 .monospacedDigit()
                                 .foregroundStyle(.secondary)
+                                .font(.cjBody)
                         }
                     }
-                    .padding()
-                    .glassEffect()
-                    .padding(.horizontal)
+                } header: {
+                    Text("Bewertung")
+                        .font(.cjBody)
                 }
             }
             .navigationTitle("Konzert bearbeiten")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Abbrechen") { dismiss() }
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("Abbrechen")
+                            .font(.cjBody)
+                    }
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Speichern") {
+                    Button {
                         onSave(
                             ConcertUpdate(
                                 title: title,
@@ -104,6 +123,9 @@ struct ConcertEditView: View {
                             )
                         )
                         dismiss()
+                    } label: {
+                        Text("Speichern")
+                            .font(.cjBody)
                     }
                 }
             }

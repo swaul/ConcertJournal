@@ -56,8 +56,7 @@ struct ArtistHeader: View {
             VStack(alignment: .leading, spacing: 8) {
                 Spacer()
                 Text(artist.name)
-                    .bold()
-                    .font(.system(size: 40))
+                    .font(.cjLargeTitle)
                     .padding()
                     .glassEffect()
 

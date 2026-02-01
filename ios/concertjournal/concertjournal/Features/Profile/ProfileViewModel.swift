@@ -5,6 +5,7 @@
 //  Created by Paul Kühnel on 31.01.26.
 //
 
+import Observation
 import Supabase
 
 @Observable

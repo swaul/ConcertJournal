@@ -31,6 +31,7 @@ struct FAQView: View {
                     VStack(spacing: 12) {
                         ProgressView()
                         Text("Loading")
+                            .font(.cjBody)
                             .foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -45,13 +46,19 @@ struct FAQView: View {
                 case .error(let error):
                     VStack(spacing: 12) {
                         Image(systemName: "exclamationmark.triangle")
-                            .font(.title2)
+                            .font(.cjTitle2)
                             .foregroundStyle(.orange)
                         Text(error.localizedDescription)
                             .multilineTextAlignment(.center)
+                            .font(.cjBody)
                             .foregroundStyle(.secondary)
-                        Button("Retry") { viewModel.refresh() }
-                            .buttonStyle(.borderedProminent)
+                        Button {
+                            viewModel.refresh()
+                        } label: {
+                            Text("Neu laden")
+                                .font(.cjBody)
+                        }
+                        .buttonStyle(.borderedProminent)
                     }
                     .padding()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -83,7 +90,7 @@ private struct FAQRow: View {
             } label: {
                 HStack(alignment: .firstTextBaseline) {
                     Text(item.question)
-                        .font(.headline)
+                        .font(.cjHeadline)
                         .foregroundStyle(.primary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
@@ -97,7 +104,7 @@ private struct FAQRow: View {
 
             if isExpanded {
                 Text(item.answer)
-                    .font(.subheadline)
+                    .font(.cjBody)
                     .foregroundStyle(.secondary)
                     .transition(.opacity.combined(with: .move(edge: .leading)))
             }
