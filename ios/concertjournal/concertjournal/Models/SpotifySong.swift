@@ -23,6 +23,7 @@ struct SpotifySongsResponse: Codable {
 
 // MARK: - Item
 struct SpotifySong: Codable, Identifiable {
+    let id: String
     let album: SpotifyAlbum?
     let artists: [SpotifyArtist]?
     let availableMarkets: [String]?
@@ -31,7 +32,6 @@ struct SpotifySong: Codable, Identifiable {
     let externalIDS: ExternalIDS?
     let externalUrls: ExternalUrls?
     let href: String?
-    let id: String?
     let isLocal, isPlayable: Bool?
     let name: String
     let popularity: Int?
@@ -91,9 +91,25 @@ struct SpotifyAlbum: Codable {
     }
 }
 
-enum AlbumTypeEnum: String, Codable {
+enum AlbumTypeEnum: String, Codable, CaseIterable {
     case album = "album"
     case single = "single"
+
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let decodedValue = try container.decode(String.self)
+
+        if let albumType = AlbumTypeEnum.allCases.first(where: { albumType in
+            // Combine all possible values we accept for the order status
+            let possibleValues = [albumType.rawValue.lowercased()]
+            return possibleValues.contains { $0 == decodedValue.lowercased() }
+        }) {
+            self = albumType
+        } else {
+            print("Uknown enum case found:", decodedValue)
+            self = .single
+        }
+    }
 }
 
 enum ArtistType: String, Codable {

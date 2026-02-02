@@ -18,7 +18,11 @@ struct ConcertsView: View {
         NavigationStack(path: $navigationManager.path) {
             Group {
                 if let viewModel {
-                    viewWithViewModel(viewModel: viewModel)
+                    if let errorMessage = viewModel.errorMessage {
+                        Text(errorMessage)
+                    } else {
+                        viewWithViewModel(viewModel: viewModel)
+                    }
                 } else {
                     LoadingView()
                 }
@@ -100,6 +104,9 @@ struct ConcertsView: View {
         .scrollIndicators(.hidden)
         .safeAreaInset(edge: .bottom) {
             createButton(viewModel: viewModel)
+        }
+        .refreshable {
+            await viewModel.refreshConcerts()
         }
         .tabBarMinimizeBehavior(.onScrollDown)
         .toolbar {
@@ -259,9 +266,6 @@ struct ConcertsView: View {
         case .concertDetail(let concert):
             ConcertDetailView(concert: concert)
 
-        case .createSetlist:
-            CreateSetlistView()
-
         case .colorPicker:
             ColorSetView()
 
@@ -288,5 +292,4 @@ struct ConcertsView: View {
 
 #Preview {
     ConcertsView()
-        .environmentObject(ColorThemeManager())
 }

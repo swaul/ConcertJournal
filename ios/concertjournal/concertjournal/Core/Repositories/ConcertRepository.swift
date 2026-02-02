@@ -5,11 +5,17 @@
 //  Repository für Concert-Daten - abstrahiert die Datenquelle
 //
 
+import Combine
 import Foundation
 import Supabase
 
 protocol ConcertRepositoryProtocol {
-    func fetchConcerts(for userId: String) async throws -> [FullConcertVisit]
+
+    var concerts: [FullConcertVisit] { get }
+    var concertsDidUpdate: AnyPublisher<[FullConcertVisit], Never> { get }
+
+    func getConcerts(reload: Bool) async throws -> [FullConcertVisit]
+    func fetchConcerts() async throws
     func createConcert(_ concert: NewConcertDTO) async throws -> String
     func updateConcert(id: String, concert: ConcertVisitUpdateDTO) async throws
     func deleteConcert(id: String) async throws
@@ -19,17 +25,39 @@ class ConcertRepository: ConcertRepositoryProtocol {
 
     private let networkService: NetworkServiceProtocol
     private let supabaseClient: SupabaseClientManager
+    private let userSessionManager: UserSessionManager
 
-    init(networkService: NetworkServiceProtocol, supabaseClient: SupabaseClientManager) {
+    var concertsDidUpdate: AnyPublisher<[FullConcertVisit], Never> {
+        concertsSubject.eraseToAnyPublisher()
+    }
+
+    let concertsSubject = PassthroughSubject<[FullConcertVisit], Never>()
+
+    var concerts: [FullConcertVisit]
+
+    init(networkService: NetworkServiceProtocol, userSessionManager: UserSessionManager, supabaseClient: SupabaseClientManager) {
         self.networkService = networkService
+        self.userSessionManager = userSessionManager
         self.supabaseClient = supabaseClient
+
+        concerts = []
     }
 
     // MARK: - Fetch Concerts
 
-    func fetchConcerts(for userId: String) async throws -> [FullConcertVisit] {
+    func getConcerts(reload: Bool) async throws -> [FullConcertVisit] {
+        guard reload || concerts.isEmpty else {
+            return concerts
+        }
+
+        try await fetchConcerts()
+        return concerts
+    }
+
+    func fetchConcerts() async throws {
+        guard let userId = userSessionManager.user?.id else { throw ConcertLoadingError.notLoggedIn }
         // Dieser Query ist komplex wegen den Joins - hier nutzen wir den Supabase Client direkt
-        let visits: [FullConcertVisit] = try await supabaseClient.client
+        let concerts: [FullConcertVisit] = try await supabaseClient.client
             .from("concert_visits")
             .select("""
                 id,
@@ -61,7 +89,8 @@ class ConcertRepository: ConcertRepositoryProtocol {
             .execute()
             .value
 
-        return visits
+        self.concerts = concerts
+        concertsSubject.send(concerts)
     }
 
     // MARK: - Create Concert
@@ -83,14 +112,44 @@ class ConcertRepository: ConcertRepositoryProtocol {
     }
 }
 
+enum ConcertLoadingError: Error, LocalizedError {
+    case notLoggedIn
+
+    var errorDescription: String? {
+        switch self {
+        case .notLoggedIn:
+            return "Nicht eingeloggt"
+        }
+    }
+}
 // MARK: - Mock Repository für Testing/Previews
 
 class MockConcertRepository: ConcertRepositoryProtocol {
 
     var mockConcerts: [FullConcertVisit] = []
 
-    func fetchConcerts(for userId: String) async throws -> [FullConcertVisit] {
-        return mockConcerts
+    var concertsDidUpdate: AnyPublisher<[FullConcertVisit], Never> {
+        Just(concerts).eraseToAnyPublisher()
+    }
+
+    var concerts: [FullConcertVisit]
+
+    init(mockConcerts: [FullConcertVisit], concerts: [FullConcertVisit]) {
+        self.mockConcerts = mockConcerts
+        self.concerts = concerts
+    }
+
+    func getConcerts(reload: Bool) async throws -> [FullConcertVisit] {
+        if reload {
+            try await fetchConcerts()
+            return concerts
+        } else {
+            return concerts
+        }
+    }
+
+    func fetchConcerts() async throws {
+        // Mock implementation
     }
 
     func createConcert(_ concert: NewConcertDTO) async throws -> String {

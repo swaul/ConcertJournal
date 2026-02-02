@@ -17,8 +17,10 @@ struct ConcertImage: Identifiable {
 }
 
 struct ConcertDetailView: View {
-    
+
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.navigationManager) private var navigationManager
 
     @State var viewModel: ConcertDetailViewModel?
 
@@ -28,7 +30,7 @@ struct ConcertDetailView: View {
     @State private var calendarEvent: EKEvent?
     @State private var confirmationText: ConfirmationMessage? = nil
     @State private var showEditSheet = false
-    
+    @State private var showDeleteDialog = false
     @State private var selectedImage: ConcertImage?
     
     let eventStore = EKEventStore()
@@ -36,186 +38,7 @@ struct ConcertDetailView: View {
     var body: some View {
         Group {
             if let viewModel {
-                GeometryReader { reader in
-                    ZStack {
-                        VStack {
-                            ConcertBackgroundImage(width: reader.size.width, imageUrl: viewModel.artist.imageUrl ?? "")
-                                .edgesIgnoringSafeArea(.top)
-
-                            Spacer()
-                        }
-                        .frame(width: reader.size.width)
-                        .edgesIgnoringSafeArea(.top)
-
-                        ScrollView {
-                            VStack(alignment: .leading) {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(viewModel.concert.date.dateOnlyString)
-                                        .font(.cjTitle2)
-
-                                    if let title = viewModel.concert.title {
-                                        Text(title)
-                                            .bold()
-                                            .font(.cjLargeTitle)
-                                    } else {
-                                        Text(viewModel.artist.name)
-                                            .bold()
-                                            .font(.cjLargeTitle)
-                                    }
-                                }
-                                .padding()
-                                .rectangleGlass()
-                                .padding(.horizontal)
-
-                                if let venue = viewModel.concert.venue {
-                                    Text("Location")
-                                        .font(.cjTitle)
-                                        .padding(.horizontal)
-
-                                    VStack(alignment: .leading) {
-                                        Text(venue.name)
-                                            .bold()
-                                            .font(.cjBody)
-
-                                        Text(venue.formattedAddress)
-                                            .font(.cjBody)
-
-                                        if let latitude = venue.latitude, let longitude = venue.longitude {
-                                            VenueInlineMap(latitude: latitude, longitude: longitude, name: venue.name)
-                                        }
-                                    }
-                                    .padding()
-                                    .glassEffect(in: RoundedRectangle(cornerRadius: 20))
-                                    .padding(.horizontal)
-                                }
-
-                                if let notes = viewModel.concert.notes {
-                                    Text("Meine Experience")
-                                        .font(.cjTitle)
-                                        .padding(.horizontal)
-
-                                    VStack(alignment: .leading) {
-                                        HStack(alignment: .center) {
-                                            Image(systemName: "long.text.page.and.pencil")
-                                                .foregroundStyle(dependencies.colorThemeManager.appTint.opacity(0.5))
-                                            Text("Journal Eintrag")
-                                                .foregroundStyle(dependencies.colorThemeManager.appTint.opacity(0.5))
-                                                .font(.cjHeadline)
-                                            Spacer()
-                                        }
-                                        .padding(.top)
-                                        .padding(.horizontal)
-
-                                        Text(notes)
-                                            .lineLimit(nil)
-                                            .padding(.bottom)
-                                            .padding(.horizontal)
-                                            .font(.cjBody)
-                                    }
-                                    .glassEffect(in: RoundedRectangle(cornerRadius: 20))
-                                    .padding(.horizontal)
-                                }
-
-                                if !viewModel.imageUrls.isEmpty {
-                                    Text("Meine Bilder")
-                                        .font(.cjTitle)
-                                        .padding(.horizontal)
-
-                                    ScrollView(.horizontal) {
-                                        LazyHStack(spacing: 16) {
-                                            ForEach(Array(viewModel.imageUrls), id: \.id) { image in
-                                                Button {
-                                                    selectedImage = image
-                                                } label: {
-                                                    AsyncImage(url: image.url) { image in
-                                                        image
-                                                            .resizable()
-                                                            .aspectRatio(contentMode: .fill)
-                                                            .frame(width: 200, height: 300)
-                                                            .clipped()
-                                                            .cornerRadius(20)
-                                                    } placeholder: {
-                                                        ZStack {
-                                                            RoundedRectangle(cornerRadius: 20)
-                                                                .fill(Color.gray.opacity(0.3))
-                                                            ProgressView()
-                                                        }
-                                                        .frame(width: 200, height: 300)
-                                                    }
-                                                }
-                                                .buttonStyle(.plain)
-                                                .frame(width: 200, height: 300)
-                                                .scrollTargetLayout()
-                                            }
-                                        }
-                                    }
-                                    .padding(.horizontal)
-                                    .scrollClipDisabled()
-                                    .scrollTargetBehavior(.viewAligned)
-                                    .scrollIndicators(.hidden)
-                                }
-                            }
-                        }
-                        .scrollIndicators(.hidden)
-                        .frame(width: reader.size.width)
-                        .safeAreaInset(edge: .top) {
-                            Rectangle()
-                                .fill(.clear)
-                                .frame(height: 200)
-                        }
-                    }
-                    .frame(width: reader.size.width)
-                }
-                .toolbar {
-                    ToolbarItemGroup(placement: .topBarTrailing) {
-
-                        if viewModel.concert.date > Date.now {
-                            Button {
-                                requestCalendarAccess()
-                            } label: {
-                                Image(systemName: "calendar.badge.plus")
-                            }
-                        }
-
-                        Button {
-                            showEditSheet = true
-                        } label: {
-                            Image(systemName: "pencil")
-                        }
-                    }
-                }
-                .sheet(isPresented: $showCalendarSheet) {
-                    if let calendarEvent {
-                        EventEditView(
-                            eventStore: eventStore,
-                            event: calendarEvent
-                        ) { action in
-                            if action == .saved {
-                                confirmationText = ConfirmationMessage(message: "Event gespeichert 🎉")
-                            }
-                        }
-                    }
-                }
-                .sheet(isPresented: $showEditSheet) {
-                    ConcertEditView(
-                        concert: viewModel.concert,
-                        onSave: { updatedConcert in
-                            Task {
-                                await viewModel.applyUpdate(updatedConcert)
-                                confirmationText = ConfirmationMessage(message: "Updates gespeichert!")
-                            }
-                        }
-                    )
-                }
-                .sheet(item: $confirmationText) { item in
-                    ConfirmationView(message: item.message)
-                }
-                .fullScreenCover(item: $selectedImage) { item in
-                    FullscreenImagePagerView(
-                        imageUrls: viewModel.imageUrls,
-                        startIndex: item.index
-                    )
-                }
+                viewWithViewModel(viewModel: viewModel)
             } else {
                 LoadingView()
             }
@@ -228,7 +51,231 @@ struct ConcertDetailView: View {
         }
 
     }
-    
+
+    @ViewBuilder
+    func viewWithViewModel(viewModel: ConcertDetailViewModel) -> some View {
+        GeometryReader { reader in
+            ZStack {
+                background(reader: reader, viewModel: viewModel)
+
+                ScrollView {
+                    VStack(alignment: .leading) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(viewModel.concert.date.dateOnlyString)
+                                .font(.cjTitle2)
+
+                            if let title = viewModel.concert.title {
+                                Text(title)
+                                    .bold()
+                                    .font(.cjLargeTitle)
+                            } else {
+                                Text(viewModel.artist.name)
+                                    .bold()
+                                    .font(.cjLargeTitle)
+                            }
+                        }
+                        .padding()
+                        .rectangleGlass()
+                        .padding(.horizontal)
+
+                        if let venue = viewModel.concert.venue {
+                            Text("Location")
+                                .font(.cjTitle)
+                                .padding(.horizontal)
+
+                            VStack(alignment: .leading) {
+                                Text(venue.name)
+                                    .bold()
+                                    .font(.cjBody)
+
+                                Text(venue.formattedAddress)
+                                    .font(.cjBody)
+
+                                if let latitude = venue.latitude, let longitude = venue.longitude {
+                                    VenueInlineMap(latitude: latitude, longitude: longitude, name: venue.name)
+                                }
+                            }
+                            .padding()
+                            .glassEffect(in: RoundedRectangle(cornerRadius: 20))
+                            .padding(.horizontal)
+                        }
+
+                        if let notes = viewModel.concert.notes {
+                            Text("Meine Experience")
+                                .font(.cjTitle)
+                                .padding(.horizontal)
+
+                            VStack(alignment: .leading) {
+                                HStack(alignment: .center) {
+                                    Image(systemName: "long.text.page.and.pencil")
+                                        .foregroundStyle(dependencies.colorThemeManager.appTint.opacity(0.5))
+                                    Text("Journal Eintrag")
+                                        .foregroundStyle(dependencies.colorThemeManager.appTint.opacity(0.5))
+                                        .font(.cjHeadline)
+                                    Spacer()
+                                }
+                                .padding(.top)
+                                .padding(.horizontal)
+
+                                Text(notes)
+                                    .lineLimit(nil)
+                                    .padding(.bottom)
+                                    .padding(.horizontal)
+                                    .font(.cjBody)
+                            }
+                            .glassEffect(in: RoundedRectangle(cornerRadius: 20))
+                            .padding(.horizontal)
+                        }
+
+                        if !viewModel.imageUrls.isEmpty {
+                            Text("Meine Bilder")
+                                .font(.cjTitle)
+                                .padding(.horizontal)
+
+                            ScrollView(.horizontal) {
+                                LazyHStack(spacing: 16) {
+                                    ForEach(Array(viewModel.imageUrls), id: \.id) { image in
+                                        Button {
+                                            selectedImage = image
+                                        } label: {
+                                            AsyncImage(url: image.url) { image in
+                                                image
+                                                    .resizable()
+                                                    .aspectRatio(contentMode: .fill)
+                                                    .frame(width: 200, height: 300)
+                                                    .clipped()
+                                                    .cornerRadius(20)
+                                            } placeholder: {
+                                                ZStack {
+                                                    RoundedRectangle(cornerRadius: 20)
+                                                        .fill(Color.gray.opacity(0.3))
+                                                    ProgressView()
+                                                }
+                                                .frame(width: 200, height: 300)
+                                            }
+                                        }
+                                        .buttonStyle(.plain)
+                                        .frame(width: 200, height: 300)
+                                        .scrollTargetLayout()
+                                    }
+                                }
+                            }
+                            .padding(.horizontal)
+                            .scrollClipDisabled()
+                            .scrollTargetBehavior(.viewAligned)
+                            .scrollIndicators(.hidden)
+                        }
+                    }
+                }
+                .scrollIndicators(.hidden)
+                .frame(width: reader.size.width)
+                .safeAreaInset(edge: .top) {
+                    Rectangle()
+                        .fill(.clear)
+                        .frame(height: 200)
+                }
+            }
+            .frame(width: reader.size.width)
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                if viewModel.concert.date > Date.now {
+                    Button {
+                        requestCalendarAccess()
+                    } label: {
+                        Image(systemName: "calendar.badge.plus")
+                    }
+                }
+
+                Menu {
+                    Button {
+                        showEditSheet = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "pencil")
+                            Text("Bearbeiten")
+                        }
+                    }
+                    Button(role: .destructive) {
+                        showDeleteDialog = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "trash")
+                            Text("Löschen")
+                        }
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+            }
+        }
+        .confirmationDialog("Konzert löschen", isPresented: $showDeleteDialog, titleVisibility: .visible) {
+            Button(role: .destructive) {
+                Task {
+                    do {
+                        try await viewModel.deleteConcert()
+                        confirmationText = ConfirmationMessage(message: "Konzert gelöscht!") {
+                            dismiss()
+                        }
+                    } catch {
+                        print(error)
+                    }
+                }
+            } label: {
+                Text("Löschen")
+            }
+            Button {
+
+            } label: {
+                Text("Abbrechen")
+            }
+        }
+        .sheet(isPresented: $showCalendarSheet) {
+            if let calendarEvent {
+                EventEditView(
+                    eventStore: eventStore,
+                    event: calendarEvent
+                ) { action in
+                    if action == .saved {
+                        confirmationText = ConfirmationMessage(message: "Event gespeichert 🎉")
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showEditSheet) {
+            ConcertEditView(
+                concert: viewModel.concert,
+                onSave: { updatedConcert in
+                    Task {
+                        await viewModel.applyUpdate(updatedConcert)
+                        confirmationText = ConfirmationMessage(message: "Updates gespeichert!")
+                    }
+                }
+            )
+        }
+        .sheet(item: $confirmationText) { item in
+            ConfirmationView(message: item)
+        }
+        .fullScreenCover(item: $selectedImage) { item in
+            FullscreenImagePagerView(
+                imageUrls: viewModel.imageUrls,
+                startIndex: item.index
+            )
+        }
+    }
+
+    @ViewBuilder
+    func background(reader: GeometryProxy, viewModel: ConcertDetailViewModel) -> some View {
+        VStack {
+            ConcertBackgroundImage(width: reader.size.width, imageUrl: viewModel.artist.imageUrl ?? "")
+                .edgesIgnoringSafeArea(.top)
+
+            Spacer()
+        }
+        .frame(width: reader.size.width)
+        .edgesIgnoringSafeArea(.top)
+    }
+
     func requestCalendarAccess() {
         Task {
             do {
@@ -256,9 +303,9 @@ extension Date {
     var shortDateOnlyString: String {
         self.formatted(
             Date.FormatStyle()
-                .year()
-                .month()
-                .day()
+                .year(.twoDigits)
+                .month(.abbreviated)
+                .day(.twoDigits)
                 .locale(Locale(identifier: "de_DE"))
         )
     }

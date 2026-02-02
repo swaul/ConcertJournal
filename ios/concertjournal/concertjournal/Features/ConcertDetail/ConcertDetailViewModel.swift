@@ -17,6 +17,7 @@ class ConcertDetailViewModel {
     var concert: FullConcertVisit
     let artist: Artist
     var imageUrls: [ConcertImage] = []
+    var errorMessage: String?
 
     private let photoRepository: PhotoRepositoryProtocol
     private let concertRepository: ConcertRepositoryProtocol
@@ -93,4 +94,10 @@ class ConcertDetailViewModel {
             // optional: rollback
         }
     }
+
+    func deleteConcert() async throws {
+        try await concertRepository.deleteConcert(id: concert.id)
+        try await concertRepository.fetchConcerts()
+    }
+
 }

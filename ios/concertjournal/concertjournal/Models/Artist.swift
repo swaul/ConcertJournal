@@ -8,9 +8,9 @@
 import Foundation
 import Supabase
 
-public struct Artist: Codable, Hashable, SupabaseEncodable {
+public struct Artist: Codable, Hashable, Identifiable, SupabaseEncodable {
 
-    let id: String
+    public let id: String
     let name: String
     let imageUrl: String?
     let spotifyArtistId: String?

@@ -58,11 +58,6 @@ struct ConcertJournalApp: App {
             // Setup Tasks
             .task {
                 await dependencies.userSessionManager.start()
-                
-                for family in UIFont.familyNames.sorted() {
-                    let fonts = UIFont.fontNames(forFamilyName: family)
-                    print("Family: \(family) Fonts: \(fonts)")
-                }
             }
             .task {
                 await dependencies.localizationRepository.loadLocale("de")

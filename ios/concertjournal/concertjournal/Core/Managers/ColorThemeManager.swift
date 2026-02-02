@@ -73,9 +73,11 @@ struct ColorPersistence {
 }
 
 // MARK: - Observable Theme Manager
+
+@Observable
 @MainActor
-final class ColorThemeManager: ObservableObject {
-    @Published var appTint: Color {
+final class ColorThemeManager {
+    var appTint: Color {
         didSet {
             ColorPersistence.saveAppTint(appTint)
         }
@@ -99,12 +101,5 @@ extension EnvironmentValues {
     var appTintColor: Color {
         get { self[AppTintColorKey.self] }
         set { self[AppTintColorKey.self] = newValue }
-    }
-}
-
-// MARK: - View convenience
-extension View {
-    func appTint(_ color: Color) -> some View {
-        environment(\.appTintColor, color)
     }
 }

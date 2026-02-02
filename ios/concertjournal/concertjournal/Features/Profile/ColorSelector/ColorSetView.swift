@@ -19,16 +19,16 @@ private extension Color {
 
 private func isDisallowedBlackOrWhite(_ color: Color, epsilon: CGFloat = 0.02) -> Bool {
     guard let c = color.rgba() else { return false }
-    // Consider near-black or near-white as disallowed
     let nearBlack = c.r < epsilon && c.g < epsilon && c.b < epsilon
     let nearWhite = (1 - c.r) < epsilon && (1 - c.g) < epsilon && (1 - c.b) < epsilon
     return nearBlack || nearWhite
 }
 
 struct ColorSetView: View {
-    @EnvironmentObject private var colorTheme: ColorThemeManager
+
+    @Environment(\.dependencies) private var dependencies
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.appTintColor) private var appTint
+
     @State private var tempColor: Color = .accentColor
     
     private var isInvalidSelection: Bool { isDisallowedBlackOrWhite(tempColor) }
@@ -80,19 +80,11 @@ struct ColorSetView: View {
             .navigationTitle("App Color")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text("Abbrechen")
-                            .font(.cjBody)
-                    }
-                }
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
                         guard !isInvalidSelection else { return }
                         withAnimation(.easeInOut) {
-                            colorTheme.appTint = tempColor
+                            dependencies.colorThemeManager.appTint = tempColor
                         }
                         dismiss()
                     } label: {
@@ -107,13 +99,12 @@ struct ColorSetView: View {
             .tint(tempColor)
             .onAppear {
                 // Start with the current app tint
-                tempColor = colorTheme.appTint
+                tempColor = dependencies.colorThemeManager.appTint
             }
     }
 }
 
 #Preview {
     ColorSetView()
-        .environmentObject(ColorThemeManager())
 }
 

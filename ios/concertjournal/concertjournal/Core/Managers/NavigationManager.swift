@@ -29,6 +29,7 @@ enum NavigationRoute: Hashable {
 
     // Setlist
     case createSetlist(concertId: String)
+    case orderSetlist(CreateSetlistViewModel)
 
     // Settings
     case settings
@@ -174,6 +175,7 @@ extension NavigationRoute: Identifiable {
         case .selectVenue: return "select-venue"
         case .venueDetail(let venue): return "venue-\(venue.id)"
         case .createSetlist(let id): return "setlist-\(id)"
+        case .orderSetlist(let viewModel): return "orderSetlist-\(viewModel)"
         case .settings: return "settings"
         case .colorPicker: return "color-picker"
         case .faq: return "faq"

@@ -10,13 +10,22 @@ import SwiftUI
 struct ConfirmationMessage: Identifiable {
     let id = UUID()
     let message: String
+    let completion: (() -> Void)?
+
+    init(message: String, completion: (() -> Void)? = nil) {
+        self.message = message
+        self.completion = completion
+    }
 }
 
 struct ConfirmationView: View {
     @Environment(\.dismiss) private var dismiss
-    
-    init(message: String? = nil) {
-        self.message = message ?? "Done"
+
+    var completion: (() -> Void)?
+
+    init(message: ConfirmationMessage) {
+        self.message = message.message
+        self.completion = message.completion
     }
     
     let message: String
@@ -49,7 +58,12 @@ struct ConfirmationView: View {
             }
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                dismiss()
+                if let completion {
+                    dismiss()
+                    completion()
+                } else {
+                    dismiss()
+                }
             }
         }
         .presentationDetents([.height(180)]) // Small sheet height

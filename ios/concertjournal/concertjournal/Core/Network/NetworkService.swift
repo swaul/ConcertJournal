@@ -8,7 +8,6 @@
 import Foundation
 import Supabase
 
-/// Fehlertypen für Network Operations
 enum NetworkError: Error, LocalizedError {
     case unauthorized
     case notFound
@@ -32,7 +31,6 @@ enum NetworkError: Error, LocalizedError {
     }
 }
 
-/// Protocol für Network Service (macht Testing einfacher)
 protocol NetworkServiceProtocol {
     func fetch<T: Decodable>(
         from table: String,

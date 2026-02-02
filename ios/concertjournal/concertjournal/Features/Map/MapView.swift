@@ -19,7 +19,10 @@ struct MapView: View {
     @State private var isCameraMoving = false
     
     @State private var defaultPosition: MapCameraPosition? = nil
-    
+
+    @State private var selectedDetent: PresentationDetent = .height(330)
+    @State private var detentHeight: CGFloat = 330
+
     init(concerts: [FullConcertVisit]) {
         self.concertLocations = Self.groupConcertsByLocation(concerts)
         
@@ -35,6 +38,7 @@ struct MapView: View {
                     Text("\(item.concerts.count)")
                         .font(.cjBody)
                         .bold()
+                        .frame(minWidth: 10)
                         .padding()
                         .glassEffect(in: Circle())
                         .onTapGesture {
@@ -82,14 +86,30 @@ struct MapView: View {
             }
         }
         .mapStyle(.standard)
-        .safeAreaInset(edge: .bottom) {
-            if let item = selectedItem {
-                detailInfo(item: item)
-                    .frame(maxHeight: 328)
-                    .glassEffect(in: RoundedRectangle(cornerRadius: 20))
-                    .padding(10)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+        .sheet(item: $selectedItem) { item in
+            detailInfo(item: item)
+                .presentationDetents([.height(330), .large], selection: $selectedDetent)
+                .presentationDragIndicator(.visible)
+                .presentationBackgroundInteraction(.enabled)
+                .interactiveDismissDisabled()
+        }
+        .onChange(of: selectedDetent) { _, newValue in
+            let height: CGFloat
+            switch selectedDetent {
+            case .height(330):
+                height = 330
+            default:
+                height = 0
             }
+
+            withAnimation {
+                detentHeight = height
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            Rectangle()
+                .fill(.clear)
+                .frame(width: 100, height: selectedItem == nil ? 0 : detentHeight)
         }
         .onAppear {
             position = .automatic
@@ -128,6 +148,8 @@ struct MapView: View {
                                     Text(concert.date.shortDateOnlyString)
                                         .font(.cjCaption)
                                         .foregroundStyle(.secondary)
+                                        .frame(width: 60)
+
                                     Group {
                                         AsyncImage(url: URL(string: concert.artist.imageUrl ?? "")) { image in
                                             image
@@ -144,23 +166,27 @@ struct MapView: View {
                                     Text(concert.artist.name)
                                         .font(.cjTitle2)
                                         .bold()
+                                        .multilineTextAlignment(.leading)
 
                                     if let title = concert.title {
                                         Text(title)
                                             .font(.cjBody)
+                                            .multilineTextAlignment(.leading)
                                     }
                                 }
-                                Spacer(minLength: 5)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+
                                 Image(systemName: "chevron.right")
+                                    .frame(alignment: .trailing)
                             }
                             .padding()
                             .glassEffect(in: RoundedRectangle(cornerRadius: 20))
+                            .frame(maxWidth: .infinity)
                         }
-                        
+
                     }
                     .padding(.horizontal)
                     .padding(.bottom)
-                    
                 }
             }
         }

@@ -13,13 +13,22 @@ import Supabase
 class CreateConcertSelectArtistViewModel {
     
     var artistsResponse: [SpotifyArtist] = []
+    var currentArtists: [Artist] = []
 
     private let spotifyRepository: SpotifyRepositoryProtocol
+    private let concertRepository: ConcertRepositoryProtocol
 
-    init(spotifyRepository: SpotifyRepositoryProtocol) {
+    init(spotifyRepository: SpotifyRepositoryProtocol, concertRepository: ConcertRepositoryProtocol) {
         self.spotifyRepository = spotifyRepository
+        self.concertRepository = concertRepository
+
+        fillWithCurrentArtists()
     }
 
+    func fillWithCurrentArtists() {
+        let artists = concertRepository.concerts.map { $0.artist }
+        currentArtists = Array(Set(artists)).sorted(by: { $0.name < $1.name })
+    }
 
     func searchArtists(with text: String) {
         Task {

@@ -8,6 +8,7 @@ import PhotosUI
 struct NewConcertVisit: Identifiable, Equatable {
     let id: UUID = UUID()
     var date: Date = .now
+    var entranceTime: Date = .now
     var artistName: String = ""
     var venueName: String = ""
     var title: String = ""
@@ -15,6 +16,7 @@ struct NewConcertVisit: Identifiable, Equatable {
     var rating: Int = 0
     
     var venue: Venue? = nil
+    var setlist: Setlist? = nil
 }
 
 protocol SupabaseEncodable {
@@ -50,125 +52,183 @@ struct CreateConcertVisitView: View {
     
     @State private var selectArtistPresenting = false
     @State private var selectVenuePresenting = false
-    
+    @State private var createSetlistPresenting = false
+
     @State private var selectedPhotoItems: [PhotosPickerItem] = []
     
     @State var selectedImages: [UIImage] = []
+
+    @FocusState private var noteEditorFocused
 
     var body: some View {
         Group {
             if let artist = viewModel?.artist {
                 ScrollView {
-                    VStack(alignment: .leading) {
+                    VStack(alignment: .leading, spacing: 20) {
                         ArtistHeader(artist: artist)
-                        
-                        DatePicker("Concert date and entry time", selection: $draft.date, displayedComponents: [.hourAndMinute, .date])
-                            .padding(.horizontal)
-                            .glassEffect()
-                            .padding(.horizontal)
-                        
-                        TextField("Title (optional)", text: $draft.title)
-                            .textInputAutocapitalization(.words)
-                            .padding()
-                            .glassEffect()
-                            .padding(.horizontal)
 
-                        Button {
-                            selectVenuePresenting = true
-                        } label: {
-                            if !draft.venueName.isEmpty {
-                                VStack(alignment: .leading) {
-                                    Text(draft.venueName)
+                        VStack(alignment: .leading) {
+                            CJDivider(title: "Zeiten", image: nil)
+                                .padding(.horizontal)
+
+                            DatePicker("Datum", selection: $draft.date, displayedComponents: [.date])
+                                .padding(.horizontal)
+
+                            DatePicker("Einlass", selection: $draft.entranceTime, displayedComponents: [.hourAndMinute])
+                                .padding(.horizontal)
+
+                            TextField("Title (optional)", text: $draft.title)
+                                .textInputAutocapitalization(.words)
+                                .padding(.horizontal)
+                        }
+
+                        VStack(alignment: .leading) {
+                            CJDivider(title: "Location", image: nil)
+                                .padding(.horizontal)
+
+                            Button {
+                                selectVenuePresenting = true
+                            } label: {
+                                if !draft.venueName.isEmpty {
+                                    VStack(alignment: .leading) {
+                                        Text(draft.venueName)
+                                            .font(.cjBody)
+                                        if let city = draft.venue?.city {
+                                            Text(city)
+                                                .font(.cjBody)
+                                        }
+                                    }
+                                    .padding()
+                                } else {
+                                    Text("Venue auswählen")
+                                        .padding()
                                         .font(.cjBody)
-                                    if let city = draft.venue?.city {
-                                        Text(city)
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+
+                        VStack(alignment: .leading) {
+                            CJDivider(title: "Rating", image: nil)
+                                .padding(.horizontal)
+
+                            Stepper(value: $draft.rating, in: 0...10) {
+                                HStack {
+                                    Text("Rating")
+                                        .font(.cjBody)
+                                    Spacer()
+                                    Text("\(draft.rating)")
+                                        .monospacedDigit()
+                                        .foregroundStyle(.secondary)
+                                        .font(.cjBody)
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+
+                        VStack(alignment: .leading) {
+
+                            CJDivider(title: "Meine Experience", image: nil)
+                                .padding(.horizontal)
+
+                            TextEditor(text: $draft.notes)
+                                .background { Color.clear }
+                                .focused($noteEditorFocused)
+                                .scrollContentBackground(.hidden)
+                                .frame(minHeight: 120)
+                                .padding()
+                                .glassEffect(in: RoundedRectangle(cornerRadius: 20, style: .circular))
+                                .padding(.horizontal)
+                                .font(.cjBody)
+                                .toolbar {
+                                    ToolbarItemGroup(placement: .keyboard) {
+                                        Spacer()
+                                        Button {
+                                            noteEditorFocused = false
+                                        } label: {
+                                            Text("Fertig")
+                                        }
+                                    }
+                                }
+                        }
+
+                        VStack(alignment: .leading) {
+                            CJDivider(title: "Setlist", image: nil)
+                                .padding(.horizontal)
+
+                                Button {
+                                    createSetlistPresenting = true
+                                } label: {
+                                    if let setlist = draft.setlist {
+                                        VStack(alignment: .leading) {
+                                            Text(setlist.id)
+                                                .font(.cjBody)
+                                        }
+                                        .padding()
+                                    } else {
+                                        Text("Setlist hinzufügen")
+                                            .padding()
                                             .font(.cjBody)
                                     }
                                 }
-                                .padding()
-                            } else {
-                                Text("Select Venue (optional)")
-                                    .padding()
-                                    .font(.cjBody)
-                            }
+                                .padding(.horizontal)
                         }
-                        .buttonStyle(.glass)
-                        .padding(.horizontal)
 
-                        Stepper(value: $draft.rating, in: 0...10) {
-                            HStack {
-                                Text("Rating")
-                                    .font(.cjBody)
-                                Spacer()
-                                Text("\(draft.rating)")
-                                    .monospacedDigit()
-                                    .foregroundStyle(.secondary)
-                                    .font(.cjBody)
-                            }
-                        }
-                        .padding()
-                        .glassEffect()
-                        .padding(.horizontal)
+                        VStack(alignment: .leading) {
+                            CJDivider(title: "Bilder", image: nil)
+                                .padding(.horizontal)
 
-                        TextEditor(text: $draft.notes)
-                            .background { Color.clear }
-                            .scrollContentBackground(.hidden)
-                            .frame(minHeight: 120)
-                            .padding()
-                            .glassEffect(in: RoundedRectangle(cornerRadius: 20, style: .circular))
-                            .padding(.horizontal)
-                            .font(.cjBody)
-
-                        PhotosPicker(
-                            selection: $selectedPhotoItems,
-                            maxSelectionCount: 5,
-                            matching: .images,
-                            photoLibrary: .shared()
-                        ) {
-                            Label("Fotos hinzufügen", systemImage: "photo.on.rectangle.angled")
-                                .font(.cjBody)
-                        }
-                        .padding()
-                        .buttonStyle(.glass)
-                        .padding(.horizontal)
-                        .onChange(of: selectedPhotoItems) { _, newItems in
-                            Task {
-                                await loadSelectedImages(from: newItems)
-                            }
-                        }
-                        
-                        if !selectedImages.isEmpty {
-                            LazyVGrid(
-                                columns: [
-                                    GridItem(.flexible()),
-                                    GridItem(.flexible()),
-                                    GridItem(.flexible())
-                                ],
-                                spacing: 12
+                            PhotosPicker(
+                                selection: $selectedPhotoItems,
+                                maxSelectionCount: 5,
+                                matching: .images,
+                                photoLibrary: .shared()
                             ) {
-                                ForEach(selectedImages.indices, id: \.self) { index in
-                                    ZStack(alignment: .topTrailing) {
-                                        Image(uiImage: selectedImages[index])
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(height: 100)
-                                            .clipped()
-                                            .cornerRadius(12)
-                                        
-                                        Button {
-                                            selectedPhotoItems.remove(at: index)
-                                            removeImage(at: index)
-                                        } label: {
-                                            Image(systemName: "xmark.circle.fill")
-                                                .foregroundColor(.white)
-                                                .background(Color.black.opacity(0.6))
-                                                .clipShape(Circle())
-                                        }
-                                        .offset(x: 6, y: -6)
-                                    }
+                                Label("Fotos hinzufügen", systemImage: "photo.on.rectangle.angled")
+                                    .font(.cjBody)
+                            }
+                            .padding()
+                            .buttonStyle(.glass)
+                            .padding(.horizontal)
+                            .onChange(of: selectedPhotoItems) { _, newItems in
+                                Task {
+                                    await loadSelectedImages(from: newItems)
                                 }
                             }
-                            .padding(.horizontal)
+
+                            if !selectedImages.isEmpty {
+                                LazyVGrid(
+                                    columns: [
+                                        GridItem(.flexible()),
+                                        GridItem(.flexible()),
+                                        GridItem(.flexible())
+                                    ],
+                                    spacing: 12
+                                ) {
+                                    ForEach(selectedImages.indices, id: \.self) { index in
+                                        ZStack(alignment: .topTrailing) {
+                                            Image(uiImage: selectedImages[index])
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(height: 100)
+                                                .clipped()
+                                                .cornerRadius(12)
+
+                                            Button {
+                                                selectedPhotoItems.remove(at: index)
+                                                removeImage(at: index)
+                                            } label: {
+                                                Image(systemName: "xmark.circle.fill")
+                                                    .foregroundColor(.white)
+                                                    .background(Color.black.opacity(0.6))
+                                                    .clipShape(Circle())
+                                            }
+                                            .offset(x: 6, y: -6)
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal)
+                            }
                         }
                     }
                 }
@@ -200,10 +260,14 @@ struct CreateConcertVisitView: View {
         .sheet(isPresented: $presentConfirmation, onDismiss: {
             navigationManager.pop()
         }, content: {
-            ConfirmationView()
+            ConfirmationView(message: ConfirmationMessage(message: "Fertig"))
         })
         .navigationTitle("New Concert")
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $createSetlistPresenting) {
+            CreateSetlistView(viewModel: CreateSetlistViewModel(artist: viewModel?.artist,
+                                                                spotifyRepository: dependencies.spotifyRepository))
+        }
         .sheet(isPresented: $selectArtistPresenting) {
             CreateConcertSelectArtistView(isPresented: $selectArtistPresenting, didSelectArtist: { artist in
                 viewModel?.artist = artist

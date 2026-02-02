@@ -19,7 +19,9 @@ struct CreateConcertSelectArtistView: View {
 
     @State var artistName: String = ""
     @State var hasText: Bool = false
-    
+
+    @State var didSearch: Bool = false
+
     @State var selectedArtist: String? = nil
     
     @FocusState var textFieldFocused: Bool
@@ -38,7 +40,7 @@ struct CreateConcertSelectArtistView: View {
             .navigationTitle("Select an Artist")
             .task {
                 guard viewModel == nil else { return }
-                viewModel = CreateConcertSelectArtistViewModel(spotifyRepository: dependencies.spotifyRepository)
+                viewModel = CreateConcertSelectArtistViewModel(spotifyRepository: dependencies.spotifyRepository, concertRepository: dependencies.concertRepository)
             }
         }
     }
@@ -47,14 +49,26 @@ struct CreateConcertSelectArtistView: View {
     func viewWithViewModel(viewModel: CreateConcertSelectArtistViewModel) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                ForEach(viewModel.artistsResponse) { artist in
-                    Button {
-                        selectedArtist = artist.id
-                    } label: {
-                        makeArtistView(artist: artist)
-                            .contentShape(.rect)
+                if !didSearch {
+                    ForEach(viewModel.currentArtists) { artist in
+                        Button {
+                            selectedArtist = artist.id
+                        } label: {
+                            makeKnownArtistView(artist: artist)
+                                .contentShape(.rect)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
+                } else {
+                    ForEach(viewModel.artistsResponse) { artist in
+                        Button {
+                            selectedArtist = artist.id
+                        } label: {
+                            makeArtistView(artist: artist)
+                                .contentShape(.rect)
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
             }
             .padding()
@@ -63,11 +77,15 @@ struct CreateConcertSelectArtistView: View {
             if selectedArtist != nil {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        guard let artist = viewModel.artistsResponse.first(where: { $0.id == selectedArtist }) else { return }
-                        isPresented = false
-                        didSelectArtist(Artist(artist: artist))
+                        if let artist = viewModel.artistsResponse.first(where: { $0.id == selectedArtist }) {
+                            didSelectArtist(Artist(artist: artist))
+                            isPresented = false
+                        } else if let artist = viewModel.currentArtists.first(where: { $0.id == selectedArtist }) {
+                            didSelectArtist(artist)
+                            isPresented = false
+                        }
                     } label: {
-                        Text("Next")
+                        Text("Speichern")
                             .font(.cjBody)
                     }
                 }
@@ -97,6 +115,7 @@ struct CreateConcertSelectArtistView: View {
                     Button {
                         viewModel.searchArtists(with: artistName)
                         textFieldFocused = false
+                        didSearch = true
                     } label: {
                         Text("Search")
                             .font(.cjBody)
@@ -152,5 +171,41 @@ struct CreateConcertSelectArtistView: View {
         }
         .selectedGlass(selected: selectedArtist == artist.id)
     }
-    
+
+    func makeKnownArtistView(artist: Artist) -> some View {
+        HStack {
+            Group {
+                if let url = artist.imageUrl {
+                    AsyncImage(url: URL(string: url)) { result in
+                        result.image?
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 80)
+                    }
+                } else {
+                    ZStack {
+                        Rectangle()
+                            .frame(width: 80, height: 80)
+                            .background { Color.gray }
+                        Image(systemName: "note")
+                            .frame(width: 32)
+                            .foregroundStyle(.white)
+                    }
+                }
+            }
+            .clipShape(.circle)
+            .frame(height: 80)
+            .padding()
+
+            Text(artist.name)
+                .font(.cjBody)
+                .bold()
+            .padding(.vertical)
+            .padding(.trailing)
+
+            Spacer()
+        }
+        .selectedGlass(selected: selectedArtist == artist.id)
+    }
+
 }

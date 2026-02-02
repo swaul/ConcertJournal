@@ -5,6 +5,7 @@
 //  Created by Paul Kühnel on 19.12.25.
 //
 
+import Combine
 import SwiftUI
 import Observation
 
@@ -23,11 +24,19 @@ class ConcertsViewModel {
     private let concertRepository: ConcertRepositoryProtocol
     private let userId: String
 
+    private var cancellabels = Set<AnyCancellable>()
+
     // MARK: - Initialization
 
     init(concertRepository: ConcertRepositoryProtocol, userId: String) {
         self.concertRepository = concertRepository
         self.userId = userId
+
+        concertRepository.concertsDidUpdate
+            .sink { [weak self] concerts in
+                self?.filterConcerts(concerts)
+            }
+            .store(in: &cancellabels)
     }
 
     // MARK: - Public Methods
@@ -37,7 +46,7 @@ class ConcertsViewModel {
         errorMessage = nil
 
         do {
-            let concerts = try await concertRepository.fetchConcerts(for: userId)
+            let concerts = try await concertRepository.getConcerts(reload: false)
             filterConcerts(concerts)
         } catch let error as NetworkError {
             errorMessage = error.localizedDescription
@@ -46,6 +55,20 @@ class ConcertsViewModel {
         }
 
         isLoading = false
+    }
+
+    func refreshConcerts() async {
+        pastConcerts.removeAll()
+        futureConcerts.removeAll()
+
+        do {
+            let concerts = try await concertRepository.getConcerts(reload: true)
+            filterConcerts(concerts)
+        } catch let error as NetworkError {
+            errorMessage = error.localizedDescription
+        } catch {
+            errorMessage = "Ein unbekannter Fehler ist aufgetreten"
+        }
     }
 
     func deleteConcert(_ concert: FullConcertVisit) async {
@@ -76,7 +99,7 @@ class ConcertsViewModel {
 
 extension ConcertsViewModel {
     static func preview() -> ConcertsViewModel {
-        let mockRepo = MockConcertRepository()
+        let mockRepo = MockConcertRepository(mockConcerts: [], concerts: [])
 
         // Test data
         let artist = Artist(name: "Paula Hartmann", imageUrl: "https://i.scdn.co/image/ab6761610000e5eb6db6bdfd82c3394a6af3399e", spotifyArtistId: "3Fl31gc0mEUC2H0JWL1vic")

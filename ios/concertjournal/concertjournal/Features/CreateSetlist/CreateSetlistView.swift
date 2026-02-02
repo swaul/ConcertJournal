@@ -13,31 +13,36 @@ struct CreateSetlistView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.navigationManager) private var navigationManager
 
-    @State private var viewModel: CreateSetlistViewModel?
+    @State var path = NavigationPath()
+
+    @State private var viewModel: CreateSetlistViewModel
     @State var songName: String = ""
     @State var hasText: Bool = false
-    
-    @State var selectedSong: String? = nil
-    
+    @State private var deleteSongDialog: Bool = false {
+        didSet {
+            if deleteSongDialog == false {
+                songToDelete = nil
+            }
+        }
+    }
+    @State private var songToDelete: String? = nil
+
     @FocusState var textFieldFocused: Bool
     
     @Namespace var selection
-    
+
+    init(viewModel: CreateSetlistViewModel) {
+        self.viewModel = viewModel
+    }
+
     var body: some View {
-        NavigationStack {
-            Group {
-                if let viewModel {
-                    viewWithViewModel(viewModel: viewModel)
-                } else {
-                    LoadingView()
-                }
-            }
+        NavigationStack(path: $path) {
+            viewWithViewModel(viewModel: viewModel)
             .toolbar {
-                if selectedSong != nil {
+                if !viewModel.selectedSongs.isEmpty{
                     ToolbarItem(placement: .topBarTrailing) {
                         Button {
-                            //                        guard let artist = viewModel.songResponse.first(where: { $0.id == selectedSong }) else { return }
-                            //                        navigationManager.push(view: .createVisit(CreateConcertVisitViewModel(artist: artist)))
+                            path.append(NavigationRoute.orderSetlist(viewModel))
                         } label: {
                             Text("Next")
                                 .font(.cjBody)
@@ -45,83 +50,114 @@ struct CreateSetlistView: View {
                     }
                 }
             }
-            .task {
-                guard viewModel == nil else { return }
-                viewModel = CreateSetlistViewModel(spotifyRepository: dependencies.spotifyRepository)
-            }
             .navigationTitle("Add a Song")
+            .navigationDestination(for: NavigationRoute.self) { route in
+                switch route {
+                case .orderSetlist(let viewModel):
+                    OrderSetListView(viewModel: viewModel)
+                default:
+                    Text("Not implemented")
+                }
+            }
+
         }
     }
 
     @ViewBuilder
     func viewWithViewModel(viewModel: CreateSetlistViewModel) -> some View {
-        ScrollView {
-            Group {
-                switch viewModel.songLoadingState {
-                case .idle:
-                    EmptyView()
-                case .loading:
-                    ProgressView()
-                case .loaded(let songResponse):
-                    VStack(alignment: .leading, spacing: 8) {
-                        ForEach(songResponse) { song in
-                            Button {
-                                selectedSong = song.id
-                            } label: {
-                                makeSongView(song: song)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                case .error(let error):
-                    Text(error.localizedDescription)
-                        .font(.cjBody)
-                }
+        VStack {
+            if !viewModel.selectedSongs.isEmpty {
+                selectedSongsSection()
             }
-            .padding()
-        }
-        .safeAreaInset(edge: .bottom) {
-            HStack {
-                TextField(text: $songName) {
-                    Text("Select a Song")
-                        .font(.cjBody)
-                }
-                .focused($textFieldFocused)
-                .submitLabel(.search)
-                .onSubmit {
-                    viewModel.searchSongs(with: songName)
-                    textFieldFocused = false
-                }
-                .onChange(of: songName) { _, newValue in
-                    withAnimation {
-                        hasText = !newValue.isEmpty
+
+            CJDivider(title: "Suche nach Songs", image: Image(systemName: "magnifyingglass"))
+                .padding(.horizontal)
+
+            ScrollView {
+                Group {
+                    switch viewModel.songLoadingState {
+                    case .idle:
+                        EmptyView()
+                    case .loading:
+                        ProgressView()
+                    case .loaded(let songResponse):
+                        VStack(alignment: .leading, spacing: 8) {
+                            ForEach(songResponse) { song in
+                                Button {
+                                    didSelectSong(song)
+                                } label: {
+                                    makeSongView(song: song, viewModel: viewModel)
+                                }
+                                .buttonStyle(.plain)
+                                .transition(.slide)
+                            }
+                        }
+                    case .error(let error):
+                        Text(error.localizedDescription)
+                            .font(.cjBody)
                     }
                 }
                 .padding()
-                .glassEffect()
-
-                if hasText {
-                    Button {
-                        viewModel.searchSongs(with: songName)
-                        textFieldFocused = false
-                    } label: {
-                        Text("Search")
-                            .font(.cjBody)
-                    }
-                    .buttonStyle(.glassProminent)
+            }
+            .safeAreaInset(edge: .bottom) {
+                searchTextField()
+                .padding(.horizontal)
+            }
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    textFieldFocused = true
                 }
             }
-            .padding(.horizontal)
         }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                textFieldFocused = true
+    }
+
+    func didSelectSong(_ song: SpotifySong) {
+        withAnimation {
+            if let indexToRemove = viewModel.selectedSongs.firstIndex(where: { $0.id == song.id }) {
+                viewModel.selectedSongs.remove(at: indexToRemove)
+            } else {
+                viewModel.selectedSongs.append(song)
             }
         }
     }
 
     @ViewBuilder
-    func makeSongView(song: SpotifySong) -> some View {
+    func searchTextField() -> some View {
+        HStack {
+            TextField(text: $songName) {
+                Text("Select a Song")
+                    .font(.cjBody)
+            }
+            .focused($textFieldFocused)
+            .submitLabel(.search)
+            .onSubmit {
+                viewModel.searchSongs(with: songName)
+                textFieldFocused = false
+            }
+            .onChange(of: songName) { _, newValue in
+                withAnimation {
+                    hasText = !newValue.isEmpty
+                }
+            }
+            .padding()
+            .glassEffect()
+
+            if hasText {
+                Button {
+                    viewModel.searchSongs(with: songName)
+                    textFieldFocused = false
+                } label: {
+                    Text("Search")
+                        .font(.cjBody)
+                }
+                .buttonStyle(.glassProminent)
+            }
+        }
+
+    }
+
+    @ViewBuilder
+    func makeSongView(song: SpotifySong, viewModel: CreateSetlistViewModel) -> some View {
         HStack {
             Group {
                 AsyncImage(url: song.albumCover, content: { image in
@@ -153,9 +189,59 @@ struct CreateSetlistView: View {
             
             Spacer()
         }
-        .selectedGlass(selected: selectedSong == song.id)
+        .selectedGlass(selected: viewModel.selectedSongs.contains(where: { $0.id == song.id }))
     }
-    
+
+    @ViewBuilder
+    func selectedSongsSection() -> some View {
+        VStack {
+            CJDivider(title: "Hinzugefügte Songs", image: nil)
+                .padding(.horizontal)
+            VStack {
+                ScrollView {
+                    ForEach(viewModel.selectedSongs, id: \.id) { song in
+                        HStack {
+                            Text(song.name)
+                            Spacer()
+                            Button {
+                                songToDelete = song.id
+                                deleteSongDialog = true
+                            } label: {
+                                Image(systemName: "trash")
+                            }
+                        }
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 4)
+                        .background {
+                            if song.id == songToDelete {
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(dependencies.colorThemeManager.appTint)
+                            }
+                        }
+                        .confirmationDialog("Diesen Song löschen", isPresented: $deleteSongDialog, titleVisibility: .visible) {
+                            Button(role: .destructive) {
+                                guard let songToDelete else { return }
+                                withAnimation {
+                                    viewModel.selectedSongs.removeAll(where: { $0.id == songToDelete })
+                                }
+                                self.songToDelete = nil
+                            } label: {
+                                Text("Ja, song entfernen")
+                            }
+
+                            Button {
+                                songToDelete = nil
+                            } label: {
+                                Text("Abbrechen")
+                            }
+                        }
+                    }
+                }
+            }
+            .frame(height: 200)
+            .padding(.horizontal)
+        }
+    }
 }
 
 enum CreateSetlistStatw {

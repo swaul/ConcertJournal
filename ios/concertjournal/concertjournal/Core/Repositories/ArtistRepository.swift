@@ -23,6 +23,18 @@ public class ArtistRepository: ArtistRepositoryProtocol {
     }
 
     func getOrCreateArtist(_ artist: Artist) async throws -> String {
+        if artist.spotifyArtistId != nil {
+            let upserted: Artist = try await supabaseClient.client
+                .from("artists")
+                .upsert(artist.encoded(), onConflict: "spotify_artist_id")
+                .select()
+                .single()
+                .execute()
+                .value
+
+            return upserted.id
+        }
+
         if let existingId = try await findExistingArtist(artist) {
             return existingId
         }
@@ -32,20 +44,6 @@ public class ArtistRepository: ArtistRepositoryProtocol {
 
 
     private func findExistingArtist(_ artist: Artist) async throws -> String? {
-        if let spotifyId = artist.spotifyArtistId {
-            let artists: [Artist] = try await supabaseClient.client
-                .from("artists")
-                .select()
-                .eq("spotify_artist_id", value: spotifyId)
-                .limit(1)
-                .execute()
-                .value
-
-            if let existingArtist = artists.first {
-                return existingArtist.id
-            }
-        }
-
         let artists: [Artist] = try await supabaseClient.client
             .from("artists")
             .select()

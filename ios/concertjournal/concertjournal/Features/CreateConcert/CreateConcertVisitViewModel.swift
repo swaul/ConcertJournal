@@ -10,7 +10,8 @@ import Combine
 import Foundation
 import UIKit
 
-class CreateConcertVisitViewModel: ObservableObject, Hashable, Equatable {
+@Observable
+class CreateConcertVisitViewModel: Hashable, Equatable {
     static func == (lhs: CreateConcertVisitViewModel, rhs: CreateConcertVisitViewModel) -> Bool {
         lhs.id == rhs.id
     }
@@ -20,7 +21,7 @@ class CreateConcertVisitViewModel: ObservableObject, Hashable, Equatable {
     }
     
     let id: String
-    @Published var artist: Artist?
+    var artist: Artist?
 
     private let artistRepository: ArtistRepositoryProtocol
     private let concertRepository: ConcertRepositoryProtocol

@@ -48,6 +48,7 @@ class DependencyContainer {
         // 4. Repositories
         self.concertRepository = ConcertRepository(
             networkService: networkService,
+            userSessionManager: userSessionManager,
             supabaseClient: supabaseClient
         )
 
