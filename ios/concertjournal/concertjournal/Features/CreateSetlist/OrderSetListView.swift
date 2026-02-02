@@ -9,8 +9,6 @@ import SwiftUI
 
 public struct OrderSetListView: View {
 
-
-
     @State var viewModel: CreateSetlistViewModel
 
     public var body: some View {

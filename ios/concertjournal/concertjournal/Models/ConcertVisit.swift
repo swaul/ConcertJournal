@@ -14,7 +14,6 @@ public struct ConcertVisit: Decodable {
     let updatedAt: Date
     let userId: String
     let artistId: String
-    let setlistId: String?
     let date: String
     let venueId: String?
     let city: String?
@@ -26,7 +25,6 @@ public struct ConcertVisit: Decodable {
         case id
         case createdAt = "created_at"
         case updatedAt = "updated_at"
-        case setlistId = "setlist_id"
         case userId = "user_id"
         case artistId = "artist_id"
         case date
@@ -42,7 +40,6 @@ public struct ConcertVisit: Decodable {
             CodingKeys.userId.rawValue: .string(userId),
             CodingKeys.artistId.rawValue: .string(artistId),
             CodingKeys.date.rawValue: .string(date),
-            CodingKeys.setlistId.rawValue: setlistId != nil ? .string(setlistId!) : .null ,
             CodingKeys.title.rawValue: title != nil ? .string(title!) : .null,
             CodingKeys.venueId.rawValue: venueId != nil ? .string(venueId!) : .null,
             CodingKeys.city.rawValue: city != nil ? .string(city!) : .null,

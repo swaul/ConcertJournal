@@ -13,6 +13,8 @@ struct CreateSetlistView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.navigationManager) private var navigationManager
 
+    var onSave: ([TempCeateSetlistItem]) -> Void
+
     @State var path = NavigationPath()
 
     @State private var viewModel: CreateSetlistViewModel
@@ -31,8 +33,9 @@ struct CreateSetlistView: View {
     
     @Namespace var selection
 
-    init(viewModel: CreateSetlistViewModel) {
+    init(viewModel: CreateSetlistViewModel, onSave: @escaping ([TempCeateSetlistItem]) -> Void) {
         self.viewModel = viewModel
+        self.onSave = onSave
     }
 
     var body: some View {
@@ -59,7 +62,9 @@ struct CreateSetlistView: View {
                     Text("Not implemented")
                 }
             }
-
+            .onReceive(viewModel.didSaveSetlistPublisher) { setlistItems in
+                onSave(setlistItems)
+            }
         }
     }
 

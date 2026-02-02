@@ -16,7 +16,7 @@ protocol ConcertRepositoryProtocol {
 
     func getConcerts(reload: Bool) async throws -> [FullConcertVisit]
     func fetchConcerts() async throws
-    func createConcert(_ concert: NewConcertDTO) async throws -> String
+    func createConcert(_ concert: NewConcertDTO) async throws -> ConcertVisit
     func updateConcert(id: String, concert: ConcertVisitUpdateDTO) async throws
     func deleteConcert(id: String) async throws
 }
@@ -76,7 +76,6 @@ class ConcertRepository: ConcertRepositoryProtocol {
                 notes,
                 rating,
                 title,
-                setlist_id,
                 artists (
                     id,
                     name,
@@ -95,7 +94,7 @@ class ConcertRepository: ConcertRepositoryProtocol {
 
     // MARK: - Create Concert
 
-    func createConcert(_ concert: NewConcertDTO) async throws -> String {
+    func createConcert(_ concert: NewConcertDTO) async throws -> ConcertVisit {
         try await networkService.insert(into: "concert_visits", values: concert.encoded())
     }
 
@@ -114,57 +113,61 @@ class ConcertRepository: ConcertRepositoryProtocol {
 
 enum ConcertLoadingError: Error, LocalizedError {
     case notLoggedIn
+    case concertIdMissing
 
     var errorDescription: String? {
         switch self {
         case .notLoggedIn:
             return "Nicht eingeloggt"
+        case .concertIdMissing:
+            return "Concert id is missing"
         }
     }
 }
+
 // MARK: - Mock Repository für Testing/Previews
 
-class MockConcertRepository: ConcertRepositoryProtocol {
-
-    var mockConcerts: [FullConcertVisit] = []
-
-    var concertsDidUpdate: AnyPublisher<[FullConcertVisit], Never> {
-        Just(concerts).eraseToAnyPublisher()
-    }
-
-    var concerts: [FullConcertVisit]
-
-    init(mockConcerts: [FullConcertVisit], concerts: [FullConcertVisit]) {
-        self.mockConcerts = mockConcerts
-        self.concerts = concerts
-    }
-
-    func getConcerts(reload: Bool) async throws -> [FullConcertVisit] {
-        if reload {
-            try await fetchConcerts()
-            return concerts
-        } else {
-            return concerts
-        }
-    }
-
-    func fetchConcerts() async throws {
-        // Mock implementation
-    }
-
-    func createConcert(_ concert: NewConcertDTO) async throws -> String {
-        // Mock implementation
-        return "Test"
-    }
-
-    func updateConcert(id: String, concert: ConcertVisitUpdateDTO) async throws {
-        // Mock implementation
-    }
-
-    func deleteConcert(id: String) async throws {
-        // Mock implementation
-    }
-}
+//class MockConcertRepository: ConcertRepositoryProtocol {
+//
+//    var mockConcerts: [FullConcertVisit] = []
+//
+//    var concertsDidUpdate: AnyPublisher<[FullConcertVisit], Never> {
+//        Just(concerts).eraseToAnyPublisher()
+//    }
+//
+//    var concerts: [FullConcertVisit]
+//
+//    init(mockConcerts: [FullConcertVisit], concerts: [FullConcertVisit]) {
+//        self.mockConcerts = mockConcerts
+//        self.concerts = concerts
+//    }
+//
+//    func getConcerts(reload: Bool) async throws -> [FullConcertVisit] {
+//        if reload {
+//            try await fetchConcerts()
+//            return concerts
+//        } else {
+//            return concerts
+//        }
+//    }
+//
+//    func fetchConcerts() async throws {
+//        // Mock implementation
+//    }
+//
+//    func createConcert(_ concert: NewConcertDTO) async throws -> ConcertVisit {
+//        // Mock implementation
+//        return
+//    }
+//
+//    func updateConcert(id: String, concert: ConcertVisitUpdateDTO) async throws {
+//        // Mock implementation
+//    }
+//
+//    func deleteConcert(id: String) async throws {
+//        // Mock implementation
+//    }
+//}
 
 struct ConcertVisitUpdateDTO: SupabaseEncodable {
     let title: String

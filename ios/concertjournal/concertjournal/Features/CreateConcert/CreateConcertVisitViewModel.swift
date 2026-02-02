@@ -24,6 +24,7 @@ class CreateConcertVisitViewModel: Hashable, Equatable {
     var artist: Artist?
 
     private let artistRepository: ArtistRepositoryProtocol
+    private let setlistRepository: SetlistRepositoryProtocol
     private let concertRepository: ConcertRepositoryProtocol
     private let userSessionManager: UserSessionManager
     private let photoRepository: PhotoRepositoryProtocol
@@ -31,11 +32,13 @@ class CreateConcertVisitViewModel: Hashable, Equatable {
     init(artistRepository: ArtistRepositoryProtocol,
          concertRepository: ConcertRepositoryProtocol,
          userSessionManager: UserSessionManager,
-         photoRepository: PhotoRepositoryProtocol) {
+         photoRepository: PhotoRepositoryProtocol,
+         setlistRepository: SetlistRepositoryProtocol) {
         self.artistRepository = artistRepository
         self.concertRepository = concertRepository
         self.photoRepository = photoRepository
         self.userSessionManager = userSessionManager
+        self.setlistRepository = setlistRepository
 
         self.id = UUID().uuidString
     }
@@ -47,7 +50,15 @@ class CreateConcertVisitViewModel: Hashable, Equatable {
         guard let userId = userSessionManager.user?.id.uuidString else { throw URLError(.notConnectedToInternet) }
         let newConcert = NewConcertDTO(with: new, by: userId, with: artistId)
 
-        return try await concertRepository.createConcert(newConcert)
+        let concert = try await concertRepository.createConcert(newConcert)
+
+        var setlistItems = new.setlistItems.map { CeateSetlistItemDTO(concertId: concert.id, item: $0) }
+
+        for item in setlistItems {
+            try await setlistRepository.createSetlistItem(item)
+        }
+
+        return concert.id
     }
     
     func uploadSelectedPhotos(selectedImages: [UIImage], visitId: String) async throws {

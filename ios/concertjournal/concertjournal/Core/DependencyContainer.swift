@@ -29,6 +29,7 @@ class DependencyContainer {
     let spotifyRepository: SpotifyRepositoryProtocol
     let photoRepository: PhotoRepositoryProtocol
     let faqRepository: FAQRepositoryProtocol
+    let setlistRepository: SetlistRepositoryProtocol
     let localizationRepository: LocalizationRepository
 
     // MARK: - Initialization
@@ -51,6 +52,9 @@ class DependencyContainer {
             userSessionManager: userSessionManager,
             supabaseClient: supabaseClient
         )
+
+        self.setlistRepository = SetlistRepository(supabaseClient: supabaseClient,
+                                                  networkService: networkService)
 
         self.artistRepository = ArtistRepository(supabaseClient: supabaseClient,
                                                  networkService: networkService)

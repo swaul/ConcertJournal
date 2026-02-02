@@ -9,8 +9,9 @@ import Foundation
 import Supabase
 
 protocol SetlistRepositoryProtocol {
-    func getOrCreateSetlistItem(_ setlistItem: CeateSetlistItemDTO) async throws -> SetlistItem
-    func createSetlist(_ setlist: CreateSetlistDTO) async throws -> Setlist
+    func createSetlistItem(_ setlistItem: CeateSetlistItemDTO) async throws -> SetlistItem
+    func getSetlistItems(with concertId: String) async throws -> [SetlistItem]
+    func deleteSetlistItem(_ setlistItemId: String) async throws
 }
 
 public class SetlistRepository: SetlistRepositoryProtocol {
@@ -23,23 +24,7 @@ public class SetlistRepository: SetlistRepositoryProtocol {
         self.networkService = networkService
     }
 
-    func getOrCreateSetlistItem(_ setlistItem: CeateSetlistItemDTO) async throws -> SetlistItem {
-        if setlistItem.spotifyTrackId != nil {
-            let upserted: SetlistItem = try await supabaseClient.client
-                .from("setlist_items")
-                .upsert(setlistItem.encoded(), onConflict: "spotify_artist_id")
-                .select()
-                .single()
-                .execute()
-                .value
-
-            return upserted
-        }
-
-        return try await createSetlistItem(setlistItem)
-    }
-
-    private func createSetlistItem(_ setlistItem: CeateSetlistItemDTO) async throws -> SetlistItem {
+    func createSetlistItem(_ setlistItem: CeateSetlistItemDTO) async throws -> SetlistItem {
         let inserted: SetlistItem = try await supabaseClient.client
             .from("setlist_items")
             .insert(setlistItem.encoded())
@@ -51,15 +36,17 @@ public class SetlistRepository: SetlistRepositoryProtocol {
         return inserted
     }
 
-    func createSetlist(_ setlist: CreateSetlistDTO) async throws -> Setlist {
-        let inserted: Setlist = try await supabaseClient.client
-            .from("setlist")
-            .insert(setlist.encoded())
+    func getSetlistItems(with concertId: String) async throws -> [SetlistItem] {
+        try await supabaseClient.client
+            .from("setlist_songs")
             .select()
-            .single()
+            .eq("concert_visit_id", value: concertId)
+            .order("position", ascending: true)
             .execute()
             .value
+    }
 
-        return inserted
+    func deleteSetlistItem(_ setlistItemId: String) async throws {
+        try await networkService.delete(from: "setlist_items", id: setlistItemId)
     }
 }

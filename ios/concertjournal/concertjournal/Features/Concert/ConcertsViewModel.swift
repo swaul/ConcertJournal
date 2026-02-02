@@ -97,28 +97,28 @@ class ConcertsViewModel {
 
 // MARK: - Preview Helper
 
-extension ConcertsViewModel {
-    static func preview() -> ConcertsViewModel {
-        let mockRepo = MockConcertRepository(mockConcerts: [], concerts: [])
-
-        // Test data
-        let artist = Artist(name: "Paula Hartmann", imageUrl: "https://i.scdn.co/image/ab6761610000e5eb6db6bdfd82c3394a6af3399e", spotifyArtistId: "3Fl31gc0mEUC2H0JWL1vic")
-        let venue = Venue(id: "V1", name: "Capitol", formattedAddress: "Schwarzer Bär 1, Hannover", latitude: nil, longitude: nil, appleMapsId: nil)
-        let concert = FullConcertVisit(
-            id: "C1",
-            createdAt: .now,
-            updatedAt: .now,
-            date: .now.addingTimeInterval(-86400 * 30), // 30 Tage in der Vergangenheit
-            venue: venue,
-            city: "Hannover",
-            rating: 5,
-            title: "Amazing Show",
-            notes: "Best concert ever!",
-            artist: artist
-        )
-
-        mockRepo.mockConcerts = [concert]
-
-        return ConcertsViewModel(concertRepository: mockRepo, userId: "preview-user")
-    }
-}
+//extension ConcertsViewModel {
+//    static func preview() -> ConcertsViewModel {
+//        let mockRepo = MockConcertRepository(mockConcerts: [], concerts: [])
+//
+//        // Test data
+//        let artist = Artist(name: "Paula Hartmann", imageUrl: "https://i.scdn.co/image/ab6761610000e5eb6db6bdfd82c3394a6af3399e", spotifyArtistId: "3Fl31gc0mEUC2H0JWL1vic")
+//        let venue = Venue(id: "V1", name: "Capitol", formattedAddress: "Schwarzer Bär 1, Hannover", latitude: nil, longitude: nil, appleMapsId: nil)
+//        let concert = FullConcertVisit(
+//            id: "C1",
+//            createdAt: .now,
+//            updatedAt: .now,
+//            date: .now.addingTimeInterval(-86400 * 30), // 30 Tage in der Vergangenheit
+//            venue: venue,
+//            city: "Hannover",
+//            rating: 5,
+//            title: "Amazing Show",
+//            notes: "Best concert ever!",
+//            artist: artist
+//        )
+//
+//        mockRepo.mockConcerts = [concert]
+//
+//        return ConcertsViewModel(concertRepository: mockRepo, userId: "preview-user")
+//    }
+//}

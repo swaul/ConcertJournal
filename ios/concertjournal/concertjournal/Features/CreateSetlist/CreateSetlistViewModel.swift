@@ -11,9 +11,9 @@ import Foundation
 @Observable
 class CreateSetlistViewModel: Hashable, Equatable {
 
-    private let didSaveSetlistSubject = PassthroughSubject<Setlist, Never>()
+    private let didSaveSetlistSubject = PassthroughSubject<[TempCeateSetlistItem], Never>()
 
-    public var didSaveSetlistPublisher: AnyPublisher<Setlist, Never> {
+    public var didSaveSetlistPublisher: AnyPublisher<[TempCeateSetlistItem], Never> {
         didSaveSetlistSubject.eraseToAnyPublisher()
     }
 
@@ -26,38 +26,24 @@ class CreateSetlistViewModel: Hashable, Equatable {
     }
 
     let id: UUID
-    let concertId: String
     var songLoadingState: CreateSetlistStatw = .idle
     var selectedSongs = [SpotifySong]()
 
     private let spotifyRepository: SpotifyRepositoryProtocol
     private let setlistRepository: SetlistRepositoryProtocol
 
-    init(artist: Artist? = nil, concertId: String, spotifyRepository: SpotifyRepositoryProtocol, setlistRepository: SetlistRepositoryProtocol) {
+    init(artist: Artist? = nil, spotifyRepository: SpotifyRepositoryProtocol, setlistRepository: SetlistRepositoryProtocol) {
         self.id = UUID()
-        self.concertId = concertId
         self.spotifyRepository = spotifyRepository
         self.setlistRepository = setlistRepository
         guard let artist else { return }
         searchSongs(with: artist.name)
     }
 
-    func saveSetlist() async {
-        let setlistItems = selectedSongs.enumerated().map { CeateSetlistItemDTO(spotifySong: $0.element, concertId: concertId, index: $0.offset) }
+    func saveSetlist() {
+        let setlistItems = selectedSongs.enumerated().map { TempCeateSetlistItem(spotifySong: $0.element, index: $0.offset) }
 
-        var savedSetlistItems = [SetlistItem]()
-        do {
-            for setlistItem in setlistItems {
-                try await savedSetlistItems.append(setlistRepository.getOrCreateSetlistItem(setlistItem))
-            }
-
-            let createSetlistDTO = CreateSetlistDTO(setlistItemIds: savedSetlistItems.map { $0.id })
-            let setlist = try await setlistRepository.createSetlist(createSetlistDTO)
-
-            didSaveSetlistSubject.send(setlist)
-        } catch {
-            print(error)
-        }
+        didSaveSetlistSubject.send(setlistItems)
     }
 
     func searchSongs(with text: String) {

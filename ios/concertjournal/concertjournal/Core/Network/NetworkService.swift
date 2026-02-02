@@ -39,7 +39,7 @@ protocol NetworkServiceProtocol {
         ascending: Bool
     ) async throws -> [T]
 
-    func insert<T: Codable>(
+    func insert<T: Decodable>(
         into table: String,
         values: [String: AnyJSON]
     ) async throws -> T
@@ -89,7 +89,7 @@ class NetworkService: NetworkServiceProtocol {
 
     // MARK: - Insert Data
 
-    func insert<T: Codable>(
+    func insert<T: Decodable>(
         into table: String,
         values: [String: AnyJSON]
     ) async throws -> T {
@@ -97,6 +97,8 @@ class NetworkService: NetworkServiceProtocol {
             let result = try await client
                 .from(table)
                 .insert(values)
+                .select()
+                .single()
                 .execute()
                 .data
 
