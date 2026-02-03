@@ -14,25 +14,19 @@ protocol ArtistRepositoryProtocol {
 
 public class ArtistRepository: ArtistRepositoryProtocol {
 
-    private let supabaseClient: SupabaseClientManager
+    private let supabaseClient: SupabaseClientManagerProtocol
     private let networkService: NetworkServiceProtocol
 
-    init(supabaseClient: SupabaseClientManager, networkService: NetworkServiceProtocol) {
+    init(supabaseClient: SupabaseClientManagerProtocol, networkService: NetworkServiceProtocol) {
         self.supabaseClient = supabaseClient
         self.networkService = networkService
     }
 
     func getOrCreateArtist(_ artist: Artist) async throws -> String {
-        if artist.spotifyArtistId != nil {
-            let upserted: Artist = try await supabaseClient.client
-                .from("artists")
-                .upsert(artist.encoded(), onConflict: "spotify_artist_id")
-                .select()
-                .single()
-                .execute()
-                .value
-
-            return upserted.id
+        if let spotifyId = artist.spotifyArtistId {
+            if let existing = try await findArtistBySpotifyId(spotifyId) {
+                return existing.id
+            }
         }
 
         if let existingId = try await findExistingArtist(artist) {
@@ -42,6 +36,17 @@ public class ArtistRepository: ArtistRepositoryProtocol {
         return try await createArtist(artist)
     }
 
+    private func findArtistBySpotifyId(_ spotifyId: String) async throws -> Artist? {
+        let artists: [Artist] = try await supabaseClient.client
+            .from("artists")
+            .select()
+            .eq("spotify_artist_id", value: spotifyId)
+            .limit(1)
+            .execute()
+            .value
+
+        return artists.first
+    }
 
     private func findExistingArtist(_ artist: Artist) async throws -> String? {
         let artists: [Artist] = try await supabaseClient.client
@@ -54,6 +59,7 @@ public class ArtistRepository: ArtistRepositoryProtocol {
 
         return artists.first?.id
     }
+
 
     private func createArtist(_ artist: Artist) async throws -> String {
         let inserted: Artist = try await supabaseClient.client

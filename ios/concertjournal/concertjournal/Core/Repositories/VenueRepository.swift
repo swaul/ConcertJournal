@@ -14,10 +14,10 @@ protocol VenueRepositoryProtocol {
 
 public class VenueRepository: VenueRepositoryProtocol {
 
-    private let supabaseClient: SupabaseClientManager
+    private let supabaseClient: SupabaseClientManagerProtocol
     private let networkService: NetworkServiceProtocol
 
-    init(supabaseClient: SupabaseClientManager, networkService: NetworkServiceProtocol) {
+    init(supabaseClient: SupabaseClientManagerProtocol, networkService: NetworkServiceProtocol) {
         self.supabaseClient = supabaseClient
         self.networkService = networkService
     }

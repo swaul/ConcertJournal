@@ -24,8 +24,8 @@ protocol ConcertRepositoryProtocol {
 class ConcertRepository: ConcertRepositoryProtocol {
 
     private let networkService: NetworkServiceProtocol
-    private let supabaseClient: SupabaseClientManager
-    private let userSessionManager: UserSessionManager
+    private let supabaseClient: SupabaseClientManagerProtocol
+    private let userSessionManager: UserSessionManagerProtocol
 
     var concertsDidUpdate: AnyPublisher<[FullConcertVisit], Never> {
         concertsSubject.eraseToAnyPublisher()
@@ -35,7 +35,7 @@ class ConcertRepository: ConcertRepositoryProtocol {
 
     var concerts: [FullConcertVisit]
 
-    init(networkService: NetworkServiceProtocol, userSessionManager: UserSessionManager, supabaseClient: SupabaseClientManager) {
+    init(networkService: NetworkServiceProtocol, userSessionManager: UserSessionManagerProtocol, supabaseClient: SupabaseClientManagerProtocol) {
         self.networkService = networkService
         self.userSessionManager = userSessionManager
         self.supabaseClient = supabaseClient
@@ -196,14 +196,9 @@ struct ConcertVisitUpdateDTO: SupabaseEncodable {
     }
 
     func encoded() throws -> [String : AnyJSON] {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
-        let dateString = formatter.string(from: date)
-
         let data: [String: AnyJSON] = [
             CodingKeys.title.rawValue: .string(title),
-            CodingKeys.date.rawValue: .string(dateString),
+            CodingKeys.date.rawValue: .string(date.supabseDateString),
             CodingKeys.rating.rawValue: .integer(rating),
             CodingKeys.venueId.rawValue: venueId == nil ? .null : .string(venueId!),
             CodingKeys.city.rawValue: city == nil ? .null : .string(city!),
@@ -211,5 +206,14 @@ struct ConcertVisitUpdateDTO: SupabaseEncodable {
         ]
 
         return data
+    }
+}
+
+extension Date {
+    public var supabseDateString: String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        return formatter.string(from: self)
     }
 }

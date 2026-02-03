@@ -8,6 +8,30 @@
 import Combine
 import Foundation
 
+struct SetlistSong: Identifiable {
+    let id: String
+    let name: String
+    let artistNames: String
+    let albumName: String?
+    let coverImage: String?
+
+    init(spotifySong: SpotifySong) {
+        self.id = spotifySong.id
+        self.name = spotifySong.name
+        self.albumName = spotifySong.album?.name
+        self.artistNames = spotifySong.artists?.compactMap { $0.name }.joined(separator: ", ") ?? ""
+        self.coverImage = spotifySong.albumCover?.absoluteString
+    }
+
+    init(setlistItem: TempCeateSetlistItem) {
+        self.id = setlistItem.id
+        self.name = setlistItem.title
+        self.albumName = setlistItem.albumName
+        self.artistNames = setlistItem.artistNames
+        self.coverImage = setlistItem.coverImage
+    }
+}
+
 @Observable
 class CreateSetlistViewModel: Hashable, Equatable {
 
@@ -27,7 +51,7 @@ class CreateSetlistViewModel: Hashable, Equatable {
 
     let id: UUID
     var songLoadingState: CreateSetlistStatw = .idle
-    var selectedSongs = [SpotifySong]()
+    var selectedSongs = [SetlistSong]()
 
     private let spotifyRepository: SpotifyRepositoryProtocol
     private let setlistRepository: SetlistRepositoryProtocol
@@ -38,6 +62,13 @@ class CreateSetlistViewModel: Hashable, Equatable {
         self.setlistRepository = setlistRepository
         guard let artist else { return }
         searchSongs(with: artist.name)
+    }
+
+    init(currentSelection: [TempCeateSetlistItem], spotifyRepository: SpotifyRepositoryProtocol, setlistRepository: SetlistRepositoryProtocol) {
+        self.id = UUID()
+        self.spotifyRepository = spotifyRepository
+        self.setlistRepository = setlistRepository
+        self.selectedSongs = currentSelection.map { SetlistSong(setlistItem: $0) }
     }
 
     func saveSetlist() {
@@ -51,7 +82,8 @@ class CreateSetlistViewModel: Hashable, Equatable {
             do {
                 songLoadingState = .loading
                 let result = try await spotifyRepository.searchSongs(query: text)
-                songLoadingState = .loaded(result)
+                let setlistSongs = result.map { SetlistSong(spotifySong: $0) }
+                songLoadingState = .loaded(setlistSongs)
             } catch {
                 print("Could not complete search for \(text);", error)
                 songLoadingState = .error(URLError(.badURL))

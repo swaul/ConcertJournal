@@ -11,6 +11,7 @@ import Supabase
 struct ConcertEditView: View {
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dependencies) private var dependencies
 
     @State private var title: String
     @State private var date: Date
@@ -19,9 +20,10 @@ struct ConcertEditView: View {
     @State private var venueName: String
     
     @State private var venue: Venue?
+    @State private var setlistItems: [TempCeateSetlistItem]
 
     @State private var selectVenuePresenting = false
-
+    @State private var editSeltistPresenting = false
     let concert: FullConcertVisit
     
     let onSave: (ConcertUpdate) -> Void
@@ -33,6 +35,11 @@ struct ConcertEditView: View {
         _rating = State(initialValue: concert.rating ?? 0)
         _venueName = State(initialValue: concert.venue?.name ?? "")
         _venue = State(initialValue: concert.venue)
+        if let setlistItems = concert.setlistItems {
+            let tempSetlistItems = setlistItems.map { TempCeateSetlistItem(setlistItem: $0) }
+            _setlistItems = State(initialValue: tempSetlistItems)
+        }
+        _setlistItems = State(initialValue: [])
 
         self.concert = concert
         self.onSave = onSave
@@ -83,6 +90,36 @@ struct ConcertEditView: View {
                 }
 
                 Section {
+                    if !setlistItems.isEmpty {
+                        ForEach(setlistItems.enumerated(), id: \.element.id) { index, item in
+                            makeEditSongView(index: index, song: item)
+                        }
+                        Button {
+                            editSeltistPresenting = true
+                        } label: {
+                            Text("Setlist hinzufügen")
+                                .font(.cjBody)
+                        }
+                    } else {
+                        Button {
+                            editSeltistPresenting = true
+                        } label: {
+                            Text("Setlist hinzufügen")
+                                .font(.cjBody)
+                        }
+                    }
+                } header: {
+                    Text("Setlist")
+                        .font(.cjBody)
+                }
+                .sheet(isPresented: $editSeltistPresenting) {
+                    let viewModel = CreateSetlistViewModel(currentSelection: setlistItems, spotifyRepository: dependencies.spotifyRepository, setlistRepository: dependencies.setlistRepository)
+                    CreateSetlistView(viewModel: viewModel) { items in
+                        self.setlistItems = items
+                    }
+                }
+
+                Section {
                     Stepper(value: $rating, in: 0...10) {
                         HStack {
                             Text("Rating")
@@ -119,7 +156,8 @@ struct ConcertEditView: View {
                                 notes: notes,
                                 venue: venue,
                                 city: venue?.city,
-                                rating: rating
+                                rating: rating,
+                                setlistItems: setlistItems
                             )
                         )
                         dismiss()
@@ -137,6 +175,36 @@ struct ConcertEditView: View {
             }
         }
     }
+
+    @ViewBuilder
+    func makeEditSongView(index: Int, song: TempCeateSetlistItem) -> some View {
+        HStack {
+            Grid(verticalSpacing: 8) {
+                GridRow {
+                    Text("\(index + 1).")
+                        .font(.cjTitle2)
+                        .frame(width: 28)
+                    Text(song.title)
+                        .font(.cjHeadline)
+                        .lineLimit(nil)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                    GridRow {
+                        Rectangle().fill(.clear)
+                            .frame(width: 28, height: 1)
+
+                        Text(song.artistNames)
+                            .font(.cjBody)
+                            .lineLimit(nil)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+            }
+            .frame(maxWidth: .infinity)
+            Image(systemName: "line.3.horizontal")
+                .frame(width: 28)
+        }
+    }
 }
 
 struct ConcertUpdate {
@@ -146,4 +214,5 @@ struct ConcertUpdate {
     let venue: Venue?
     let city: String?
     let rating: Int
+    let setlistItems: [TempCeateSetlistItem]?
 }

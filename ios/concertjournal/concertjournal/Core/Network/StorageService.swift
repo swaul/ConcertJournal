@@ -17,9 +17,9 @@ protocol StorageServiceProtocol {
 
 class StorageService: StorageServiceProtocol {
 
-    private let supabaseClient: SupabaseClientManager
+    private let supabaseClient: SupabaseClientManagerProtocol
 
-    init(supabaseClient: SupabaseClientManager) {
+    init(supabaseClient: SupabaseClientManagerProtocol) {
         self.supabaseClient = supabaseClient
     }
 

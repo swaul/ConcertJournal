@@ -16,11 +16,11 @@ protocol SpotifyRepositoryProtocol {
 
 class SpotifyRepository: SpotifyRepositoryProtocol {
 
-    private let supabaseClient: SupabaseClientManager
+    private let supabaseClient: SupabaseClientManagerProtocol
     private var cachedToken: String?
     private var tokenExpiry: Date?
 
-    init(supabaseClient: SupabaseClientManager) {
+    init(supabaseClient: SupabaseClientManagerProtocol) {
         self.supabaseClient = supabaseClient
     }
 

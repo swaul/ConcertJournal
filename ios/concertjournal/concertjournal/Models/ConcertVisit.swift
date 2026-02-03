@@ -10,8 +10,8 @@ import Supabase
 
 public struct ConcertVisit: Decodable {
     let id: String
-    let createdAt: Date
-    let updatedAt: Date
+    let createdAt: String
+    let updatedAt: String
     let userId: String
     let artistId: String
     let date: String
@@ -20,7 +20,7 @@ public struct ConcertVisit: Decodable {
     let notes: String?
     let rating: Int?
     let title: String?
-    
+
     enum CodingKeys: String, CodingKey {
         case id
         case createdAt = "created_at"
@@ -34,25 +34,10 @@ public struct ConcertVisit: Decodable {
         case rating
         case title
     }
-
-    func encoded() -> [String: AnyJSON] {
-        var data: [String: AnyJSON] = [
-            CodingKeys.userId.rawValue: .string(userId),
-            CodingKeys.artistId.rawValue: .string(artistId),
-            CodingKeys.date.rawValue: .string(date),
-            CodingKeys.title.rawValue: title != nil ? .string(title!) : .null,
-            CodingKeys.venueId.rawValue: venueId != nil ? .string(venueId!) : .null,
-            CodingKeys.city.rawValue: city != nil ? .string(city!) : .null,
-            CodingKeys.notes.rawValue: notes != nil ? .string(notes!) : .null,
-            CodingKeys.rating.rawValue: rating != nil ? .integer(rating!) : .null,
-        ]
-
-        return data
-    }
 }
 
 public struct FullConcertVisit: Decodable, Identifiable, Equatable, Hashable {
-    internal init(id: String, createdAt: Date, updatedAt: Date, date: Date, venue: Venue? = nil, city: String? = nil, rating: Int? = nil, title: String? = nil, notes: String? = nil, artist: Artist) {
+    internal init(id: String, createdAt: Date, updatedAt: Date, date: Date, venue: Venue? = nil, city: String? = nil, rating: Int? = nil, title: String? = nil, notes: String? = nil, artist: Artist, travel: Travel? = nil) {
         self.id = id
         self.createdAt = createdAt
         self.updatedAt = updatedAt
@@ -63,6 +48,11 @@ public struct FullConcertVisit: Decodable, Identifiable, Equatable, Hashable {
         self.title = title
         self.notes = notes
         self.artist = artist
+        self.travelType = travel?.travelType
+        self.travelDuration = travel?.travelDuration
+        self.travelDistance = travel?.travelDistance
+        self.travelExpenses = travel?.travelExpenses
+        self.hotelExpenses = travel?.hotelExpenses
     }
 
     mutating func updateConcert(with update: ConcertUpdate) {
@@ -99,7 +89,14 @@ public struct FullConcertVisit: Decodable, Identifiable, Equatable, Hashable {
     public let notes: String?
 
     public let artist: Artist
+    public var setlistItems: [SetlistItem]?
 
+    // Travel
+    let travelType: TravelType?
+    let travelDuration: TimeInterval?
+    let travelDistance: Double?
+    let travelExpenses: Price?
+    let hotelExpenses: Price?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -112,5 +109,11 @@ public struct FullConcertVisit: Decodable, Identifiable, Equatable, Hashable {
         case notes
         case title
         case artist = "artists"
+
+        case travelType = "travel_type"
+        case travelDuration = "travel_duration"
+        case travelDistance = "travel_distance"
+        case travelExpenses = "travel_expenses"
+        case hotelExpenses = "hotel_expenses"
     }
 }

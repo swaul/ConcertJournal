@@ -13,9 +13,9 @@ protocol FAQRepositoryProtocol {
 
 public class FAQRepository: FAQRepositoryProtocol {
 
-    private let supabaseClient: SupabaseClientManager
+    private let supabaseClient: SupabaseClientManagerProtocol
 
-    init(supabaseClient: SupabaseClientManager) {
+    init(supabaseClient: SupabaseClientManagerProtocol) {
         self.supabaseClient = supabaseClient
     }
 

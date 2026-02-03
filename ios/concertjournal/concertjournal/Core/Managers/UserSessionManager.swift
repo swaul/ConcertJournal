@@ -2,6 +2,14 @@ import Foundation
 import Supabase
 import Combine
 
+protocol UserSessionManagerProtocol {
+    var session: Session? { get }
+    var user: User? { get }
+
+    func start() async
+    func loadUser() async throws -> User
+}
+
 enum UserContext {
     case loggedOut
     case initializing
@@ -10,7 +18,7 @@ enum UserContext {
 
 @MainActor
 @Observable
-final class UserSessionManager {
+final class UserSessionManager: UserSessionManagerProtocol {
     
     private(set) var session: Session?
     private(set) var user: User?

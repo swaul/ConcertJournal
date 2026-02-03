@@ -7,13 +7,28 @@
 
 import SwiftUI
 
-/// Container für alle App Dependencies
-class DependencyContainer {
+protocol DependencyContainerProtocol {
+    var supabaseClient: SupabaseClientManagerProtocol { get }
+    var userSessionManager: UserSessionManagerProtocol { get }
+    var colorThemeManager: ColorThemeManager { get }
+    var networkService: NetworkServiceProtocol { get }
+    var storageService: StorageServiceProtocol { get }
+    var concertRepository: ConcertRepositoryProtocol { get }
+    var venueRepository: VenueRepositoryProtocol { get }
+    var artistRepository: ArtistRepositoryProtocol { get }
+    var spotifyRepository: SpotifyRepositoryProtocol { get }
+    var photoRepository: PhotoRepositoryProtocol { get }
+    var faqRepository: FAQRepositoryProtocol { get }
+    var setlistRepository: SetlistRepositoryProtocol { get }
+    var localizationRepository: LocalizationRepositoryProtocol { get }
+}
+
+class DependencyContainer: DependencyContainerProtocol {
 
     // MARK: - Singletons (die wirklich Singletons sein müssen)
 
-    let supabaseClient: SupabaseClientManager
-    let userSessionManager: UserSessionManager
+    let supabaseClient: SupabaseClientManagerProtocol
+    let userSessionManager: UserSessionManagerProtocol
     let colorThemeManager: ColorThemeManager
 
     // MARK: - Services
@@ -30,7 +45,7 @@ class DependencyContainer {
     let photoRepository: PhotoRepositoryProtocol
     let faqRepository: FAQRepositoryProtocol
     let setlistRepository: SetlistRepositoryProtocol
-    let localizationRepository: LocalizationRepository
+    let localizationRepository: LocalizationRepositoryProtocol
 
     // MARK: - Initialization
 

@@ -62,6 +62,23 @@ struct SpotifySong: Codable, Identifiable {
 
 // MARK: - Album
 struct SpotifyAlbum: Codable {
+    public init(albumType: AlbumTypeEnum? = nil, artists: [SpotifyArtist]? = nil, availableMarkets: [String]? = nil, externalUrls: ExternalUrls? = nil, href: String? = nil, id: String? = nil, images: [SpotifyImage]? = nil, isPlayable: Bool? = nil, name: String? = nil, releaseDate: String? = nil, releaseDatePrecision: ReleaseDatePrecision? = nil, totalTracks: Int? = nil, type: AlbumTypeEnum? = nil, uri: String? = nil) {
+        self.albumType = albumType
+        self.artists = artists
+        self.availableMarkets = availableMarkets
+        self.externalUrls = externalUrls
+        self.href = href
+        self.id = id
+        self.images = images
+        self.isPlayable = isPlayable
+        self.name = name
+        self.releaseDate = releaseDate
+        self.releaseDatePrecision = releaseDatePrecision
+        self.totalTracks = totalTracks
+        self.type = type
+        self.uri = uri
+    }
+    
     let albumType: AlbumTypeEnum?
     let artists: [SpotifyArtist]?
     let availableMarkets: [String]?
@@ -106,7 +123,7 @@ enum AlbumTypeEnum: String, Codable, CaseIterable {
         }) {
             self = albumType
         } else {
-            print("Uknown enum case found:", decodedValue)
+            print("Unknown enum case found:", decodedValue)
             self = .single
         }
     }
@@ -127,4 +144,46 @@ struct ExternalIDS: Codable {
 
 enum ItemType: String, Codable {
     case track = "track"
+}
+
+extension SpotifySong {
+    static var cruelSummer: SpotifySong {
+        SpotifySong(id: "1BxfuPKGuaTgP7aM0Bbdwr",
+                    album: .lover,
+                    artists: [.taylorSwift],
+                    availableMarkets: ["DE"],
+                    discNumber: 1,
+                    durationMS: 178426,
+                    explicit: false,
+                    externalIDS: ExternalIDS(isrc: "USUG11901472"),
+                    externalUrls: ExternalUrls(spotify: "https://open.spotify.com/track/1BxfuPKGuaTgP7aM0Bbdwr"),
+                    href: "https://api.spotify.com/v1/tracks/1BxfuPKGuaTgP7aM0Bbdwr",
+                    isLocal: false,
+                    isPlayable: true,
+                    name: "Cruel Summer",
+                    popularity: 88,
+                    trackNumber: 2,
+                    type: ItemType.track,
+                    uri: "spotify:track:1BxfuPKGuaTgP7aM0Bbdwr"
+        )
+    }
+}
+
+extension SpotifyAlbum {
+    static var lover: SpotifyAlbum {
+        SpotifyAlbum(albumType: AlbumTypeEnum.album,
+                     artists: [SpotifyArtist.taylorSwift],
+                     availableMarkets: ["DE"],
+                     externalUrls: ExternalUrls(spotify: "https://open.spotify.com/album/1NAmidJlEaVgA3MpcPFYGq"),
+                     href: "https://api.spotify.com/v1/albums/1NAmidJlEaVgA3MpcPFYGq",
+                     id: "1NAmidJlEaVgA3MpcPFYGq",
+                     images: [SpotifyImage(url: "https://i.scdn.co/image/ab67616d0000b273e787cffec20aa2a396a61647", height: 640, width: 640)],
+                     isPlayable: true,
+                     name: "Lover",
+                     releaseDate: "2019-08-23",
+                     releaseDatePrecision: ReleaseDatePrecision.day,
+                     totalTracks: 18,
+                     type: AlbumTypeEnum.album,
+                     uri: "spotify:album:1NAmidJlEaVgA3MpcPFYGq")
+    }
 }

@@ -26,12 +26,12 @@ class CreateConcertVisitViewModel: Hashable, Equatable {
     private let artistRepository: ArtistRepositoryProtocol
     private let setlistRepository: SetlistRepositoryProtocol
     private let concertRepository: ConcertRepositoryProtocol
-    private let userSessionManager: UserSessionManager
+    private let userSessionManager: UserSessionManagerProtocol
     private let photoRepository: PhotoRepositoryProtocol
 
     init(artistRepository: ArtistRepositoryProtocol,
          concertRepository: ConcertRepositoryProtocol,
-         userSessionManager: UserSessionManager,
+         userSessionManager: UserSessionManagerProtocol,
          photoRepository: PhotoRepositoryProtocol,
          setlistRepository: SetlistRepositoryProtocol) {
         self.artistRepository = artistRepository
@@ -43,6 +43,20 @@ class CreateConcertVisitViewModel: Hashable, Equatable {
         self.id = UUID().uuidString
     }
 
+    #if DEBUG
+    init(artist: Artist) {
+        self.artist = artist
+
+        self.artistRepository = MockArtistRepository()
+        self.concertRepository = MockConcertRepository()
+        self.photoRepository = MockPhotoRepository()
+        self.userSessionManager = MockUserSessionManager()
+        self.setlistRepository = MockSetlistRepository()
+
+        self.id = UUID().uuidString
+    }
+    #endif
+
     func createVisit(from new: NewConcertVisit) async throws -> String {
         guard let artist else { throw URLError(.notConnectedToInternet) }
         let artistId = try await artistRepository.getOrCreateArtist(artist)
@@ -52,10 +66,11 @@ class CreateConcertVisitViewModel: Hashable, Equatable {
 
         let concert = try await concertRepository.createConcert(newConcert)
 
-        var setlistItems = new.setlistItems.map { CeateSetlistItemDTO(concertId: concert.id, item: $0) }
+        let setlistItems = new.setlistItems.map { CeateSetlistItemDTO(concertId: concert.id, item: $0) }
 
         for item in setlistItems {
-            try await setlistRepository.createSetlistItem(item)
+            let result = try await setlistRepository.createSetlistItem(item)
+            print("Created setlist item", result.title)
         }
 
         return concert.id

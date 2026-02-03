@@ -16,10 +16,10 @@ protocol SetlistRepositoryProtocol {
 
 public class SetlistRepository: SetlistRepositoryProtocol {
 
-    private let supabaseClient: SupabaseClientManager
+    private let supabaseClient: SupabaseClientManagerProtocol
     private let networkService: NetworkServiceProtocol
 
-    init(supabaseClient: SupabaseClientManager, networkService: NetworkServiceProtocol) {
+    init(supabaseClient: SupabaseClientManagerProtocol, networkService: NetworkServiceProtocol) {
         self.supabaseClient = supabaseClient
         self.networkService = networkService
     }
@@ -38,7 +38,7 @@ public class SetlistRepository: SetlistRepositoryProtocol {
 
     func getSetlistItems(with concertId: String) async throws -> [SetlistItem] {
         try await supabaseClient.client
-            .from("setlist_songs")
+            .from("setlist_items")
             .select()
             .eq("concert_visit_id", value: concertId)
             .order("position", ascending: true)

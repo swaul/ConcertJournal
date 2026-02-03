@@ -47,6 +47,7 @@ struct ConcertDetailView: View {
             guard viewModel == nil else { return }
             viewModel = ConcertDetailViewModel(concert: concert,
                                                concertRepository: dependencies.concertRepository,
+                                               setlistRepository: dependencies.setlistRepository,
                                                photoRepository: dependencies.photoRepository)
         }
 
@@ -96,7 +97,7 @@ struct ConcertDetailView: View {
                                 }
                             }
                             .padding()
-                            .glassEffect(in: RoundedRectangle(cornerRadius: 20))
+                            .rectangleGlass()
                             .padding(.horizontal)
                         }
 
@@ -108,10 +109,11 @@ struct ConcertDetailView: View {
                             VStack(alignment: .leading) {
                                 HStack(alignment: .center) {
                                     Image(systemName: "long.text.page.and.pencil")
-                                        .foregroundStyle(dependencies.colorThemeManager.appTint.opacity(0.5))
+                                        .foregroundStyle(dependencies.colorThemeManager.appTint)
+                                        .font(.cjCaption)
                                     Text("Journal Eintrag")
-                                        .foregroundStyle(dependencies.colorThemeManager.appTint.opacity(0.5))
-                                        .font(.cjHeadline)
+                                        .foregroundStyle(dependencies.colorThemeManager.appTint)
+                                        .font(.cjCaption)
                                     Spacer()
                                 }
                                 .padding(.top)
@@ -123,7 +125,22 @@ struct ConcertDetailView: View {
                                     .padding(.horizontal)
                                     .font(.cjBody)
                             }
-                            .glassEffect(in: RoundedRectangle(cornerRadius: 20))
+                            .rectangleGlass()
+                            .padding(.horizontal)
+                        }
+
+                        Text("Setlist")
+                            .font(.cjTitle)
+                            .padding(.horizontal)
+
+                        if let setlistItems = viewModel.setlistItems, !setlistItems.isEmpty {
+                            VStack {
+                                ForEach(setlistItems, id: \.spotifyTrackId) { item in
+                                    makeSetlistItemView(with: item)
+                                }
+                            }
+                            .padding()
+                            .rectangleGlass()
                             .padding(.horizontal)
                         }
 
@@ -275,6 +292,66 @@ struct ConcertDetailView: View {
         .frame(width: reader.size.width)
         .edgesIgnoringSafeArea(.top)
     }
+
+    @ViewBuilder
+    func makeSetlistItemView(with item: SetlistItem) -> some View {
+        HStack {
+            Text(String(item.position + 1))
+                .font(.cjTitle)
+            VStack(alignment: .leading, spacing: 4) {
+                if let albumName = item.albumName {
+                    Text(albumName)
+                        .font(.cjCaption)
+                        .padding(.leading)
+                        .padding(.top)
+                } else {
+                    Text(" ")
+                }
+                HStack {
+                    Group {
+                        AsyncImage(url: URL(string: item.coverImage ?? ""), content: { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 40, height: 40)
+                        }, placeholder: {
+                            Rectangle()
+                                .fill(Color.gray)
+                                .frame(width: 40, height: 40)
+                        })
+                    }
+                    .clipShape(.circle)
+                    .frame(width: 40, height: 40)
+                    .padding(.leading)
+
+                    VStack(alignment: .leading) {
+                        Text(item.title)
+                            .font(.cjBody)
+                            .bold()
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                        Text(item.artistNames)
+                            .font(.cjBody)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.trailing)
+                }
+                .padding(.bottom)
+
+            }
+            .background {
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(dependencies.colorThemeManager.appTint.opacity(0.2))
+            }
+        }
+    }
+
 
     func requestCalendarAccess() {
         Task {

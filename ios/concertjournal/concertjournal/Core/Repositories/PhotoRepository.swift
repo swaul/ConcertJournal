@@ -16,12 +16,12 @@ protocol PhotoRepositoryProtocol {
 
 class PhotoRepository: PhotoRepositoryProtocol {
 
-    private let supabaseClient: SupabaseClientManager
+    private let supabaseClient: SupabaseClientManagerProtocol
     private let storageService: StorageServiceProtocol
 
     private let bucketName = "concert-photos"
 
-    init(supabaseClient: SupabaseClientManager, storageService: StorageServiceProtocol) {
+    init(supabaseClient: SupabaseClientManagerProtocol, storageService: StorageServiceProtocol) {
         self.supabaseClient = supabaseClient
         self.storageService = storageService
     }

@@ -110,11 +110,13 @@ struct VenueRow: View {
             HStack {
                 Text(venue.name ?? "Unbekannte Venue")
                     .font(.cjHeadline)
+                    .foregroundStyle(Color("TextColor"))
                 Spacer()
             }
             if let address = venue.addressRepresentations?.fullAddress(includingRegion: false, singleLine: true) {
                     Text(address)
                         .font(.cjCaption)
+                        .foregroundStyle(Color("TextColor"))
                         .multilineTextAlignment(.leading)
             }
         }

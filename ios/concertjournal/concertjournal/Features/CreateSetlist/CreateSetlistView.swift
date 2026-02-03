@@ -20,6 +20,7 @@ struct CreateSetlistView: View {
     @State private var viewModel: CreateSetlistViewModel
     @State var songName: String = ""
     @State var hasText: Bool = false
+    @State var showTextField: Bool = false
     @State private var deleteSongDialog: Bool = false {
         didSet {
             if deleteSongDialog == false {
@@ -30,7 +31,7 @@ struct CreateSetlistView: View {
     @State private var songToDelete: String? = nil
 
     @FocusState var textFieldFocused: Bool
-    
+
     @Namespace var selection
 
     init(viewModel: CreateSetlistViewModel, onSave: @escaping ([TempCeateSetlistItem]) -> Void) {
@@ -47,13 +48,13 @@ struct CreateSetlistView: View {
                         Button {
                             path.append(NavigationRoute.orderSetlist(viewModel))
                         } label: {
-                            Text("Next")
+                            Text("Sortieren")
                                 .font(.cjBody)
                         }
                     }
                 }
             }
-            .navigationTitle("Add a Song")
+            .navigationTitle("Songs auswählen")
             .navigationDestination(for: NavigationRoute.self) { route in
                 switch route {
                 case .orderSetlist(let viewModel):
@@ -71,7 +72,7 @@ struct CreateSetlistView: View {
     @ViewBuilder
     func viewWithViewModel(viewModel: CreateSetlistViewModel) -> some View {
         VStack {
-            if !viewModel.selectedSongs.isEmpty {
+            if !viewModel.selectedSongs.isEmpty && showTextField == false {
                 selectedSongsSection()
             }
 
@@ -104,19 +105,15 @@ struct CreateSetlistView: View {
                 }
                 .padding()
             }
+            .scrollDismissesKeyboard(.interactively)
             .safeAreaInset(edge: .bottom) {
                 searchTextField()
                 .padding(.horizontal)
             }
-            .onAppear {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    textFieldFocused = true
-                }
-            }
         }
     }
 
-    func didSelectSong(_ song: SpotifySong) {
+    func didSelectSong(_ song: SetlistSong) {
         withAnimation {
             if let indexToRemove = viewModel.selectedSongs.firstIndex(where: { $0.id == song.id }) {
                 viewModel.selectedSongs.remove(at: indexToRemove)
@@ -128,44 +125,75 @@ struct CreateSetlistView: View {
 
     @ViewBuilder
     func searchTextField() -> some View {
-        HStack {
-            TextField(text: $songName) {
-                Text("Select a Song")
-                    .font(.cjBody)
-            }
-            .focused($textFieldFocused)
-            .submitLabel(.search)
-            .onSubmit {
-                viewModel.searchSongs(with: songName)
-                textFieldFocused = false
-            }
-            .onChange(of: songName) { _, newValue in
-                withAnimation {
-                    hasText = !newValue.isEmpty
-                }
-            }
-            .padding()
-            .glassEffect()
-
-            if hasText {
-                Button {
-                    viewModel.searchSongs(with: songName)
-                    textFieldFocused = false
-                } label: {
-                    Text("Search")
+        if showTextField {
+            HStack {
+                TextField(text: $songName) {
+                    Text("Select a Song")
                         .font(.cjBody)
                 }
-                .buttonStyle(.glassProminent)
-            }
-        }
+                .focused($textFieldFocused)
+                .onChange(of: textFieldFocused, { oldValue, newValue in
+                    if oldValue == true && newValue == false {
+                        withAnimation(.bouncy.delay(0.2)) {
+                            showTextField = false
+                        }
+                    }
+                })
+                .submitLabel(.search)
+                .onSubmit {
+                    viewModel.searchSongs(with: songName)
+                    textFieldFocused = false
+                }
+                .onChange(of: songName) { _, newValue in
+                    withAnimation {
+                        hasText = !newValue.isEmpty
+                    }
+                }
+                .padding()
+                .glassEffect()
 
+                if hasText {
+                    Button {
+                        viewModel.searchSongs(with: songName)
+                        textFieldFocused = false
+                        withAnimation {
+                            showTextField = false
+                        }
+                    } label: {
+                        Text("Search")
+                            .font(.cjBody)
+                    }
+                    .buttonStyle(.glass)
+                }
+            }
+            .matchedGeometryEffect(id: "searchTextField", in: searchTextFieldNamespace)
+
+        } else {
+            HStack {
+                Spacer()
+                Button {
+                    withAnimation {
+                        showTextField = true
+                    } completion: {
+                        textFieldFocused = true
+                    }
+                } label: {
+                    Image(systemName: "magnifyingglass")
+                        .padding()
+                }
+                .buttonStyle(.glass)
+            }
+            .matchedGeometryEffect(id: "searchTextField", in: searchTextFieldNamespace)
+        }
     }
 
+    @Namespace var searchTextFieldNamespace
+
     @ViewBuilder
-    func makeSongView(song: SpotifySong, viewModel: CreateSetlistViewModel) -> some View {
+    func makeSongView(song: SetlistSong, viewModel: CreateSetlistViewModel) -> some View {
         HStack {
             Group {
-                AsyncImage(url: song.albumCover, content: { image in
+                AsyncImage(url: URL(string: song.coverImage ?? ""), content: { image in
                     image
                         .resizable()
                         .aspectRatio(contentMode: .fill)
@@ -185,7 +213,7 @@ struct CreateSetlistView: View {
                     .font(.cjBody)
                     .bold()
                     .lineLimit(1)
-                Text(song.album?.name ?? "Album")
+                Text(song.albumName ?? "")
                     .font(.cjBody)
                     .lineLimit(1)
             }
@@ -252,6 +280,6 @@ struct CreateSetlistView: View {
 enum CreateSetlistStatw {
     case idle
     case loading
-    case loaded([SpotifySong])
+    case loaded([SetlistSong])
     case error(Error)
 }

@@ -17,10 +17,10 @@ final class ProfileViewModel {
     var loadingState: ProfileState = .loading
     var saveDisplayNameState: ProfileState = .loaded
     
-    let userProvider: UserSessionManager
-    let supabaseClient: SupabaseClientManager
+    let userProvider: UserSessionManagerProtocol
+    let supabaseClient: SupabaseClientManagerProtocol
 
-    init(supabaseClient: SupabaseClientManager, userProvider: UserSessionManager) {
+    init(supabaseClient: SupabaseClientManagerProtocol, userProvider: UserSessionManagerProtocol) {
         self.userProvider = userProvider
         self.supabaseClient = supabaseClient
     }

@@ -18,6 +18,13 @@ struct NewConcertDTO: SupabaseEncodable {
     let rating: Int
     let title: String
 
+    // Travel
+    let travelType: TravelType?
+    let travelDuration: TimeInterval?
+    let travelDistance: Double?
+    let travelExpenses: Price?
+    let hotelExpenses: Price?
+
     enum CodingKeys: String, CodingKey {
         case userId = "user_id"
         case artistId = "artist_id"
@@ -27,9 +34,14 @@ struct NewConcertDTO: SupabaseEncodable {
         case notes
         case rating
         case title
+        case travelType = "travel_type"
+        case travelDuration = "travel_duration"
+        case travelDistance = "travel_distance"
+        case travelExpenses = "travel_expenses"
+        case hotelExpenses = "hotel_expenses"
     }
 
-    init(with new: NewConcertVisit, by userId: String, with artistId: String) {
+    init(with new: NewConcertVisit, by userId: String, with artistId: String, travel: Travel? = nil) {
         self.userId = userId
         self.artistId = artistId
         self.venueId = new.venue?.id
@@ -37,16 +49,16 @@ struct NewConcertDTO: SupabaseEncodable {
         self.notes = new.notes
         self.rating = new.rating
         self.title = new.title
-
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
-        let dateString = formatter.string(from: new.date)
-        self.date = dateString
+        self.date = new.date.supabseDateString
+        self.travelType = travel?.travelType
+        self.travelDuration = travel?.travelDuration
+        self.travelDistance = travel?.travelDistance
+        self.travelExpenses = travel?.travelExpenses
+        self.hotelExpenses = travel?.hotelExpenses
     }
 
     func encoded() throws -> [String: AnyJSON] {
-        let encoded: [String: AnyJSON] = [
+        var encoded: [String: AnyJSON] = [
             CodingKeys.userId.rawValue: .string(userId),
             CodingKeys.artistId.rawValue: .string(artistId),
             CodingKeys.date.rawValue: .string(date),
@@ -54,8 +66,22 @@ struct NewConcertDTO: SupabaseEncodable {
             CodingKeys.title.rawValue: title.isEmpty ? .null : .string(title),
             CodingKeys.venueId.rawValue: venueId == nil ? .null : .string(venueId!),
             CodingKeys.city.rawValue: city == nil ? .null : .string(city!),
-            CodingKeys.notes.rawValue: notes.isEmpty ? .null : .string(notes)
+            CodingKeys.notes.rawValue: notes.isEmpty ? .null : .string(notes),
+            CodingKeys.travelType.rawValue: travelType == nil ? .null : .string(travelType!.rawValue),
+            CodingKeys.travelDuration.rawValue: travelDuration == nil ? .null : .double(travelDuration!),
+            CodingKeys.travelDistance.rawValue: travelDistance == nil ? .null : .double(travelDistance!),
+            CodingKeys.travelExpenses.rawValue: .null,
+            CodingKeys.hotelExpenses.rawValue: .null
         ]
+
+        if let travelExpenses, let travelExpensesEncoded = try? travelExpenses.encoded() {
+            encoded[CodingKeys.travelExpenses.rawValue] = .object(travelExpensesEncoded)
+        }
+
+        if let hotelExpenses, let hotelExpensesEncoded = try? hotelExpenses.encoded() {
+            encoded[CodingKeys.hotelExpenses.rawValue] = .object(hotelExpensesEncoded)
+        }
+
 
         return encoded
     }

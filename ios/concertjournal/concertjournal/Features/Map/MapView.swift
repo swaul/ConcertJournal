@@ -180,7 +180,7 @@ struct MapView: View {
                                     .frame(alignment: .trailing)
                             }
                             .padding()
-                            .glassEffect(in: RoundedRectangle(cornerRadius: 20))
+                            .rectangleGlass()
                             .frame(maxWidth: .infinity)
                         }
 

@@ -14,7 +14,8 @@ struct NewConcertVisit: Identifiable, Equatable {
     var title: String = ""
     var notes: String = ""
     var rating: Int = 0
-    
+
+    var travel: Travel? = nil
     var venue: Venue? = nil
     var setlistItems: [TempCeateSetlistItem] = []
 }
@@ -71,6 +72,8 @@ struct CreateConcertVisitView: View {
 
                         venueSection()
 
+                        travelSection()
+
                         ratingSection()
 
                         noteSection()
@@ -123,8 +126,13 @@ struct CreateConcertVisitView: View {
         }
         .sheet(isPresented: $selectArtistPresenting) {
             CreateConcertSelectArtistView(isPresented: $selectArtistPresenting, didSelectArtist: { artist in
-                viewModel?.artist = artist
-                self.selectArtistPresenting = false
+                withAnimation {
+                    self.selectArtistPresenting = false
+                } completion: {
+                    withAnimation {
+                        viewModel?.artist = artist
+                    }
+                }
             })
         }
         .sheet(isPresented: $selectVenuePresenting) {
@@ -148,6 +156,7 @@ struct CreateConcertVisitView: View {
             do {
                 guard let visitId = try await viewModel?.createVisit(from: draft) else { return }
                 try await viewModel?.uploadSelectedPhotos(selectedImages: selectedImages, visitId: visitId)
+                try await dependencies.concertRepository.fetchConcerts()
                 showConfirmation()
             } catch {
                 print("failed to create visit: \(error)")
@@ -179,25 +188,26 @@ struct CreateConcertVisitView: View {
             CJDivider(title: "Location", image: nil)
                 .padding(.horizontal)
 
+            if !draft.venueName.isEmpty {
+                VStack(alignment: .leading) {
+                    Text(draft.venueName)
+                        .font(.cjBody)
+                    if let city = draft.venue?.city {
+                        Text(city)
+                            .font(.cjBody)
+                    }
+                }
+                .padding()
+            }
+
             Button {
                 selectVenuePresenting = true
             } label: {
-                if !draft.venueName.isEmpty {
-                    VStack(alignment: .leading) {
-                        Text(draft.venueName)
-                            .font(.cjBody)
-                        if let city = draft.venue?.city {
-                            Text(city)
-                                .font(.cjBody)
-                        }
-                    }
-                    .padding()
-                } else {
-                    Text("Venue auswählen")
-                        .padding()
-                        .font(.cjBody)
-                }
+                Text("Venue auswählen")
+                    .font(.cjBody)
             }
+            .padding()
+            .glassEffect()
             .padding(.horizontal)
         }
     }
@@ -261,6 +271,81 @@ struct CreateConcertVisitView: View {
             }
         }
 
+    }
+
+    @State var presentTravelSection: Bool = false
+
+    @ViewBuilder
+    func travelSection() -> some View {
+        VStack(alignment: .leading) {
+            CJDivider(title: "Reise", image: nil)
+                .padding(.horizontal)
+
+            VStack(alignment: .leading, spacing: 8) {
+                if let travel = draft.travel {
+                    VStack(alignment: .leading, spacing: 8) {
+
+                        if let travelType = travel.travelType {
+                            Group {
+                                switch travelType {
+                                case .car:
+                                    Text("Du bist mit dem Auto zur Location gekommen")
+                                case .plane:
+                                    Text("Du hast für die Reise ein Flugzeug genommen")
+                                case .bike:
+                                    Text("Du bist mit dem Fahrrad zur Location gekommen")
+                                case .foot:
+                                    Text("Die Location war zu Fuß errreichbar")
+                                case .train:
+                                    Text("Du hast den Zug genommen")
+                                }
+                            }
+                        }
+                        if let travelDuration = travel.travelDuration {
+                            let parsedDuration = DurationParser.format(travelDuration)
+                            Text("Die Reise hat \(parsedDuration) gedauert.")
+                        }
+                        if let travelDistance = travel.travelDistance {
+                            let parsedDistance = DistanceParser.format(travelDistance)
+                            Text("Der Weg war \(parsedDistance) lang.")
+                        }
+                        if let travelExpenses = travel.travelExpenses {
+                            Text("Die Anreise hat dich \(travelExpenses.formatted) gekostet.")
+                        }
+                        if let hotelExpenses = travel.hotelExpenses {
+                            Text("Und für die Übernachtung hast du \(hotelExpenses.formatted) gezahlt.")
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .glassEffect(in: RoundedRectangle(cornerRadius: 20, style: .circular))
+
+                    Button {
+                        presentTravelSection = true
+                    } label: {
+                        Text("Reiseinfos ändern")
+                    }
+                    .padding()
+                    .glassEffect()
+                } else {
+                    Button {
+                        presentTravelSection = true
+                    } label: {
+                        Text("Reiseinfos hinzufügen")
+                    }
+                    .padding()
+                    .glassEffect()
+                }
+            }
+            .padding(.horizontal)
+            .font(.cjBody)
+        }
+        .sheet(isPresented: $presentTravelSection) {
+            CreateConcertTravelView(travel: draft.travel) { travel in
+                draft.travel = travel
+                presentTravelSection = false
+            }
+        }
     }
 
     @ViewBuilder
@@ -396,7 +481,7 @@ struct CreateConcertVisitView: View {
             .padding(.bottom)
 
         }
-        .glassEffect(in: RoundedRectangle(cornerRadius: 20))
+        .rectangleGlass()
     }
 
     @MainActor
@@ -421,5 +506,7 @@ struct CreateConcertVisitView: View {
 }
 
 #Preview {
-    CreateConcertVisitView()
+    let viewModel = CreateConcertVisitViewModel(artist: Artist(artist: .taylorSwift))
+
+    CreateConcertVisitView(viewModel: viewModel)
 }

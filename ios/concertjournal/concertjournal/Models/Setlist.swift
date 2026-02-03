@@ -18,7 +18,7 @@ public struct SetlistItem: Codable {
     let artistNames: String
     let albumName: String?
     let coverImage: String?
-    let notes: String
+    let notes: String?
     let createdAt: Date
 
     enum CodingKeys: String, CodingKey {
@@ -36,7 +36,12 @@ public struct SetlistItem: Codable {
     }
 }
 
-public struct TempCeateSetlistItem: Equatable {
+public struct TempCeateSetlistItem: Equatable, Identifiable {
+
+    public var id: String {
+        title + (spotifyTrackId ?? "")
+    }
+
     let position: Int
     let section: String?
     let spotifyTrackId: String?
@@ -46,15 +51,26 @@ public struct TempCeateSetlistItem: Equatable {
     let albumName: String?
     let notes: String?
 
-    init(spotifySong: SpotifySong, index: Int, notes: String? = nil) {
+    init(spotifySong: SetlistSong, index: Int, notes: String? = nil) {
         self.position = index
         self.section = nil
         self.spotifyTrackId = spotifySong.id
         self.title = spotifySong.name
-        self.albumName = spotifySong.album?.name
-        self.artistNames = spotifySong.artists?.compactMap({ $0.name }).joined(separator: ", ") ?? "UNKNOWN ARTIST"
-        self.coverImage = spotifySong.albumCover?.absoluteString
+        self.albumName = spotifySong.albumName
+        self.artistNames = spotifySong.artistNames
+        self.coverImage = spotifySong.coverImage
         self.notes = notes
+    }
+
+    init(setlistItem: SetlistItem) {
+        self.position = setlistItem.position
+        self.section = setlistItem.section
+        self.spotifyTrackId = setlistItem.spotifyTrackId
+        self.title = setlistItem.title
+        self.albumName = setlistItem.albumName
+        self.artistNames = setlistItem.artistNames
+        self.coverImage = setlistItem.coverImage
+        self.notes = setlistItem.notes
     }
 }
 
@@ -88,7 +104,7 @@ public struct CeateSetlistItemDTO: SupabaseEncodable {
         case spotifyTrackId = "spotify_track_id"
         case title
         case albumName = "album_name"
-        case artistName = "artist_name"
+        case artistNames = "artist_names"
         case coverImage = "cover_image"
         case notes
     }
@@ -101,7 +117,7 @@ public struct CeateSetlistItemDTO: SupabaseEncodable {
             CodingKeys.spotifyTrackId.rawValue: spotifyTrackId == nil ? .null : .string(spotifyTrackId!),
             CodingKeys.title.rawValue: .string(title),
             CodingKeys.albumName.rawValue: albumName == nil ? .null : .string(albumName!),
-            CodingKeys.artistName.rawValue: .string(artistNames),
+            CodingKeys.artistNames.rawValue: .string(artistNames),
             CodingKeys.coverImage.rawValue: coverImage == nil ? .null : .string(coverImage!),
             CodingKeys.notes.rawValue: notes == nil ? .null : .string(notes!)
         ]

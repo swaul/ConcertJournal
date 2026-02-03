@@ -11,9 +11,9 @@ final class AuthViewModel {
     var errorMessage: String?
     var isAuthenticated: Bool = false
 
-    private let supabaseClient: SupabaseClientManager
+    private let supabaseClient: SupabaseClientManagerProtocol
 
-    init(supabaseClient: SupabaseClientManager) {
+    init(supabaseClient: SupabaseClientManagerProtocol) {
         self.supabaseClient = supabaseClient
         Task { await refreshSessionState() }
     }

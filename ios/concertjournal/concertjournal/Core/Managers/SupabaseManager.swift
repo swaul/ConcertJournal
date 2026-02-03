@@ -8,7 +8,15 @@
 import Foundation
 import Supabase
 
-/// Konfiguration für Supabase
+protocol SupabaseClientManagerProtocol {
+    var client: SupabaseClient { get }
+    var currentUser: User? { get }
+    var currentUserId: UUID? { get }
+    var redirectURLString: String { get }
+
+    func handleAuthCallback(from url: URL) async throws
+}
+
 struct SupabaseConfig {
     let url: URL
     let anonKey: String
@@ -21,8 +29,7 @@ struct SupabaseConfig {
     )
 }
 
-/// Manager für Supabase Client
-class SupabaseClientManager {
+class SupabaseClientManager: SupabaseClientManagerProtocol {
 
     let client: SupabaseClient
     let config: SupabaseConfig

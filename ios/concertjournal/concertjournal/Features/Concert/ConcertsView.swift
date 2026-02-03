@@ -289,7 +289,3 @@ struct ConcertsView: View {
     }
 
 }
-
-#Preview {
-    ConcertsView()
-}

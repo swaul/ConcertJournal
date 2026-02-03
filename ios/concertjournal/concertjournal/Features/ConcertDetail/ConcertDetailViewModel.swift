@@ -17,24 +17,24 @@ class ConcertDetailViewModel {
     var concert: FullConcertVisit
     let artist: Artist
     var imageUrls: [ConcertImage] = []
+    var setlistItems: [SetlistItem]? = nil
     var errorMessage: String?
 
     private let photoRepository: PhotoRepositoryProtocol
     private let concertRepository: ConcertRepositoryProtocol
+    private let setlistRepository: SetlistRepositoryProtocol
 
-    init(concert: FullConcertVisit, concertRepository: ConcertRepositoryProtocol, photoRepository: PhotoRepositoryProtocol) {
+    init(concert: FullConcertVisit, concertRepository: ConcertRepositoryProtocol, setlistRepository: SetlistRepositoryProtocol, photoRepository: PhotoRepositoryProtocol) {
         self.concert = concert
         self.artist = concert.artist
 
         self.photoRepository = photoRepository
+        self.setlistRepository = setlistRepository
         self.concertRepository = concertRepository
 
         Task {
-            do {
-                try await loadImages()
-            } catch {
-                print("Failed to load images. Error: \(error)")
-            }
+            try? await loadImages()
+            try? await loadSetlist()
         }
     }
     
@@ -47,7 +47,13 @@ class ConcertDetailViewModel {
         
         imageUrls = urls
     }
-    
+
+    func loadSetlist() async throws {
+        let setlistItems: [SetlistItem] = try await setlistRepository.getSetlistItems(with: concert.id)
+
+        self.setlistItems = setlistItems
+    }
+
     func createCalendarEntry(store: EKEventStore) -> EKEvent {
         let event = EKEvent(eventStore: store)
         

@@ -125,11 +125,6 @@ struct CreateConcertSelectArtistView: View {
             }
             .padding(.horizontal)
         }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                textFieldFocused = true
-            }
-        }
     }
 
     func makeArtistView(artist: SpotifyArtist) -> some View {
@@ -154,7 +149,7 @@ struct CreateConcertSelectArtistView: View {
                 }
             }
             .clipShape(.circle)
-            .frame(height: 80)
+            .frame(width: 80, height: 80)
             .padding()
             
             VStack(alignment: .leading, spacing: 8) {
@@ -194,7 +189,7 @@ struct CreateConcertSelectArtistView: View {
                 }
             }
             .clipShape(.circle)
-            .frame(height: 80)
+            .frame(width: 80, height: 80)
             .padding()
 
             Text(artist.name)

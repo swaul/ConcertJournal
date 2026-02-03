@@ -39,36 +39,32 @@ public struct OrderSetListView: View {
     }
 
     @ViewBuilder
-    func makeOrderSongView(index: Int, song: SpotifySong) -> some View {
-        Grid {
-            GridRow {
-                Text("\(index + 1).")
-                    .font(.cjTitle2)
-                    .frame(width: 28)
-                Text(song.name)
-                    .font(.cjHeadline)
-                    .lineLimit(nil)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                Image(systemName: "line.3.horizontal")
-                    .frame(width: 28)
-            }
-            if let artistsString = song.artists?.compactMap({ $0.name }).joined(separator: ", ") {
+    func makeOrderSongView(index: Int, song: SetlistSong) -> some View {
+        HStack {
+            Grid(verticalSpacing: 8) {
+                GridRow {
+                    Text("\(index + 1).")
+                        .font(.cjTitle2)
+                        .frame(width: 28)
+                    Text(song.name)
+                        .font(.cjHeadline)
+                        .lineLimit(nil)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
                 GridRow {
                     Rectangle().fill(.clear)
-                        .frame(width: 28)
+                        .frame(width: 28, height: 1)
 
-                    Text(artistsString)
+                    Text(song.artistNames)
                         .font(.cjBody)
                         .lineLimit(nil)
                         .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Rectangle().fill(.clear)
-                        .frame(width: 28)
-
                 }
             }
+            .frame(maxWidth: .infinity)
+            Image(systemName: "line.3.horizontal")
+                .frame(width: 28)
         }
-        .frame(maxWidth: .infinity)
     }
 }

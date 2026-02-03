@@ -8,11 +8,16 @@
 import Foundation
 import Supabase
 
-class LocalizationRepository {
+protocol LocalizationRepositoryProtocol {
+    func loadLocale(_ locale: String) async
+    func text(for key: String) -> String
+}
 
-    private let supabaseClient: SupabaseClientManager
+class LocalizationRepository: LocalizationRepositoryProtocol {
 
-    init(supabaseClient: SupabaseClientManager) {
+    private let supabaseClient: SupabaseClientManagerProtocol
+
+    init(supabaseClient: SupabaseClientManagerProtocol) {
         self.supabaseClient = supabaseClient
     }
     
