@@ -75,7 +75,12 @@ class MockConcertRepository: ConcertRepositoryProtocol {
             city: concert.city,
             notes: concert.notes,
             rating: concert.rating,
-            title: concert.title
+            title: concert.title,
+            travelType: .car,
+            travelDuration: 20000,
+            travelDistance: 400,
+            travelExpenses: Price(value: 20, currency: "EUR"),
+            hotelExpenses: Price(value: 50, currency: "EUR")
         )
 
         return newConcert

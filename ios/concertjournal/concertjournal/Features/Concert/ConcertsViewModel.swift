@@ -90,8 +90,11 @@ class ConcertsViewModel {
 
     private func filterConcerts(_ concerts: [FullConcertVisit]) {
         let now = Date.now
-        futureConcerts = concerts.filter { $0.date > now }
-        pastConcerts = concerts.filter { $0.date <= now }
+        let futureConcerts = concerts.filter { $0.date > now }
+        let pastConcerts = concerts.filter { $0.date <= now }
+        
+        self.futureConcerts = futureConcerts.sorted(by: { $0.date < $1.date })
+        self.pastConcerts = pastConcerts
     }
 }
 

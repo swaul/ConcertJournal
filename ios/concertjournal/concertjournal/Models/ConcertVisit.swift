@@ -21,6 +21,13 @@ public struct ConcertVisit: Decodable {
     let rating: Int?
     let title: String?
 
+    // Travel
+    let travelType: TravelType?
+    let travelDuration: TimeInterval?
+    let travelDistance: Double?
+    let travelExpenses: Price?
+    let hotelExpenses: Price?
+    
     enum CodingKeys: String, CodingKey {
         case id
         case createdAt = "created_at"
@@ -33,6 +40,12 @@ public struct ConcertVisit: Decodable {
         case notes
         case rating
         case title
+        
+        case travelType = "travel_type"
+        case travelDuration = "travel_duration"
+        case travelDistance = "travel_distance"
+        case travelExpenses = "travel_expenses"
+        case hotelExpenses = "hotel_expenses"
     }
 }
 
