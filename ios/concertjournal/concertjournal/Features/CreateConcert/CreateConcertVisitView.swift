@@ -319,33 +319,42 @@ struct CreateConcertVisitView: View {
             CJDivider(title: "Setlist", image: nil)
                 .padding(.horizontal)
 
-            Button {
-                createSetlistPresenting = true
-            } label: {
-                if !draft.setlistItems.isEmpty {
-                    VStack(alignment: .leading) {
-                        ForEach(draft.setlistItems, id: \.spotifyTrackId) { item in
-                            makeSetlistItemView(with: item)
-                        }
+            if !draft.setlistItems.isEmpty {
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(draft.setlistItems, id: \.spotifyTrackId) { item in
+                        makeSetlistItemView(with: item)
                     }
-                    .padding()
-                } else {
+                    Button {
+                        
+                    } label: {
+                        Text("Setlist bearbeiten")
+                            .padding()
+                            .font(.cjBody)
+                    }
+                }
+                .padding(.horizontal)
+
+            } else {
+                Button {
+                    createSetlistPresenting = true
+                } label: {
                     Text("Setlist hinzufügen")
                         .padding()
                         .font(.cjBody)
                 }
+                .padding(.horizontal)
             }
-            .padding(.horizontal)
         }
     }
 
     @ViewBuilder
     func makeSetlistItemView(with item: TempCeateSetlistItem) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 4) {
             if let albumName = item.albumName {
                 Text(albumName)
                     .font(.cjCaption)
                     .padding(.leading)
+                    .padding(.top)
             } else {
                 Text(" ")
             }
@@ -371,15 +380,21 @@ struct CreateConcertVisitView: View {
                         .font(.cjBody)
                         .bold()
                         .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
                     Text(item.artistNames)
                         .font(.cjBody)
                         .lineLimit(2)
-                }
-                .padding(.vertical)
-                .padding(.trailing)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
-                Spacer()
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.trailing)
             }
+            .padding(.bottom)
+
         }
         .glassEffect(in: RoundedRectangle(cornerRadius: 20))
     }
