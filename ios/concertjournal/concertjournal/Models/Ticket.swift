@@ -8,7 +8,7 @@
 import Foundation
 import Supabase
 
-struct Price: Codable, Equatable, SupabaseEncodable {
+struct Price: Codable, Equatable {
     let value: Decimal
     let currency: String
 
@@ -38,15 +38,6 @@ struct Price: Codable, Equatable, SupabaseEncodable {
         case "GBP": return "£"
         default: return currency
         }
-    }
-
-    func encoded() throws -> [String : AnyJSON] {
-        let data: [String: AnyJSON] = [
-            CodingKeys.currency.rawValue: .string(currency),
-            CodingKeys.value.rawValue: .double(value.doubleValue)
-        ]
-
-        return data
     }
 }
 

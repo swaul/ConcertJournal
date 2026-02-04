@@ -50,38 +50,6 @@ public struct ConcertVisit: Decodable {
 }
 
 public struct FullConcertVisit: Decodable, Identifiable, Equatable, Hashable {
-    internal init(id: String, createdAt: Date, updatedAt: Date, date: Date, venue: Venue? = nil, city: String? = nil, rating: Int? = nil, title: String? = nil, notes: String? = nil, artist: Artist, travel: Travel? = nil) {
-        self.id = id
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
-        self.date = date
-        self.venue = venue
-        self.city = city
-        self.rating = rating
-        self.title = title
-        self.notes = notes
-        self.artist = artist
-        self.travelType = travel?.travelType
-        self.travelDuration = travel?.travelDuration
-        self.travelDistance = travel?.travelDistance
-        self.travelExpenses = travel?.travelExpenses
-        self.hotelExpenses = travel?.hotelExpenses
-    }
-
-    mutating func updateConcert(with update: ConcertUpdate) {
-        self = FullConcertVisit(
-            id: id,
-            createdAt: createdAt,
-            updatedAt: Date(),
-            date: update.date,
-            venue: update.venue,
-            city: update.city,
-            rating: update.rating,
-            title: update.title,
-            notes: update.notes,
-            artist: artist
-        )
-    }
 
     public static func == (lhs: FullConcertVisit, rhs: FullConcertVisit) -> Bool {
         lhs.id == rhs.id
@@ -92,9 +60,9 @@ public struct FullConcertVisit: Decodable, Identifiable, Equatable, Hashable {
     }
 
     public let id: String
-    public let createdAt: Date
-    public let updatedAt: Date
-    public let date: Date
+    public let createdAtString: String
+    public let updatedAtString: String
+    public let dateString: String
     public let venue: Venue?
     public let city: String?
     public let rating: Int?
@@ -103,6 +71,18 @@ public struct FullConcertVisit: Decodable, Identifiable, Equatable, Hashable {
 
     public let artist: Artist
     public var setlistItems: [SetlistItem]?
+    
+    var createdAt: Date? {
+        createdAtString.supabaseStringDate
+    }
+    
+    var updatedAt: Date? {
+        updatedAtString.supabaseStringDate
+    }
+    
+    var date: Date {
+        dateString.supabaseStringDate ?? Date.now
+    }
 
     // Travel
     let travelType: TravelType?
@@ -113,9 +93,9 @@ public struct FullConcertVisit: Decodable, Identifiable, Equatable, Hashable {
 
     enum CodingKeys: String, CodingKey {
         case id
-        case createdAt = "created_at"
-        case updatedAt = "updated_at"
-        case date
+        case createdAtString = "created_at"
+        case updatedAtString = "updated_at"
+        case dateString = "date"
         case venue = "venues"
         case city
         case rating

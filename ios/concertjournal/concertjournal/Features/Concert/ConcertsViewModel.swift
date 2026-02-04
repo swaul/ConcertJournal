@@ -21,6 +21,7 @@ class ConcertsViewModel {
 
     // MARK: - Dependencies (Dependency Injection statt Singleton!)
 
+    private let userManager: UserSessionManagerProtocol
     private let concertRepository: ConcertRepositoryProtocol
     private let userId: String
 
@@ -28,8 +29,9 @@ class ConcertsViewModel {
 
     // MARK: - Initialization
 
-    init(concertRepository: ConcertRepositoryProtocol, userId: String) {
+    init(concertRepository: ConcertRepositoryProtocol, userManager: UserSessionManagerProtocol, userId: String) {
         self.concertRepository = concertRepository
+        self.userManager = userManager
         self.userId = userId
 
         concertRepository.concertsDidUpdate
@@ -46,12 +48,13 @@ class ConcertsViewModel {
         errorMessage = nil
 
         do {
-            let concerts = try await concertRepository.getConcerts(reload: false)
+            guard let userId = userManager.userId else { throw UserError.notLoggedIn }
+            let concerts = try await concertRepository.fetchConcerts(for: userId, reload: false)
             filterConcerts(concerts)
         } catch let error as NetworkError {
             errorMessage = error.localizedDescription
         } catch {
-            errorMessage = "Ein unbekannter Fehler ist aufgetreten"
+            errorMessage = "Ein unbekannter Fehler ist aufgetreten: \(error)"
         }
 
         isLoading = false
@@ -62,7 +65,8 @@ class ConcertsViewModel {
         futureConcerts.removeAll()
 
         do {
-            let concerts = try await concertRepository.getConcerts(reload: true)
+            guard let userId = userManager.userId else { throw UserError.notLoggedIn }
+            let concerts = try await concertRepository.fetchConcerts(for: userId, reload: true)
             filterConcerts(concerts)
         } catch let error as NetworkError {
             errorMessage = error.localizedDescription

@@ -34,7 +34,11 @@ class ConcertDetailViewModel {
 
         Task {
             try? await loadImages()
-            try? await loadSetlist()
+            do {
+                try await loadSetlist()
+            } catch {
+                print(error)
+            }
         }
     }
     
@@ -74,27 +78,13 @@ class ConcertDetailViewModel {
     }
     
     func applyUpdate(_ update: ConcertUpdate) async {
-        // Create an updated model by keeping immutable fields and applying edits
-        let updated = FullConcertVisit(
-            id: concert.id,
-            createdAt: concert.createdAt,
-            updatedAt: Date(),
-            date: update.date,
-            venue: update.venue,
-            city: update.city,
-            rating: update.rating,
-            title: update.title,
-            notes: update.notes,
-            artist: concert.artist
-        )
-        
-        // Assign back to published state so UI updates
-        self.concert = updated
-        
         let dto = ConcertVisitUpdateDTO(update: update)
         
         do {
             try await concertRepository.updateConcert(id: concert.id, concert: dto)
+            
+            let concert: FullConcertVisit = try await concertRepository.getConcert(id: concert.id)
+            self.concert = concert
         } catch {
             print("Update failed:", error)
             // optional: rollback
@@ -103,7 +93,7 @@ class ConcertDetailViewModel {
 
     func deleteConcert() async throws {
         try await concertRepository.deleteConcert(id: concert.id)
-        try await concertRepository.fetchConcerts()
+        try await concertRepository.reloadConcerts()
     }
 
 }

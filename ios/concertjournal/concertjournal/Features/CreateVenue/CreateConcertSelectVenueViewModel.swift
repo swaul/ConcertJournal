@@ -13,12 +13,12 @@ import Supabase
 @MainActor
 @Observable
 final class VenueSearchViewModel {
-
+    
     private let querySubjet = PassthroughSubject<String, Never>()
     var queryPublisher: AnyPublisher<String, Never> {
         return querySubjet.eraseToAnyPublisher()
     }
-
+    
     var query: String = "" {
         didSet {
             querySubjet.send(query)
@@ -28,12 +28,12 @@ final class VenueSearchViewModel {
     var isLoading = false
     
     private var cancellables = Set<AnyCancellable>()
-
+    
     private let venueRepository: VenueRepositoryProtocol
-
+    
     init(venueRepository: VenueRepositoryProtocol) {
         self.venueRepository = venueRepository
-
+        
         queryPublisher
             .debounce(for: .milliseconds(400), scheduler: RunLoop.main)
             .removeDuplicates()
@@ -66,16 +66,15 @@ final class VenueSearchViewModel {
     func saveVenue(venue: MKMapItem) async throws -> Venue {
         guard let name = venue.name else { throw CancellationError() }
         
-        let venue = Venue(id: "",
-                          name: name,
-                          city: venue.addressRepresentations?.cityName,
-                          formattedAddress: venue.addressRepresentations?.fullAddress(includingRegion: false, singleLine: true) ?? "",
-                          latitude: venue.location.coordinate.latitude,
-                          longitude: venue.location.coordinate.longitude,
-                          appleMapsId: venue.identifier?.rawValue)
-
+        let venue = CreateVenueDTO(name: name,
+                                   city: venue.addressRepresentations?.cityName,
+                                   formattedAddress: venue.addressRepresentations?.fullAddress(includingRegion: false, singleLine: true) ?? "",
+                                   latitude: venue.location.coordinate.latitude,
+                                   longitude: venue.location.coordinate.longitude,
+                                   appleMapsId: venue.identifier?.rawValue)
+        
         let venueId = try await venueRepository.createVenue(venue)
-
+        
         return Venue(id: venueId,
                      name: name,
                      city: venue.city,

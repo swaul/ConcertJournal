@@ -8,7 +8,7 @@
 import Supabase
 import Foundation
 
-struct NewConcertDTO: SupabaseEncodable {
+struct NewConcertDTO: Codable {
     let userId: String
     let artistId: String
     let date: String
@@ -55,34 +55,5 @@ struct NewConcertDTO: SupabaseEncodable {
         self.travelDistance = travel?.travelDistance
         self.travelExpenses = travel?.travelExpenses
         self.hotelExpenses = travel?.hotelExpenses
-    }
-
-    func encoded() throws -> [String: AnyJSON] {
-        var encoded: [String: AnyJSON] = [
-            CodingKeys.userId.rawValue: .string(userId),
-            CodingKeys.artistId.rawValue: .string(artistId),
-            CodingKeys.date.rawValue: .string(date),
-            CodingKeys.rating.rawValue: .integer(rating),
-            CodingKeys.title.rawValue: title.isEmpty ? .null : .string(title),
-            CodingKeys.venueId.rawValue: venueId == nil ? .null : .string(venueId!),
-            CodingKeys.city.rawValue: city == nil ? .null : .string(city!),
-            CodingKeys.notes.rawValue: notes.isEmpty ? .null : .string(notes),
-            CodingKeys.travelType.rawValue: travelType == nil ? .null : .string(travelType!.rawValue),
-            CodingKeys.travelDuration.rawValue: travelDuration == nil ? .null : .double(travelDuration!),
-            CodingKeys.travelDistance.rawValue: travelDistance == nil ? .null : .double(travelDistance!),
-            CodingKeys.travelExpenses.rawValue: .null,
-            CodingKeys.hotelExpenses.rawValue: .null
-        ]
-
-        if let travelExpenses, let travelExpensesEncoded = try? travelExpenses.encoded() {
-            encoded[CodingKeys.travelExpenses.rawValue] = .object(travelExpensesEncoded)
-        }
-
-        if let hotelExpenses, let hotelExpensesEncoded = try? hotelExpenses.encoded() {
-            encoded[CodingKeys.hotelExpenses.rawValue] = .object(hotelExpensesEncoded)
-        }
-
-
-        return encoded
     }
 }

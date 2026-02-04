@@ -9,60 +9,22 @@ import Foundation
 import Supabase
 
 protocol VenueRepositoryProtocol {
-    func createVenue(_ venue: Venue) async throws -> String
+    func createVenue(_ venue: CreateVenueDTO) async throws -> String
 }
 
-public class VenueRepository: VenueRepositoryProtocol {
-
-    private let supabaseClient: SupabaseClientManagerProtocol
-    private let networkService: NetworkServiceProtocol
-
-    init(supabaseClient: SupabaseClientManagerProtocol, networkService: NetworkServiceProtocol) {
-        self.supabaseClient = supabaseClient
-        self.networkService = networkService
+class BFFVenueRepository: VenueRepositoryProtocol {
+    
+    private let client: BFFClient
+    
+    init(client: BFFClient) {
+        self.client = client
     }
-
-    func createVenue(_ venue: Venue) async throws -> String {
-        let venueId: String
-
-        let existingVenueId: String?
-        if let appleMapsId = venue.appleMapsId {
-            // Get-or-create artist by spotify_artist_id (must match your DB column type)
-            let existingVenue: [Venue] = try await supabaseClient.client
-                .from("venues")
-                .select()
-                .eq("apple_maps_id", value: appleMapsId)
-                .execute()
-                .value
-
-            existingVenueId = existingVenue.first?.id
-        } else {
-            let existingVenue: [Venue] = try await supabaseClient.client
-                .from("venues")
-                .select()
-                .eq("name", value: venue.name)
-                .execute()
-                .value
-
-            existingVenueId = existingVenue.first?.id
+    
+    func createVenue(_ venue: CreateVenueDTO) async throws -> String {
+        struct Response: Codable {
+            let id: String
         }
-
-        if let existingVenueId {
-            venueId = existingVenueId
-        } else {
-            // Insert artist and prefer returning the inserted row to get canonical id
-            let venueData = venue.encoded()
-            let inserted: Venue = try await supabaseClient.client
-                .from("venues")
-                .insert(venueData)
-                .select()
-                .single()
-                .execute()
-                .value
-
-            venueId = inserted.id
-        }
-
-        return venueId
+        let response: Response = try await client.post("/venues", body: venue)
+        return response.id
     }
 }

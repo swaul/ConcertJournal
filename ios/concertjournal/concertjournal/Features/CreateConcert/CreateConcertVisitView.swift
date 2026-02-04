@@ -20,10 +20,6 @@ struct NewConcertVisit: Identifiable, Equatable {
     var setlistItems: [TempCeateSetlistItem] = []
 }
 
-protocol SupabaseEncodable {
-    func encoded() throws -> [String: AnyJSON]
-}
-
 extension View {
     @ViewBuilder
     func selectedGlass(selected: Bool, shape: some Shape = DefaultGlassEffectShape()) -> some View {
@@ -156,7 +152,7 @@ struct CreateConcertVisitView: View {
             do {
                 guard let visitId = try await viewModel?.createVisit(from: draft) else { return }
                 try await viewModel?.uploadSelectedPhotos(selectedImages: selectedImages, visitId: visitId)
-                try await dependencies.concertRepository.fetchConcerts()
+                try await dependencies.concertRepository.reloadConcerts()
                 showConfirmation()
             } catch {
                 print("failed to create visit: \(error)")
@@ -503,10 +499,4 @@ struct CreateConcertVisitView: View {
     func showConfirmation() {
         presentConfirmation = true
     }
-}
-
-#Preview {
-    let viewModel = CreateConcertVisitViewModel(artist: Artist(artist: .taylorSwift))
-
-    CreateConcertVisitView(viewModel: viewModel)
 }

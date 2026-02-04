@@ -5,9 +5,14 @@ import Combine
 protocol UserSessionManagerProtocol {
     var session: Session? { get }
     var user: User? { get }
+    var userId: String? { get }
 
     func start() async
     func loadUser() async throws -> User
+}
+
+enum UserError: Error {
+    case notLoggedIn
 }
 
 enum UserContext {
@@ -22,6 +27,10 @@ final class UserSessionManager: UserSessionManagerProtocol {
     
     private(set) var session: Session?
     private(set) var user: User?
+    
+    var userId: String? {
+        user?.id.uuidString
+    }
 
     private let client: SupabaseClient
 

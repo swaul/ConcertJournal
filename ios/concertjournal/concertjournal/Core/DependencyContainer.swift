@@ -6,86 +6,60 @@
 //
 
 import SwiftUI
+import Supabase
 
-protocol DependencyContainerProtocol {
-    var supabaseClient: SupabaseClientManagerProtocol { get }
-    var userSessionManager: UserSessionManagerProtocol { get }
-    var colorThemeManager: ColorThemeManager { get }
-    var networkService: NetworkServiceProtocol { get }
-    var storageService: StorageServiceProtocol { get }
-    var concertRepository: ConcertRepositoryProtocol { get }
-    var venueRepository: VenueRepositoryProtocol { get }
-    var artistRepository: ArtistRepositoryProtocol { get }
-    var spotifyRepository: SpotifyRepositoryProtocol { get }
-    var photoRepository: PhotoRepositoryProtocol { get }
-    var faqRepository: FAQRepositoryProtocol { get }
-    var setlistRepository: SetlistRepositoryProtocol { get }
-    var localizationRepository: LocalizationRepositoryProtocol { get }
-}
-
-class DependencyContainer: DependencyContainerProtocol {
-
-    // MARK: - Singletons (die wirklich Singletons sein müssen)
-
-    let supabaseClient: SupabaseClientManagerProtocol
-    let userSessionManager: UserSessionManagerProtocol
+class DependencyContainer {
+    
+    // BFF Client
+    let bffClient: BFFClient
+    
+    // Managers (bleiben lokal)
+    let supabaseClient: SupabaseClientManager
+    let userSessionManager: UserSessionManager
     let colorThemeManager: ColorThemeManager
-
-    // MARK: - Services
-
-    let networkService: NetworkServiceProtocol
-    let storageService: StorageServiceProtocol
-
-    // MARK: - Repositories
-
+    
+    // ✅ BFF Repositories
     let concertRepository: ConcertRepositoryProtocol
-    let venueRepository: VenueRepositoryProtocol
     let artistRepository: ArtistRepositoryProtocol
-    let spotifyRepository: SpotifyRepositoryProtocol
-    let photoRepository: PhotoRepositoryProtocol
-    let faqRepository: FAQRepositoryProtocol
+    let venueRepository: VenueRepositoryProtocol
     let setlistRepository: SetlistRepositoryProtocol
-    let localizationRepository: LocalizationRepositoryProtocol
-
-    // MARK: - Initialization
-
+    let photoRepository: PhotoRepositoryProtocol
+    let spotifyRepository: SpotifyRepositoryProtocol
+    
+    // Local repositories
+    let faqRepository: FAQRepositoryProtocol
+    let localizationRepository: LocalizationRepository
+    
     init() {
-        // 1. Supabase Client
+        // BFF Client
+        self.bffClient = BFFClient(baseURL: "https://concertjournal-bff.vercel.app")
+        
+        // Managers
         self.supabaseClient = SupabaseClientManager()
-
-        // 2. Managers
         self.userSessionManager = UserSessionManager(client: supabaseClient.client)
         self.colorThemeManager = ColorThemeManager()
-
-        // 3. Network Service
-        self.networkService = NetworkService(client: supabaseClient.client)
-        self.storageService = StorageService(supabaseClient: supabaseClient)
-
-        // 4. Repositories
-        self.concertRepository = ConcertRepository(
-            networkService: networkService,
-            userSessionManager: userSessionManager,
-            supabaseClient: supabaseClient
-        )
-
-        self.setlistRepository = SetlistRepository(supabaseClient: supabaseClient,
-                                                  networkService: networkService)
-
-        self.artistRepository = ArtistRepository(supabaseClient: supabaseClient,
-                                                 networkService: networkService)
-
-        self.photoRepository = PhotoRepository(supabaseClient: supabaseClient,
-                                               storageService: storageService)
-
-        self.spotifyRepository = SpotifyRepository(supabaseClient: supabaseClient)
-
+        
+        // ✅ BFF Client needs auth token
+        self.bffClient.getAuthToken = { [weak supabaseClient] in
+            guard let session = try? await supabaseClient?.client.auth.session else {
+                throw BFFError.serverError("Not authenticated")
+            }
+            return session.accessToken
+        }
+        
+        // ✅ BFF Repositories
+        self.concertRepository = BFFConcertRepository(client: bffClient)
+        self.artistRepository = BFFArtistRepository(client: bffClient)
+        self.venueRepository = BFFVenueRepository(client: bffClient)
+        self.setlistRepository = BFFSetlistRepository(client: bffClient)
+        self.photoRepository = BFFPhotoRepository(client: bffClient)
+        self.spotifyRepository = BFFSpotifyRepository(client: bffClient)
+        
+        // Local repositories (stay unchanged)
         self.faqRepository = FAQRepository(supabaseClient: supabaseClient)
         self.localizationRepository = LocalizationRepository(supabaseClient: supabaseClient)
-        self.venueRepository = VenueRepository(supabaseClient: supabaseClient,
-                                               networkService: networkService)
     }
 }
-
 // MARK: - Environment Key für Dependency Injection
 
 private struct DependencyContainerKey: EnvironmentKey {

@@ -11,7 +11,7 @@ public struct Photo: Codable {
     let id: String
     let concertVisitId: String
     let storagePath: String
-    let createdAt: Date
+    let createdAt: String
     
     enum CodingKeys: String, CodingKey {
         case id

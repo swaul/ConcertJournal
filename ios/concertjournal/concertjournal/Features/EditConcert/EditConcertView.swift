@@ -152,7 +152,7 @@ struct ConcertEditView: View {
                         onSave(
                             ConcertUpdate(
                                 title: title,
-                                date: date,
+                                date: date.supabseDateString,
                                 notes: notes,
                                 venue: venue,
                                 city: venue?.city,
@@ -209,7 +209,7 @@ struct ConcertEditView: View {
 
 struct ConcertUpdate {
     let title: String
-    let date: Date
+    let date: String
     let notes: String
     let venue: Venue?
     let city: String?

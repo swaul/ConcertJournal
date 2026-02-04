@@ -36,6 +36,7 @@ struct ConcertsView: View {
                     // ViewModel wird mit Dependencies aus Container erstellt
                     viewModel = ConcertsViewModel(
                         concertRepository: dependencies.concertRepository,
+                        userManager: dependencies.userSessionManager,
                         userId: userId
                     )
 

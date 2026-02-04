@@ -145,7 +145,7 @@ struct MapView: View {
                         } label: {
                             HStack {
                                 VStack {
-                                    Text(concert.date.shortDateOnlyString)
+                                    Text(concert.date.supabseDateString)
                                         .font(.cjCaption)
                                         .foregroundStyle(.secondary)
                                         .frame(width: 60)

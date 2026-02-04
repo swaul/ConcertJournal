@@ -9,6 +9,7 @@ import Foundation
 import Supabase
 
 public struct SetlistItem: Codable {
+    
     let id: String
     let concertVisitId: String
     let position: Int
@@ -19,7 +20,7 @@ public struct SetlistItem: Codable {
     let albumName: String?
     let coverImage: String?
     let notes: String?
-    let createdAt: Date
+    let createdAt: String
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -33,6 +34,20 @@ public struct SetlistItem: Codable {
         case coverImage = "cover_image"
         case notes
         case createdAt = "created_at"
+    }
+    
+    internal init(id: String, concertVisitId: String, position: Int, section: String? = nil, spotifyTrackId: String? = nil, title: String, artistNames: String, albumName: String? = nil, coverImage: String? = nil, notes: String? = nil, createdAt: Date) {
+        self.id = id
+        self.concertVisitId = concertVisitId
+        self.position = position
+        self.section = section
+        self.spotifyTrackId = spotifyTrackId
+        self.title = title
+        self.artistNames = artistNames
+        self.albumName = albumName
+        self.coverImage = coverImage
+        self.notes = notes
+        self.createdAt = createdAt.supabseDateString
     }
 }
 
@@ -74,7 +89,7 @@ public struct TempCeateSetlistItem: Equatable, Identifiable {
     }
 }
 
-public struct CeateSetlistItemDTO: SupabaseEncodable {
+public struct CreateSetlistItemDTO: Encodable {
     let concertVisitId: String
     let position: Int
     let section: String?
@@ -107,21 +122,5 @@ public struct CeateSetlistItemDTO: SupabaseEncodable {
         case artistNames = "artist_names"
         case coverImage = "cover_image"
         case notes
-    }
-
-    func encoded() throws -> [String : AnyJSON] {
-        let data: [String: AnyJSON] = [
-            CodingKeys.concertVisitId.rawValue: .string(concertVisitId),
-            CodingKeys.position.rawValue: .integer(position),
-            CodingKeys.section.rawValue: section == nil ? .null : .string(section!),
-            CodingKeys.spotifyTrackId.rawValue: spotifyTrackId == nil ? .null : .string(spotifyTrackId!),
-            CodingKeys.title.rawValue: .string(title),
-            CodingKeys.albumName.rawValue: albumName == nil ? .null : .string(albumName!),
-            CodingKeys.artistNames.rawValue: .string(artistNames),
-            CodingKeys.coverImage.rawValue: coverImage == nil ? .null : .string(coverImage!),
-            CodingKeys.notes.rawValue: notes == nil ? .null : .string(notes!)
-        ]
-
-        return data
     }
 }

@@ -10,118 +10,61 @@ import Foundation
 import Supabase
 
 protocol ConcertRepositoryProtocol {
-
-    var concerts: [FullConcertVisit] { get }
     var concertsDidUpdate: AnyPublisher<[FullConcertVisit], Never> { get }
-
-    func getConcerts(reload: Bool) async throws -> [FullConcertVisit]
-    func fetchConcerts() async throws
+    var cachedConcerts: [FullConcertVisit] { get }
+    
+    func fetchConcerts(for userId: String, reload: Bool) async throws -> [FullConcertVisit]
+    func getConcert(id: String) async throws -> FullConcertVisit
+    func reloadConcerts() async throws
     func createConcert(_ concert: NewConcertDTO) async throws -> ConcertVisit
     func updateConcert(id: String, concert: ConcertVisitUpdateDTO) async throws
     func deleteConcert(id: String) async throws
 }
 
-class ConcertRepository: ConcertRepositoryProtocol {
-
-    private let networkService: NetworkServiceProtocol
-    private let supabaseClient: SupabaseClientManagerProtocol
-    private let userSessionManager: UserSessionManagerProtocol
-
+class BFFConcertRepository: ConcertRepositoryProtocol {
+    
     var concertsDidUpdate: AnyPublisher<[FullConcertVisit], Never> {
         concertsSubject.eraseToAnyPublisher()
     }
 
     let concertsSubject = PassthroughSubject<[FullConcertVisit], Never>()
-
-    var concerts: [FullConcertVisit]
-
-    init(networkService: NetworkServiceProtocol, userSessionManager: UserSessionManagerProtocol, supabaseClient: SupabaseClientManagerProtocol) {
-        self.networkService = networkService
-        self.userSessionManager = userSessionManager
-        self.supabaseClient = supabaseClient
-
-        concerts = []
+    
+    var cachedConcerts = [FullConcertVisit]()
+    
+    private let client: BFFClient
+    
+    init(client: BFFClient) {
+        self.client = client
     }
-
-    // MARK: - Fetch Concerts
-
-    func getConcerts(reload: Bool) async throws -> [FullConcertVisit] {
-        guard reload || concerts.isEmpty else {
-            return concerts
-        }
-
-        try await fetchConcerts()
+    
+    func reloadConcerts() async throws {
+        let concerts: [FullConcertVisit] = try await client.get("/concerts")
+        concertsSubject.send(concerts)
+        self.cachedConcerts = concerts
+    }
+    
+    func fetchConcerts(for userId: String, reload: Bool = false) async throws -> [FullConcertVisit] {
+        guard cachedConcerts.isEmpty || reload else { return cachedConcerts }
+        let concerts: [FullConcertVisit] = try await client.get("/concerts")
+        self.cachedConcerts = concerts
+        concertsSubject.send(concerts)
         return concerts
     }
-
-    func fetchConcerts() async throws {
-        guard let userId = userSessionManager.user?.id else { throw ConcertLoadingError.notLoggedIn }
-        // Dieser Query ist komplex wegen den Joins - hier nutzen wir den Supabase Client direkt
-        let concerts: [FullConcertVisit] = try await supabaseClient.client
-            .from("concert_visits")
-            .select("""
-                id,
-                created_at,
-                updated_at,
-                date,
-                venues (
-                    id,
-                    name,
-                    formatted_address,
-                    latitude,
-                    longitude,
-                    apple_maps_id
-                ),
-                city,
-                notes,
-                rating,
-                title,
-                artists (
-                    id,
-                    name,
-                    image_url,
-                    spotify_artist_id
-                )
-            """)
-            .eq("user_id", value: userId)
-            .order("date", ascending: false)
-            .execute()
-            .value
-
-        self.concerts = concerts
-        concertsSubject.send(concerts)
+    
+    func getConcert(id: String) async throws -> FullConcertVisit {
+        try await client.get("/concerts/\(id)")
     }
-
-    // MARK: - Create Concert
-
+    
     func createConcert(_ concert: NewConcertDTO) async throws -> ConcertVisit {
-        try await networkService.insert(into: "concert_visits", values: concert.encoded())
+        try await client.post("/concerts", body: concert)
     }
-
-    // MARK: - Update Concert
-
+    
     func updateConcert(id: String, concert: ConcertVisitUpdateDTO) async throws {
-        try await networkService.update(table: "concert_visits", id: id, values: concert.encoded())
+        let _: FullConcertVisit = try await client.patch("/concerts/\(id)", body: concert)
     }
-
-    // MARK: - Delete Concert
-
+    
     func deleteConcert(id: String) async throws {
-        try await networkService.delete(from: "concert_visits", id: id)
-    }
-}
-
-enum ConcertLoadingError: Error, LocalizedError {
-    case notLoggedIn
-    case concertIdMissing
-
-    var errorDescription: String? {
-        switch self {
-        case .notLoggedIn:
-            return "Nicht eingeloggt"
-        case .concertIdMissing:
-            return "Concert id is missing"
-        }
+        try await client.delete("/concerts/\(id)")
     }
 }
 
@@ -169,9 +112,9 @@ enum ConcertLoadingError: Error, LocalizedError {
 //    }
 //}
 
-struct ConcertVisitUpdateDTO: SupabaseEncodable {
+struct ConcertVisitUpdateDTO: Codable {
     let title: String
-    let date: Date
+    let date: String
     let notes: String
     let venueId: String?
     let city: String?
@@ -194,19 +137,6 @@ struct ConcertVisitUpdateDTO: SupabaseEncodable {
         self.city = update.city
         self.rating = update.rating
     }
-
-    func encoded() throws -> [String : AnyJSON] {
-        let data: [String: AnyJSON] = [
-            CodingKeys.title.rawValue: .string(title),
-            CodingKeys.date.rawValue: .string(date.supabseDateString),
-            CodingKeys.rating.rawValue: .integer(rating),
-            CodingKeys.venueId.rawValue: venueId == nil ? .null : .string(venueId!),
-            CodingKeys.city.rawValue: city == nil ? .null : .string(city!),
-            CodingKeys.notes.rawValue: notes.isEmpty ? .null : .string(notes)
-        ]
-
-        return data
-    }
 }
 
 extension Date {
@@ -215,5 +145,20 @@ extension Date {
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
         return formatter.string(from: self)
+    }
+}
+
+extension String {
+    public var supabaseStringDate: Date? {
+        let formatter = ISO8601DateFormatter()
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = formatter.date(from: self) {
+            return date
+        }
+
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter.date(from: self)
     }
 }

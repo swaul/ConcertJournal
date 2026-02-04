@@ -8,7 +8,7 @@
 import Foundation
 import Supabase
 
-public struct Artist: Codable, Hashable, Identifiable, SupabaseEncodable {
+public struct Artist: Codable, Hashable, Identifiable {
 
     public let id: String
     let name: String
@@ -35,14 +35,22 @@ public struct Artist: Codable, Hashable, Identifiable, SupabaseEncodable {
         self.imageUrl = imageUrl
         self.spotifyArtistId = spotifyArtistId
     }
-    
-    func encoded() -> [String: AnyJSON] {
-        var data: [String: AnyJSON] = [
-            CodingKeys.name.rawValue: .string(name),
-            CodingKeys.imageUrl.rawValue: imageUrl != nil ? .string(imageUrl!) : .null,
-            CodingKeys.spotifyArtistId.rawValue: spotifyArtistId != nil ? .string(spotifyArtistId!) : .null
-        ]
+}
 
-        return data
+public struct CreateArtistDTO: Encodable {
+    let name: String
+    let imageUrl: String?
+    let spotifyArtistId: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case name
+        case imageUrl = "image_url"
+        case spotifyArtistId = "spotify_artist_id"
+    }
+    
+    init(artist: Artist) {
+        name = artist.name
+        imageUrl = artist.imageUrl
+        spotifyArtistId = artist.spotifyArtistId
     }
 }

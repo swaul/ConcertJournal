@@ -1,0 +1,118 @@
+//
+//  BFFClient.swift
+//  concertjournal
+//
+//  Created by Paul Kühnel on 04.02.26.
+//
+
+import Foundation
+
+class BFFClient {
+    
+    private let baseURL: String
+    private let session: URLSession
+    
+    // ✅ Token Provider (Supabase Auth)
+    var getAuthToken: (() async throws -> String)?
+    
+    init(baseURL: String = "https://concertjournal-bff.vercel.app") {
+        self.baseURL = baseURL
+        
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = 30
+        self.session = URLSession(configuration: configuration)
+    }
+    
+    // MARK: - Generic Request
+    
+    private func request<T: Decodable>(
+        method: String,
+        path: String,
+        body: Encodable? = nil
+    ) async throws -> T {
+        
+        guard let url = URL(string: baseURL + path) else {
+            throw BFFError.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        // ✅ Add auth token
+        if let token = try? await getAuthToken?() {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        // ✅ Add body if present
+        if let body = body {
+            request.httpBody = try JSONEncoder().encode(body)
+        }
+        
+        let (data, response) = try await session.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            print("LOG: Response is no HTTPURLResponse", response)
+            throw BFFError.invalidResponse
+        }
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            // Try to decode error
+            if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
+                let error = BFFError.serverError(errorResponse.error)
+                print("LOG: Could not fetch resource", request.url?.absoluteString, httpResponse.statusCode)
+                throw error
+            }
+            throw BFFError.httpError(httpResponse.statusCode)
+        }
+        
+        return try JSONDecoder().decode(T.self, from: data)
+    }
+    
+    // MARK: - Helper Methods
+    
+    func get<T: Decodable>(_ path: String) async throws -> T {
+        try await request(method: "GET", path: path)
+    }
+    
+    func post<T: Decodable>(_ path: String, body: Encodable?) async throws -> T {
+        try await request(method: "POST", path: path, body: body)
+    }
+    
+    func patch<T: Decodable>(_ path: String, body: Encodable?) async throws -> T {
+        try await request(method: "PATCH", path: path, body: body)
+    }
+    
+    func delete(_ path: String) async throws {
+        let _: EmptyResponse = try await request(method: "DELETE", path: path)
+    }
+}
+
+enum BFFError: Error, LocalizedError {
+    case invalidURL
+    case invalidResponse
+    case httpError(Int)
+    case serverError(String)
+    case decodingError
+    
+    var errorDescription: String? {
+        switch self {
+        case .invalidURL:
+            return "Invalid URL"
+        case .invalidResponse:
+            return "Invalid response from server"
+        case .httpError(let code):
+            return "HTTP Error: \(code)"
+        case .serverError(let message):
+            return message
+        case .decodingError:
+            return "Failed to decode response"
+        }
+    }
+}
+
+struct ErrorResponse: Codable {
+    let error: String
+}
+
+struct EmptyResponse: Codable {}

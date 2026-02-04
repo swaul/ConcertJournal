@@ -9,44 +9,28 @@ import Foundation
 import Supabase
 
 protocol SetlistRepositoryProtocol {
-    func createSetlistItem(_ setlistItem: CeateSetlistItemDTO) async throws -> SetlistItem
     func getSetlistItems(with concertId: String) async throws -> [SetlistItem]
-    func deleteSetlistItem(_ setlistItemId: String) async throws
+    func createSetlistItem(_ item: CreateSetlistItemDTO) async throws -> SetlistItem
+    func deleteSetlistItem(_ itemId: String) async throws
 }
 
-public class SetlistRepository: SetlistRepositoryProtocol {
-
-    private let supabaseClient: SupabaseClientManagerProtocol
-    private let networkService: NetworkServiceProtocol
-
-    init(supabaseClient: SupabaseClientManagerProtocol, networkService: NetworkServiceProtocol) {
-        self.supabaseClient = supabaseClient
-        self.networkService = networkService
+class BFFSetlistRepository: SetlistRepositoryProtocol {
+    
+    private let client: BFFClient
+    
+    init(client: BFFClient) {
+        self.client = client
     }
-
-    func createSetlistItem(_ setlistItem: CeateSetlistItemDTO) async throws -> SetlistItem {
-        let inserted: SetlistItem = try await supabaseClient.client
-            .from("setlist_items")
-            .insert(setlistItem.encoded())
-            .select()
-            .single()
-            .execute()
-            .value
-
-        return inserted
-    }
-
+    
     func getSetlistItems(with concertId: String) async throws -> [SetlistItem] {
-        try await supabaseClient.client
-            .from("setlist_items")
-            .select()
-            .eq("concert_visit_id", value: concertId)
-            .order("position", ascending: true)
-            .execute()
-            .value
+        try await client.get("/setlist/\(concertId)")
     }
-
-    func deleteSetlistItem(_ setlistItemId: String) async throws {
-        try await networkService.delete(from: "setlist_items", id: setlistItemId)
+    
+    func createSetlistItem(_ item: CreateSetlistItemDTO) async throws -> SetlistItem {
+        try await client.post("/setlist/\(item.concertVisitId)/songs", body: item)
+    }
+    
+    func deleteSetlistItem(_ itemId: String) async throws {
+        try await client.delete("/setlist/songs/\(itemId)")
     }
 }

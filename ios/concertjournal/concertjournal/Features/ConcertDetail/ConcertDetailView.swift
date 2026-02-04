@@ -129,11 +129,11 @@ struct ConcertDetailView: View {
                             .padding(.horizontal)
                         }
 
-                        Text("Setlist")
-                            .font(.cjTitle)
-                            .padding(.horizontal)
-
                         if let setlistItems = viewModel.setlistItems, !setlistItems.isEmpty {
+                            Text("Setlist")
+                                .font(.cjTitle)
+                                .padding(.horizontal)
+                            
                             VStack {
                                 ForEach(setlistItems, id: \.spotifyTrackId) { item in
                                     makeSetlistItemView(with: item)

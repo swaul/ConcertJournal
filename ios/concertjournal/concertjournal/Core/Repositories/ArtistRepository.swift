@@ -9,87 +9,28 @@ import Foundation
 import Supabase
 
 protocol ArtistRepositoryProtocol {
-    func getOrCreateArtist(_ artist: Artist) async throws -> String
+    func searchArtists(query: String) async throws -> [Artist]
+    func getOrCreateArtist(_ artist: CreateArtistDTO) async throws -> String
 }
 
-public class ArtistRepository: ArtistRepositoryProtocol {
-
-    private let supabaseClient: SupabaseClientManagerProtocol
-    private let networkService: NetworkServiceProtocol
-
-    init(supabaseClient: SupabaseClientManagerProtocol, networkService: NetworkServiceProtocol) {
-        self.supabaseClient = supabaseClient
-        self.networkService = networkService
+class BFFArtistRepository: ArtistRepositoryProtocol {
+    
+    private let client: BFFClient
+    
+    init(client: BFFClient) {
+        self.client = client
     }
-
-    func getOrCreateArtist(_ artist: Artist) async throws -> String {
-        if let spotifyId = artist.spotifyArtistId {
-            if let existing = try await findArtistBySpotifyId(spotifyId) {
-                return existing.id
-            }
-        }
-
-        if let existingId = try await findExistingArtist(artist) {
-            return existingId
-        }
-
-        return try await createArtist(artist)
-    }
-
-    private func findArtistBySpotifyId(_ spotifyId: String) async throws -> Artist? {
-        let artists: [Artist] = try await supabaseClient.client
-            .from("artists")
-            .select()
-            .eq("spotify_artist_id", value: spotifyId)
-            .limit(1)
-            .execute()
-            .value
-
-        return artists.first
-    }
-
-    private func findExistingArtist(_ artist: Artist) async throws -> String? {
-        let artists: [Artist] = try await supabaseClient.client
-            .from("artists")
-            .select()
-            .eq("name", value: artist.name)
-            .limit(1)
-            .execute()
-            .value
-
-        return artists.first?.id
-    }
-
-
-    private func createArtist(_ artist: Artist) async throws -> String {
-        let inserted: Artist = try await supabaseClient.client
-            .from("artists")
-            .insert(artist.encoded())
-            .select()
-            .single()
-            .execute()
-            .value
-
-        return inserted.id
-    }
-
+    
     func searchArtists(query: String) async throws -> [Artist] {
-        return try await supabaseClient.client
-            .from("artists")
-            .select()
-            .ilike("name", pattern: "%\(query)%")
-            .limit(20)
-            .execute()
-            .value
+        let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
+        return try await client.get("/artists/search?q=\(encoded)")
     }
-
-    func fetchArtist(id: String) async throws -> Artist {
-        return try await supabaseClient.client
-            .from("artists")
-            .select()
-            .eq("id", value: id)
-            .single()
-            .execute()
-            .value
+    
+    func getOrCreateArtist(_ artist: CreateArtistDTO) async throws -> String {
+        struct Response: Codable {
+            let id: String
+        }
+        let response: Response = try await client.post("/artists", body: artist)
+        return response.id
     }
 }

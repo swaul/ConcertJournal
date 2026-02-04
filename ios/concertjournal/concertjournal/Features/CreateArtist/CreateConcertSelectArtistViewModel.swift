@@ -26,7 +26,7 @@ class CreateConcertSelectArtistViewModel {
     }
 
     func fillWithCurrentArtists() {
-        let artists = concertRepository.concerts.map { $0.artist }
+        let artists = concertRepository.cachedConcerts.map { $0.artist }
         currentArtists = Array(Set(artists)).sorted(by: { $0.name < $1.name })
     }
 

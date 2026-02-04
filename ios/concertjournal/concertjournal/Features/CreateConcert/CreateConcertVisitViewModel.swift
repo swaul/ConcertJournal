@@ -43,30 +43,17 @@ class CreateConcertVisitViewModel: Hashable, Equatable {
         self.id = UUID().uuidString
     }
 
-    #if DEBUG
-    init(artist: Artist) {
-        self.artist = artist
-
-        self.artistRepository = MockArtistRepository()
-        self.concertRepository = MockConcertRepository()
-        self.photoRepository = MockPhotoRepository()
-        self.userSessionManager = MockUserSessionManager()
-        self.setlistRepository = MockSetlistRepository()
-
-        self.id = UUID().uuidString
-    }
-    #endif
-
     func createVisit(from new: NewConcertVisit) async throws -> String {
         guard let artist else { throw URLError(.notConnectedToInternet) }
-        let artistId = try await artistRepository.getOrCreateArtist(artist)
+        let createArtist = CreateArtistDTO(artist: artist)
+        let artistId = try await artistRepository.getOrCreateArtist(createArtist)
 
         guard let userId = userSessionManager.user?.id.uuidString else { throw URLError(.notConnectedToInternet) }
         let newConcert = NewConcertDTO(with: new, by: userId, with: artistId)
 
         let concert = try await concertRepository.createConcert(newConcert)
 
-        let setlistItems = new.setlistItems.map { CeateSetlistItemDTO(concertId: concert.id, item: $0) }
+        let setlistItems = new.setlistItems.map { CreateSetlistItemDTO(concertId: concert.id, item: $0) }
 
         for item in setlistItems {
             let result = try await setlistRepository.createSetlistItem(item)
