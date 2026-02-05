@@ -9,7 +9,7 @@ import SwiftUI
 
 public struct CreateConcertTravelView: View {
 
-    init(travel: Travel?, onSave: @escaping (Travel) -> Void) {
+    init(travel: Travel?, onSave: @escaping (Travel?) -> Void) {
         self.onSave = onSave
 
         if let selectedTravelType = travel?.travelType {
@@ -43,7 +43,7 @@ public struct CreateConcertTravelView: View {
         }
     }
 
-    var onSave: ((Travel) -> Void)?
+    var onSave: ((Travel?) -> Void)?
 
     @State private var selectedTravelType: TravelType? = nil
     @State private var animatedSelectTravelType: TravelType? = nil
@@ -60,6 +60,8 @@ public struct CreateConcertTravelView: View {
             ScrollView {
                 VStack(alignment: .leading) {
                     Text("Wie bist du zur location gekommen?")
+                        .font(.cjBody)
+
                     HStack {
                         Menu {
                             ForEach(TravelType.allCases) { type in
@@ -96,18 +98,23 @@ public struct CreateConcertTravelView: View {
                     }
 
                     Text("Wie lange hat die Reise gedauert?")
+                        .font(.cjBody)
                         .padding(.top)
+
                     DurationValidatedTextField("z.B.: 3h 27m", text: $durationText)
 
                     Text("Wie groß war die Entfernung?")
+                        .font(.cjBody)
                         .padding(.top)
                     DistanceValidatedTextField("z.B.: 346,5km", text: $distanceText)
 
                     Text("Wie teuer war die Reise?")
+                        .font(.cjBody)
                         .padding(.top)
                     ExpensesValidatedTextField("z.B.: 38,99 €", text: $expensesText)
 
                     Toggle("Bist du über Nacht geblieben?", isOn: $spentTheNight)
+                        .font(.cjBody)
                         .padding(.top)
                         .onChange(of: spentTheNight) { _, newValue in
                             withAnimation(.bouncy) {
@@ -116,6 +123,7 @@ public struct CreateConcertTravelView: View {
                         }
                     if animatedSpentTheNight {
                         Text("Wie teuer war die Übernachtung?")
+                            .font(.cjBody)
                             .transition(.move(edge: .trailing).combined(with: .opacity))
                         ExpensesValidatedTextField("z.B.: 149,89 €", text: $hotelExpensesText)
                         .transition(.move(edge: .trailing).combined(with: .opacity))
@@ -132,6 +140,7 @@ public struct CreateConcertTravelView: View {
                         saveValues()
                     } label: {
                         Text("Speichern")
+                            .font(.cjBody)
                     }
                 }
             }

@@ -60,7 +60,7 @@ class BFFConcertRepository: ConcertRepositoryProtocol {
     }
     
     func updateConcert(id: String, concert: ConcertVisitUpdateDTO) async throws {
-        let _: FullConcertVisit = try await client.patch("/concerts/\(id)", body: concert)
+        let _: ConcertVisitUpdateDTO = try await client.patch("/concerts/\(id)", body: concert)
     }
     
     func deleteConcert(id: String) async throws {
@@ -112,14 +112,18 @@ class BFFConcertRepository: ConcertRepositoryProtocol {
 //    }
 //}
 
-struct ConcertVisitUpdateDTO: Encodable {
+struct ConcertVisitUpdateDTO: Codable {
     let title: String
     let date: String
     let notes: String
     let venueId: String?
     let city: String?
     let rating: Int
-    let setlistItems: [CreateSetlistItemDTO]?
+    let travelType: String?
+    let travelDuration: TimeInterval?
+    let travelDistance: Double?
+    let travelExpenses: Price?
+    let hotelExpenses: Price?
     
     enum CodingKeys: String, CodingKey {
         case title
@@ -128,7 +132,11 @@ struct ConcertVisitUpdateDTO: Encodable {
         case venueId = "venue_id"
         case city
         case rating
-        case setlistItems = "setlist_items"
+        case travelType = "travel_type"
+        case travelDuration = "travel_duration"
+        case travelDistance = "travel_distance"
+        case travelExpenses = "travel_expenses"
+        case hotelExpenses = "hotel_expenses"
     }
 
     init(update: ConcertUpdate) {
@@ -138,11 +146,11 @@ struct ConcertVisitUpdateDTO: Encodable {
         self.venueId = update.venue?.id
         self.city = update.city
         self.rating = update.rating
-        if let setlistItems = update.setlistItems {
-            self.setlistItems = setlistItems.map { CreateSetlistItemDTO(concertId: update.id, item: $0) }
-        } else {
-            self.setlistItems = nil
-        }
+        self.travelType = update.travel?.travelType?.rawValue
+        self.travelDistance = update.travel?.travelDistance
+        self.travelDuration = update.travel?.travelDuration
+        self.travelExpenses = update.travel?.travelExpenses
+        self.hotelExpenses = update.travel?.hotelExpenses
     }
 }
 

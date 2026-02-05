@@ -15,6 +15,7 @@ struct NewConcertVisit: Identifiable, Equatable {
     var notes: String = ""
     var rating: Int = 0
 
+    var ticket: Ticket? = nil
     var travel: Travel? = nil
     var venue: Venue? = nil
     var setlistItems: [TempCeateSetlistItem] = []
@@ -50,6 +51,7 @@ struct CreateConcertVisitView: View {
     @State private var selectArtistPresenting = false
     @State private var selectVenuePresenting = false
     @State private var createSetlistPresenting = false
+    @State private var presentTicketEdit = false
 
     @State private var selectedPhotoItems: [PhotosPickerItem] = []
     
@@ -72,6 +74,8 @@ struct CreateConcertVisitView: View {
 
                         travelSection()
 
+                        ticketSection()
+                        
                         ratingSection()
 
                         noteSection()
@@ -138,6 +142,9 @@ struct CreateConcertVisitView: View {
                 draft.venueName = venue.name
                 draft.venue = venue
             })
+        }
+        .sheet(isPresented: $presentTicketEdit) {
+            CreateConcertTicket(artist: viewModel?.artist)
         }
         .sheet(isPresented: $savingConcertPresenting) {
             ZStack {
@@ -304,30 +311,39 @@ struct CreateConcertVisitView: View {
                                 switch travelType {
                                 case .car:
                                     Text("Du bist mit dem Auto zur Location gekommen")
+                                        .font(.cjBody)
                                 case .plane:
                                     Text("Du hast für die Reise ein Flugzeug genommen")
+                                        .font(.cjBody)
                                 case .bike:
                                     Text("Du bist mit dem Fahrrad zur Location gekommen")
+                                        .font(.cjBody)
                                 case .foot:
                                     Text("Die Location war zu Fuß errreichbar")
+                                        .font(.cjBody)
                                 case .train:
                                     Text("Du hast den Zug genommen")
+                                        .font(.cjBody)
                                 }
                             }
                         }
                         if let travelDuration = travel.travelDuration {
                             let parsedDuration = DurationParser.format(travelDuration)
                             Text("Die Reise hat \(parsedDuration) gedauert.")
+                                .font(.cjBody)
                         }
                         if let travelDistance = travel.travelDistance {
                             let parsedDistance = DistanceParser.format(travelDistance)
                             Text("Der Weg war \(parsedDistance) lang.")
+                                .font(.cjBody)
                         }
                         if let travelExpenses = travel.travelExpenses {
                             Text("Die Anreise hat dich \(travelExpenses.formatted) gekostet.")
+                                .font(.cjBody)
                         }
                         if let hotelExpenses = travel.hotelExpenses {
                             Text("Und für die Übernachtung hast du \(hotelExpenses.formatted) gezahlt.")
+                                .font(.cjBody)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -338,6 +354,7 @@ struct CreateConcertVisitView: View {
                         presentTravelSection = true
                     } label: {
                         Text("Reiseinfos ändern")
+                            .font(.cjBody)
                     }
                     .padding()
                     .glassEffect()
@@ -346,6 +363,7 @@ struct CreateConcertVisitView: View {
                         presentTravelSection = true
                     } label: {
                         Text("Reiseinfos hinzufügen")
+                            .font(.cjBody)
                     }
                     .padding()
                     .glassEffect()
@@ -362,6 +380,35 @@ struct CreateConcertVisitView: View {
         }
     }
 
+    @ViewBuilder
+    func ticketSection() -> some View {
+        VStack(alignment: .leading) {
+            CJDivider(title: "Ticket", image: nil)
+                .padding(.horizontal)
+            
+            if let ticket = draft.ticket {
+                
+                Button {
+                    presentTicketEdit = true
+                } label: {
+                    Text("Ticket hinzufügen")
+                        .font(.cjBody)
+                }
+                .padding()
+                .glassEffect()
+            } else {
+                Button {
+                    presentTicketEdit = true
+                } label: {
+                    Text("Ticket hinzufügen")
+                        .font(.cjBody)
+                }
+                .padding()
+                .glassEffect()
+            }
+        }
+    }
+    
     @ViewBuilder
     func ratingSection() -> some View {
         VStack(alignment: .leading) {

@@ -6,8 +6,22 @@
 //
 
 import Foundation
+import SwiftUI
 
 struct Travel: Identifiable, Equatable, Codable {
+    init?(id: String = UUID().uuidString, travelType: TravelType? = nil, travelDuration: TimeInterval? = nil, travelDistance: Double? = nil, travelExpenses: Price? = nil, hotelExpenses: Price? = nil) {
+        self.id = id
+        self.travelType = travelType
+        self.travelDuration = travelDuration
+        self.travelDistance = travelDistance
+        self.travelExpenses = travelExpenses
+        self.hotelExpenses = hotelExpenses
+        
+        guard travelType != nil || travelDuration != nil || travelDistance != nil || travelExpenses != nil || hotelExpenses != nil else {
+            return nil
+        }
+    }
+    
     var id: String = UUID().uuidString
 
     let travelType: TravelType?
@@ -63,4 +77,31 @@ enum TravelType: String, Codable, CaseIterable, Identifiable {
             return "Zug"
         }
     }
+    
+    func infoText(color: Color) -> AttributedString {
+        var text: AttributedString
+
+        switch self {
+        case .car:
+            text = AttributedString("Du bist mit dem \(label) zur Location gekommen")
+        case .plane:
+            text = AttributedString("Du hast für die Reise ein \(label) genommen")
+        case .bike:
+            text = AttributedString("Du bist mit dem \(label) zur Location gekommen")
+        case .foot:
+            text = AttributedString("Die Location war \(label) erreichbar")
+        case .train:
+            text = AttributedString("Du hast den \(label) genommen")
+        }
+
+        text.font = .cjBody
+
+        if let range = text.range(of: label) {
+            text[range].foregroundColor = color
+            text[range].font = .cjHeadline
+        }
+
+        return text
+    }
+
 }

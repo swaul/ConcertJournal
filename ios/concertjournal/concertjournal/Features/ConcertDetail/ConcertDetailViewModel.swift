@@ -19,6 +19,7 @@ class ConcertDetailViewModel {
     var imageUrls: [ConcertImage] = []
     var setlistItems: [SetlistItem]? = nil
     var errorMessage: String?
+    var loadingSetlist: Bool = false
 
     private let photoRepository: PhotoRepositoryProtocol
     private let concertRepository: ConcertRepositoryProtocol
@@ -35,7 +36,9 @@ class ConcertDetailViewModel {
         Task {
             try? await loadImages()
             do {
+                loadingSetlist = true
                 try await loadSetlist()
+                loadingSetlist = false
             } catch {
                 print(error)
             }
@@ -56,6 +59,7 @@ class ConcertDetailViewModel {
         let setlistItems: [SetlistItem] = try await setlistRepository.getSetlistItems(with: concert.id)
 
         self.setlistItems = setlistItems
+        self.concert.setlistItems = setlistItems
     }
 
     func createCalendarEntry(store: EKEventStore) -> EKEvent {
@@ -78,16 +82,33 @@ class ConcertDetailViewModel {
     }
     
     func applyUpdate(_ update: ConcertUpdate) async {
-        let dto = ConcertVisitUpdateDTO(update: update)
+        let concertDTO = ConcertVisitUpdateDTO(update: update)
+
+        do {
+            try await concertRepository.updateConcert(id: concert.id, concert: concertDTO)
+        } catch {
+            print("Concert Update failed:", error)
+        }
         
         do {
-            try await concertRepository.updateConcert(id: concert.id, concert: dto)
-            
-            let concert: FullConcertVisit = try await concertRepository.getConcert(id: concert.id)
-            self.concert = concert
+            if let setlistItems = update.setlistItems {
+                let setlistDTOs = setlistItems.map { UpdateSetlistItemDTO(concertId: update.id, item: $0) }
+                for setlistDTO in setlistDTOs {
+                    try await setlistRepository.updateSetlistItem(setlistDTO)
+                }
+            }
         } catch {
-            print("Update failed:", error)
-            // optional: rollback
+            print("Setlist Update failed:", error)
+        }
+        
+        do {
+            let concert: FullConcertVisit = try await concertRepository.getConcert(id: concert.id)
+            let setlistItems: [SetlistItem] = try await setlistRepository.getSetlistItems(with: concert.id)
+            self.concert = concert
+            self.concert.setlistItems = setlistItems
+            self.setlistItems = setlistItems
+        } catch {
+            print("Reload concert failed:", error)
         }
     }
 

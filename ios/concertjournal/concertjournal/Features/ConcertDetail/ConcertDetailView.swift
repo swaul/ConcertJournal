@@ -33,12 +33,19 @@ struct ConcertDetailView: View {
     @State private var showDeleteDialog = false
     @State private var selectedImage: ConcertImage?
     
+    @State private var loadingSetlist = false
+    
     let eventStore = EKEventStore()
     
     var body: some View {
         Group {
             if let viewModel {
                 viewWithViewModel(viewModel: viewModel)
+                    .onChange(of: viewModel.loadingSetlist) { _, newValue in
+                        withAnimation(.bouncy) {
+                            loadingSetlist = newValue
+                        }
+                    }
             } else {
                 LoadingView()
             }
@@ -128,6 +135,59 @@ struct ConcertDetailView: View {
                             .rectangleGlass()
                             .padding(.horizontal)
                         }
+                        
+                        if let travel = viewModel.concert.travel {
+                            Text("Meine Reise")
+                                .font(.cjTitle)
+                                .padding(.horizontal)
+                            
+                            VStack(alignment: .leading, spacing: 8) {
+                                
+                                if let travelType = travel.travelType {
+                                    Text(travelType.infoText(color: dependencies.colorThemeManager.appTint))
+                                }
+                                if let travelDuration = travel.travelDuration {
+                                    let parsedDuration = DurationParser.format(travelDuration)
+
+                                    Text.highlighted(
+                                        "Die Reise hat \(parsedDuration) gedauert.",
+                                        highlight: parsedDuration,
+                                        baseFont: .cjBody,
+                                        highlightColor: dependencies.colorThemeManager.appTint
+                                    )
+                                }
+                                if let travelDistance = travel.travelDistance {
+                                    let parsedDistance = DistanceParser.format(travelDistance)
+                                    
+                                    Text.highlighted(
+                                        "Der Weg war \(parsedDistance) lang.",
+                                        highlight: parsedDistance,
+                                        baseFont: .cjBody,
+                                        highlightColor: dependencies.colorThemeManager.appTint
+                                    )
+                                }
+                                if let travelExpenses = travel.travelExpenses {
+                                    Text.highlighted(
+                                        "Die Anreise hat dich \(travelExpenses.formatted) gekostet.",
+                                        highlight: travelExpenses.formatted,
+                                        baseFont: .cjBody,
+                                        highlightColor: dependencies.colorThemeManager.appTint
+                                    )
+                                }
+                                if let hotelExpenses = travel.hotelExpenses {
+                                    Text.highlighted(
+                                        "Für die Übernachtung hast du \(hotelExpenses.formatted) gezahlt.",
+                                        highlight: hotelExpenses.formatted,
+                                        baseFont: .cjBody,
+                                        highlightColor: dependencies.colorThemeManager.appTint
+                                    )
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding()
+                            .glassEffect(in: RoundedRectangle(cornerRadius: 20, style: .circular))
+                            .padding(.horizontal)
+                        }
 
                         if let setlistItems = viewModel.setlistItems, !setlistItems.isEmpty {
                             Text("Setlist")
@@ -142,6 +202,13 @@ struct ConcertDetailView: View {
                             .padding()
                             .rectangleGlass()
                             .padding(.horizontal)
+                        } else if loadingSetlist {
+                            VStack {
+                                ProgressView()
+                                    .tint(dependencies.colorThemeManager.appTint)
+                            }
+                            .frame(height: 60)
+                            .frame(maxWidth: .infinity)
                         }
 
                         if !viewModel.imageUrls.isEmpty {
@@ -470,3 +537,39 @@ struct EventEditView: UIViewControllerRepresentable {
     }
 }
 
+extension AttributedString {
+    mutating func applyBaseFont(_ font: Font = .cjBody) {
+        self.font = font
+    }
+
+    mutating func highlight(
+        _ text: String,
+        color: Color,
+        font: Font = .cjBody
+    ) {
+        if let range = range(of: text) {
+            self[range].foregroundColor = color
+            self[range].font = font
+        }
+    }
+}
+
+extension Text {
+    static func highlighted(
+        _ text: String,
+        highlight: String,
+        baseFont: Font = .cjBody,
+        highlightColor: Color,
+        highlightFont: Font = .cjHeadline
+    ) -> Text {
+        var attributed = AttributedString(text)
+        attributed.font = baseFont
+
+        if let range = attributed.range(of: highlight) {
+            attributed[range].foregroundColor = highlightColor
+            attributed[range].font = highlightFont
+        }
+
+        return Text(attributed)
+    }
+}

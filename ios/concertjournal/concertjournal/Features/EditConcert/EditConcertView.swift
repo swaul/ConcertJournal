@@ -18,12 +18,15 @@ struct ConcertEditView: View {
     @State private var notes: String
     @State private var rating: Int
     @State private var venueName: String
+    @State private var travel: Travel?
     
     @State private var venue: Venue?
     @State private var setlistItems: [TempCeateSetlistItem]
 
     @State private var selectVenuePresenting = false
     @State private var editSeltistPresenting = false
+    @State private var editTravelPresenting = false
+    
     let concert: FullConcertVisit
     
     let onSave: (ConcertUpdate) -> Void
@@ -35,6 +38,7 @@ struct ConcertEditView: View {
         _rating = State(initialValue: concert.rating ?? 0)
         _venueName = State(initialValue: concert.venue?.name ?? "")
         _venue = State(initialValue: concert.venue)
+        _travel = State(initialValue: concert.travel)
         if let setlistItems = concert.setlistItems {
             let tempSetlistItems = setlistItems.map { TempCeateSetlistItem(setlistItem: $0) }
             _setlistItems = State(initialValue: tempSetlistItems)
@@ -89,11 +93,28 @@ struct ConcertEditView: View {
                     Text("Notizen")
                         .font(.cjBody)
                 }
+                
+                Section {
+                    travelSection()
+                } header: {
+                    Text("Reiseinfos")
+                        .font(.cjBody)
+                }
 
                 Section {
                     if !setlistItems.isEmpty {
-                        ForEach(setlistItems.enumerated(), id: \.element.id) { index, item in
-                            makeEditSongView(index: index, song: item)
+                        List {
+                            ForEach(setlistItems.enumerated(), id: \.element.id) { index, item in
+                                makeEditSongView(index: index, song: item)
+                            }
+                            .onMove { indexSet, offset in
+                                setlistItems.move(fromOffsets: indexSet, toOffset: offset)
+                                updateSetlistItems()
+                            }
+                            .onDelete { indexSet in
+                                setlistItems.remove(atOffsets: indexSet)
+                                updateSetlistItems()
+                            }
                         }
                         Button {
                             editSeltistPresenting = true
@@ -160,7 +181,9 @@ struct ConcertEditView: View {
                                 venue: venue,
                                 city: venue?.city,
                                 rating: rating,
-                                setlistItems: setlistItems
+                                travel: travel,
+                                setlistItems: setlistItems,
+                                photos: []
                             )
                         )
                         dismiss()
@@ -208,6 +231,66 @@ struct ConcertEditView: View {
                 .frame(width: 28)
         }
     }
+    
+    func updateSetlistItems() {
+        setlistItems.enumerated().forEach { index, _ in
+            setlistItems[index].position = index
+        }
+    }
+
+    @ViewBuilder
+    func travelSection() -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let travelType = travel?.travelType {
+                Group {
+                    switch travelType {
+                    case .car:
+                        Text("Du bist mit dem Auto zur Location gekommen")
+                    case .plane:
+                        Text("Du hast für die Reise ein Flugzeug genommen")
+                    case .bike:
+                        Text("Du bist mit dem Fahrrad zur Location gekommen")
+                    case .foot:
+                        Text("Die Location war zu Fuß errreichbar")
+                    case .train:
+                        Text("Du hast den Zug genommen")
+                    }
+                }
+            }
+            if let travelDuration = travel?.travelDuration {
+                let parsedDuration = DurationParser.format(travelDuration)
+                Text("Die Reise hat \(parsedDuration) gedauert.")
+            }
+            if let travelDistance = travel?.travelDistance {
+                let parsedDistance = DistanceParser.format(travelDistance)
+                Text("Der Weg war \(parsedDistance) lang.")
+            }
+            if let travelExpenses = travel?.travelExpenses {
+                Text("Die Anreise hat dich \(travelExpenses.formatted) gekostet.")
+            }
+            if let hotelExpenses = travel?.hotelExpenses {
+                Text("Und für die Übernachtung hast du \(hotelExpenses.formatted) gezahlt.")
+            }
+            
+            Button {
+                editTravelPresenting = true
+            } label: {
+                Text("Reiseinfos hinzufügen")
+            }
+            .padding()
+            .glassEffect()
+        }
+        .padding(.horizontal)
+        .font(.cjBody)
+        .sheet(isPresented: $editTravelPresenting) {
+            let travel = Travel()
+            CreateConcertTravelView(travel: travel) { travel in
+                self.travel = travel
+                editTravelPresenting = false
+            }
+        }
+    }
+    
 }
 
 struct ConcertUpdate {
@@ -218,5 +301,8 @@ struct ConcertUpdate {
     let venue: Venue?
     let city: String?
     let rating: Int
+    
+    let travel: Travel?
     let setlistItems: [TempCeateSetlistItem]?
+    let photos: [Photo]
 }

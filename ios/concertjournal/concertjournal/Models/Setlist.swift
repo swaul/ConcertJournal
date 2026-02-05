@@ -57,7 +57,8 @@ public struct TempCeateSetlistItem: Equatable, Identifiable {
         title + (spotifyTrackId ?? "")
     }
 
-    let position: Int
+    let existingItemid: String?
+    var position: Int
     let section: String?
     let spotifyTrackId: String?
     let title: String
@@ -75,9 +76,11 @@ public struct TempCeateSetlistItem: Equatable, Identifiable {
         self.artistNames = spotifySong.artistNames
         self.coverImage = spotifySong.coverImage
         self.notes = notes
+        self.existingItemid = nil
     }
 
     init(setlistItem: SetlistItem) {
+        self.existingItemid = setlistItem.id
         self.position = setlistItem.position
         self.section = setlistItem.section
         self.spotifyTrackId = setlistItem.spotifyTrackId
@@ -111,6 +114,18 @@ public struct CreateSetlistItemDTO: Encodable {
         self.notes = item.notes
         self.coverImage = item.coverImage
     }
+    
+    init(from item: UpdateSetlistItemDTO) {
+        self.concertVisitId = item.concertVisitId
+        self.position = item.position
+        self.section = item.section
+        self.spotifyTrackId = item.spotifyTrackId
+        self.title = item.title
+        self.artistNames = item.artistNames
+        self.albumName = item.albumName
+        self.notes = item.notes
+        self.coverImage = item.coverImage
+    }
 
     enum CodingKeys: String, CodingKey {
         case concertVisitId = "concert_visit_id"
@@ -122,5 +137,47 @@ public struct CreateSetlistItemDTO: Encodable {
         case artistNames = "artist_names"
         case coverImage = "cover_image"
         case notes
+    }
+}
+
+public struct UpdateSetlistItemDTO: Encodable {
+    let id: String?
+    let concertVisitId: String
+    let position: Int
+    let section: String?
+    let spotifyTrackId: String?
+    let title: String
+    let albumName: String?
+    let artistNames: String
+    let coverImage: String?
+    let notes: String?
+
+    init(concertId: String, item: TempCeateSetlistItem) {
+        self.id = item.existingItemid
+        self.concertVisitId = concertId
+        self.position = item.position
+        self.section = item.section
+        self.spotifyTrackId = item.spotifyTrackId
+        self.title = item.title
+        self.artistNames = item.artistNames
+        self.albumName = item.albumName
+        self.notes = item.notes
+        self.coverImage = item.coverImage
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case concertVisitId = "concert_visit_id"
+        case position
+        case section
+        case spotifyTrackId = "spotify_track_id"
+        case title
+        case albumName = "album_name"
+        case artistNames = "artist_names"
+        case coverImage = "cover_image"
+        case notes
+    }
+    
+    var createSetlistItem: CreateSetlistItemDTO {
+        CreateSetlistItemDTO(from: self)
     }
 }

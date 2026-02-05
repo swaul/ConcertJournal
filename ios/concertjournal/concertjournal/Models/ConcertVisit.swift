@@ -90,6 +90,10 @@ public struct FullConcertVisit: Decodable, Identifiable, Equatable, Hashable {
     let travelDistance: Double?
     let travelExpenses: Price?
     let hotelExpenses: Price?
+    
+    var travel: Travel? {
+        Travel(travelType: travelType, travelDuration: travelDuration, travelDistance: travelDistance, travelExpenses: travelExpenses, hotelExpenses: hotelExpenses)
+    }
 
     enum CodingKeys: String, CodingKey {
         case id
