@@ -12,7 +12,7 @@ struct ConcertEditView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dependencies) private var dependencies
-
+    
     @State private var title: String
     @State private var date: Date
     @State private var notes: String
@@ -153,6 +153,7 @@ struct ConcertEditView: View {
                     Button {
                         onSave(
                             ConcertUpdate(
+                                id: concert.id,
                                 title: title,
                                 date: date.supabseDateString,
                                 notes: notes,
@@ -210,6 +211,7 @@ struct ConcertEditView: View {
 }
 
 struct ConcertUpdate {
+    let id: String
     let title: String
     let date: String
     let notes: String

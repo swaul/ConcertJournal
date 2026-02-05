@@ -112,13 +112,14 @@ class BFFConcertRepository: ConcertRepositoryProtocol {
 //    }
 //}
 
-struct ConcertVisitUpdateDTO: Codable {
+struct ConcertVisitUpdateDTO: Encodable {
     let title: String
     let date: String
     let notes: String
     let venueId: String?
     let city: String?
     let rating: Int
+    let setlistItems: [CreateSetlistItemDTO]?
     
     enum CodingKeys: String, CodingKey {
         case title
@@ -127,6 +128,7 @@ struct ConcertVisitUpdateDTO: Codable {
         case venueId = "venue_id"
         case city
         case rating
+        case setlistItems = "setlist_items"
     }
 
     init(update: ConcertUpdate) {
@@ -136,6 +138,11 @@ struct ConcertVisitUpdateDTO: Codable {
         self.venueId = update.venue?.id
         self.city = update.city
         self.rating = update.rating
+        if let setlistItems = update.setlistItems {
+            self.setlistItems = setlistItems.map { CreateSetlistItemDTO(concertId: update.id, item: $0) }
+        } else {
+            self.setlistItems = nil
+        }
     }
 }
 

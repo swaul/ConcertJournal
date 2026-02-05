@@ -39,12 +39,10 @@ class BFFClient {
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        // ✅ Add auth token
         if let token = try? await getAuthToken?() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
         
-        // ✅ Add body if present
         if let body = body {
             request.httpBody = try JSONEncoder().encode(body)
         }
