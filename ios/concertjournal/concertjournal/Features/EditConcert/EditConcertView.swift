@@ -38,8 +38,9 @@ struct ConcertEditView: View {
         if let setlistItems = concert.setlistItems {
             let tempSetlistItems = setlistItems.map { TempCeateSetlistItem(setlistItem: $0) }
             _setlistItems = State(initialValue: tempSetlistItems)
+        } else {
+            _setlistItems = State(initialValue: [])
         }
-        _setlistItems = State(initialValue: [])
 
         self.concert = concert
         self.onSave = onSave
@@ -115,7 +116,8 @@ struct ConcertEditView: View {
                 .sheet(isPresented: $editSeltistPresenting) {
                     let viewModel = CreateSetlistViewModel(currentSelection: setlistItems, spotifyRepository: dependencies.spotifyRepository, setlistRepository: dependencies.setlistRepository)
                     CreateSetlistView(viewModel: viewModel) { items in
-                        self.setlistItems = items
+                        setlistItems = items
+                        editSeltistPresenting = false
                     }
                 }
 

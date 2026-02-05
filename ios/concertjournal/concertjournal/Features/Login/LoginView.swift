@@ -106,6 +106,9 @@ struct LoginView: View {
                     .font(.cjBody)
                     .padding()
                     .glassEffect()
+                    .onSubmit {
+                        passwordTextField = true
+                    }
                 
                 ZStack {
                     if showPassword {
@@ -270,25 +273,39 @@ struct LoginView: View {
         }
     }
     
+    @State private var showLoading: Bool = false
+
     @ViewBuilder
     func loadingOverlay() -> some View {
         VStack {
             Spacer()
-            VStack {
-                ProgressView()
-                Text("Laden…")
-                    .font(.cjTitle)
+            if showLoading {
+                VStack {
+                    ProgressView()
+                    Text("Laden…")
+                        .font(.cjTitle)
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 250)
+                .background {
+                    Color(uiColor: .systemBackground)
+                        .clipShape(RoundedRectangle(cornerRadius: 25))
+                }
+                .padding()
+                .transition(.move(edge: .bottom))
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 250)
-            .background {
-                Color(uiColor: .systemBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: 25))
-            }
-            .padding()
         }
-        .background(Color.black.opacity(0.1).ignoresSafeArea())
-        .transition(.move(edge: .bottom))
+        .frame(maxWidth: .infinity)
+        .background {
+            Color.black.opacity(0.1)
+                .ignoresSafeArea()
+        }
+        .transition(.opacity)
+        .onAppear {
+            withAnimation(.bouncy.delay(0.2)) {
+                showLoading = true
+            }
+        }
     }
     
     func dismissKeyboard() {

@@ -119,7 +119,7 @@ struct ConcertVisitUpdateDTO: Codable {
     let venueId: String?
     let city: String?
     let rating: Int
-
+    
     enum CodingKeys: String, CodingKey {
         case title
         case date
