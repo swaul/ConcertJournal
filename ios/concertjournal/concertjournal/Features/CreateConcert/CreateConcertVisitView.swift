@@ -57,6 +57,8 @@ struct CreateConcertVisitView: View {
 
     @FocusState private var noteEditorFocused
 
+    @State private var savingConcertPresenting: Bool = false
+    
     var body: some View {
         Group {
             if let artist = viewModel?.artist {
@@ -137,6 +139,18 @@ struct CreateConcertVisitView: View {
                 draft.venue = venue
             })
         }
+        .sheet(isPresented: $savingConcertPresenting) {
+            ZStack {
+                VStack {
+                    ProgressView()
+                        .tint(dependencies.colorThemeManager.appTint)
+                    Text("Speichern..")
+                }
+            }
+            .frame(height: 250)
+            .presentationDetents([.height(250)])
+            .interactiveDismissDisabled()
+        }
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") { navigationManager.pop() }
@@ -151,9 +165,13 @@ struct CreateConcertVisitView: View {
         Task {
             do {
                 guard let visitId = try await viewModel?.createVisit(from: draft) else { return }
+                savingConcertPresenting = true
                 try await viewModel?.uploadSelectedPhotos(selectedImages: selectedImages, visitId: visitId)
                 try await dependencies.concertRepository.reloadConcerts()
-                showConfirmation()
+                savingConcertPresenting = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    showConfirmation()
+                }
             } catch {
                 print("failed to create visit: \(error)")
             }

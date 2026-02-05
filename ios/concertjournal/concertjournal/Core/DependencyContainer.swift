@@ -15,7 +15,7 @@ class DependencyContainer {
     
     // Managers (bleiben lokal)
     let supabaseClient: SupabaseClientManager
-    let userSessionManager: UserSessionManager
+    let userSessionManager: UserSessionManagerProtocol
     let colorThemeManager: ColorThemeManager
     
     // ✅ BFF Repositories

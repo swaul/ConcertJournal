@@ -66,6 +66,7 @@ final class ProfileViewModel {
         Task { @MainActor in
             do {
                 _ = try await supabaseClient.client.auth.signOut()
+                try await userProvider.start()
             } catch {
                 print(error)
             }

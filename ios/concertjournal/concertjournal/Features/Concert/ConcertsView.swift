@@ -50,6 +50,11 @@ struct ConcertsView: View {
             }
         }
         .withNavigationManager(navigationManager)
+        .onReceive(dependencies.userSessionManager.userSessionChanged) { user in
+            if user == nil {
+                navigationManager.popToRoot()
+            }
+        }
     }
 
     @ViewBuilder

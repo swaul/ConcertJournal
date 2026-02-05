@@ -45,19 +45,19 @@ struct ConcertJournalApp: App {
                     if dependencies.userSessionManager.user != nil {
                         ConcertsView()
                     } else {
-                        LoginView()
+                        LoginView(viewModel: AuthViewModel(supabaseClient: dependencies.supabaseClient, userSessionManager: dependencies.userSessionManager))
                     }
                 }
             }
             .tint(dependencies.colorThemeManager.appTint)
             .environment(\.appTintColor, dependencies.colorThemeManager.appTint)
-
-            // Dependency Injection via Environment
             .withDependencies(dependencies)
-
-            // Setup Tasks
             .task {
-                await dependencies.userSessionManager.start()
+                do {
+                    try await dependencies.userSessionManager.start()
+                } catch {
+                    print(error)
+                }
             }
             .task {
                 await dependencies.localizationRepository.loadLocale("de")
