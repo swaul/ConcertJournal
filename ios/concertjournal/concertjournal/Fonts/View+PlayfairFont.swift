@@ -27,6 +27,7 @@ extension View {
 
 extension Font {
     static let cjLargeTitle = Font.custom("PlayfairDisplay-Bold", size: 34)
+    static let cjTitleF = Font.custom("PlayfairDisplay-Regular", size: 28)
     static let cjTitle = Font.custom("Manrope-Bold", size: 28)
     static let cjTitle2 = Font.custom("Manrope-Semibold", size: 22)
 

@@ -52,7 +52,7 @@ struct Ticket: Equatable {
 
     let ticketType: TicketType
     let ticketCategory: TicketCategory
-    let ticketPrice: Price
+    let ticketPrice: Price?
 
     // Seated Ticket Info
     let seatBlock: String?
@@ -61,9 +61,11 @@ struct Ticket: Equatable {
 
     // Standing Ticket info
     let standingPosition: String?
+
+    let notes: String?
 }
 
-enum TicketType: String, CaseIterable {
+enum TicketType: String, CaseIterable, Codable {
     case seated
     case standing
     
@@ -77,7 +79,7 @@ enum TicketType: String, CaseIterable {
     }
 }
 
-enum TicketCategory: String, CaseIterable {
+enum TicketCategory: String, CaseIterable, Codable {
     case regular
     case vip
     case goldenCircle

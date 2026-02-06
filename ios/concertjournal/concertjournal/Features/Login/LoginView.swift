@@ -262,7 +262,7 @@ struct LoginView: View {
                     Text("Mit Spotify anmelden")
                         .font(.cjBody)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .foregroundStyle(Color("textColorReversed"))
+                        .foregroundStyle(Color.white)
                 }
                 .frame(maxWidth: .infinity)
             }

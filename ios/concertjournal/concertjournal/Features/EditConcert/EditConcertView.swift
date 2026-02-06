@@ -9,6 +9,7 @@ import SwiftUI
 import Supabase
 
 struct ConcertEditView: View {
+    @AppStorage("hidePrices") private var hidePrices = false
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dependencies) private var dependencies
@@ -19,14 +20,16 @@ struct ConcertEditView: View {
     @State private var rating: Int
     @State private var venueName: String
     @State private var travel: Travel?
-    
+    @State private var ticket: Ticket?
+
     @State private var venue: Venue?
     @State private var setlistItems: [TempCeateSetlistItem]
 
     @State private var selectVenuePresenting = false
     @State private var editSeltistPresenting = false
     @State private var editTravelPresenting = false
-    
+    @State private var presentTicketEdit = false
+
     let concert: FullConcertVisit
     
     let onSave: (ConcertUpdate) -> Void
@@ -39,6 +42,7 @@ struct ConcertEditView: View {
         _venueName = State(initialValue: concert.venue?.name ?? "")
         _venue = State(initialValue: concert.venue)
         _travel = State(initialValue: concert.travel)
+        _ticket = State(initialValue: concert.ticket)
         if let setlistItems = concert.setlistItems {
             let tempSetlistItems = setlistItems.map { TempCeateSetlistItem(setlistItem: $0) }
             _setlistItems = State(initialValue: tempSetlistItems)
@@ -98,6 +102,13 @@ struct ConcertEditView: View {
                     travelSection()
                 } header: {
                     Text("Reiseinfos")
+                        .font(.cjBody)
+                }
+
+                Section {
+                    ticketSection()
+                } header: {
+                    Text("Ticketinfo")
                         .font(.cjBody)
                 }
 
@@ -182,6 +193,7 @@ struct ConcertEditView: View {
                                 city: venue?.city,
                                 rating: rating,
                                 travel: travel,
+                                ticket: ticket,
                                 setlistItems: setlistItems,
                                 photos: []
                             )
@@ -242,20 +254,7 @@ struct ConcertEditView: View {
     func travelSection() -> some View {
         VStack(alignment: .leading, spacing: 8) {
             if let travelType = travel?.travelType {
-                Group {
-                    switch travelType {
-                    case .car:
-                        Text("Du bist mit dem Auto zur Location gekommen")
-                    case .plane:
-                        Text("Du hast für die Reise ein Flugzeug genommen")
-                    case .bike:
-                        Text("Du bist mit dem Fahrrad zur Location gekommen")
-                    case .foot:
-                        Text("Die Location war zu Fuß errreichbar")
-                    case .train:
-                        Text("Du hast den Zug genommen")
-                    }
-                }
+                Text(travelType.infoText(color: dependencies.colorThemeManager.appTint))
             }
             if let travelDuration = travel?.travelDuration {
                 let parsedDuration = DurationParser.format(travelDuration)
@@ -283,14 +282,121 @@ struct ConcertEditView: View {
         .padding(.horizontal)
         .font(.cjBody)
         .sheet(isPresented: $editTravelPresenting) {
-            let travel = Travel()
             CreateConcertTravelView(travel: travel) { travel in
                 self.travel = travel
                 editTravelPresenting = false
             }
         }
     }
-    
+
+    @ViewBuilder
+    func ticketSection() -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let ticket = ticket {
+                Text(ticket.ticketType.label)
+                    .font(.cjTitle)
+                    .frame(maxWidth: .infinity, alignment: .center)
+
+                VStack {
+                    Text(ticket.ticketCategory.label)
+                        .font(.cjTitleF)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 80)
+                .background {
+                    RoundedRectangle(cornerRadius: 20).fill(ticket.ticketCategory.color)
+                }
+
+                switch ticket.ticketType {
+                case .seated:
+                    Grid {
+                        GridRow {
+                            if ticket.seatBlock != nil {
+                                Text("Block")
+                                    .font(.cjHeadline)
+                            }
+                            if ticket.seatRow != nil {
+                                Text("Reihe")
+                                    .font(.cjHeadline)
+                            }
+                            if ticket.seatNumber != nil {
+                                Text("Platz")
+                                    .font(.cjHeadline)
+                            }
+                        }
+                        GridRow {
+                            if let block = ticket.seatBlock {
+                                Text(block)
+                                    .font(.cjTitle)
+                            }
+                            if let row = ticket.seatRow {
+                                Text(row)
+                                    .font(.cjTitle)
+                            }
+                            if let seatNumber = ticket.seatNumber {
+                                Text(seatNumber)
+                                    .font(.cjTitle)
+                            }
+                        }
+                    }
+                case .standing:
+                    if let standingPosition = ticket.standingPosition {
+                        Text(standingPosition)
+                            .font(.cjBody)
+                    }
+                }
+
+                if let notes = ticket.notes {
+                    Text(notes)
+                        .font(.cjBody)
+                        .padding(.horizontal)
+                }
+
+                if let ticketPrice = concert.ticketPrice {
+                    HStack {
+                        Text("Ticketpreis:")
+                            .font(.cjHeadline)
+
+                        Text(ticketPrice.formatted)
+                            .font(.cjTitle)
+                            .conditionalRedacted(hidePrices)
+                    }
+                    .padding(.horizontal)
+                    .contentShape(Rectangle())
+                    .contextMenu {
+                        Toggle("Preise ausblenden", isOn: $hidePrices)
+                    }
+                }
+
+                Button {
+                    presentTicketEdit = true
+                } label: {
+                    Text("Ticket hinzufügen")
+                        .font(.cjBody)
+                }
+                .padding()
+                .glassEffect()
+                .padding(.horizontal)
+            } else {
+                Button {
+                    presentTicketEdit = true
+                } label: {
+                    Text("Ticket hinzufügen")
+                        .font(.cjBody)
+                }
+                .padding()
+                .glassEffect()
+                .padding(.horizontal)
+            }
+        }
+        .sheet(isPresented: $presentTicketEdit) {
+            CreateConcertTicket(artist: concert.artist, ticketInfo: ticket) { editedTicket in
+                self.ticket = editedTicket
+                presentTicketEdit = false
+            }
+        }
+    }
 }
 
 struct ConcertUpdate {
@@ -303,6 +409,7 @@ struct ConcertUpdate {
     let rating: Int
     
     let travel: Travel?
+    let ticket: Ticket?
     let setlistItems: [TempCeateSetlistItem]?
     let photos: [Photo]
 }

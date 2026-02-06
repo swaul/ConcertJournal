@@ -75,7 +75,7 @@ struct CreateConcertVisitView: View {
                         travelSection()
 
                         ticketSection()
-                        
+
                         ratingSection()
 
                         noteSection()
@@ -144,7 +144,10 @@ struct CreateConcertVisitView: View {
             })
         }
         .sheet(isPresented: $presentTicketEdit) {
-            CreateConcertTicket(artist: viewModel?.artist)
+            CreateConcertTicket(artist: viewModel?.artist) { ticketInfo in
+                draft.ticket = ticketInfo
+                presentTicketEdit = false
+            }
         }
         .sheet(isPresented: $savingConcertPresenting) {
             ZStack {
@@ -382,30 +385,89 @@ struct CreateConcertVisitView: View {
 
     @ViewBuilder
     func ticketSection() -> some View {
-        VStack(alignment: .leading) {
-            CJDivider(title: "Ticket", image: nil)
-                .padding(.horizontal)
-            
-            if let ticket = draft.ticket {
+        if let ticket = draft.ticket {
+            VStack(alignment: .leading) {
+                CJDivider(title: "Ticket", image: nil)
+                    .padding(.horizontal)
+
+                Text(ticket.ticketType.label)
+                    .font(.cjTitle)
+                    .frame(maxWidth: .infinity, alignment: .center)
+
+                    ticket.ticketCategory.color
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 80)
+                        .overlay {
+                            Text(ticket.ticketCategory.label)
+                                .font(.cjTitleF)
+                        }
                 
+                switch ticket.ticketType {
+                case .seated:
+                    Grid {
+                        GridRow {
+                            if ticket.seatBlock != nil {
+                                Text("Block")
+                                    .font(.cjHeadline)
+                            }
+                            if ticket.seatRow != nil {
+                                Text("Reihe")
+                                    .font(.cjHeadline)
+                            }
+                            if ticket.seatNumber != nil {
+                                Text("Platz")
+                                    .font(.cjHeadline)
+                            }
+                        }
+                        GridRow {
+                            if let block = ticket.seatBlock {
+                                Text(block)
+                                    .font(.cjTitle)
+                            }
+                            if let row = ticket.seatRow {
+                                Text(row)
+                                    .font(.cjTitle)
+                            }
+                            if let seatNumber = ticket.seatNumber {
+                                Text(seatNumber)
+                                    .font(.cjTitle)
+                            }
+                        }
+                    }
+                case .standing:
+                    if let standingPosition = ticket.standingPosition {
+                        Text(standingPosition)
+                            .font(.cjBody)
+                    }
+                }
+
+                if let notes = ticket.notes {
+                    Text(notes)
+                        .font(.cjBody)
+                        .padding(.horizontal)
+                }
+
                 Button {
                     presentTicketEdit = true
                 } label: {
-                    Text("Ticket hinzufügen")
+                    Text("Ticket infos hinzufügen")
                         .font(.cjBody)
                 }
                 .padding()
                 .glassEffect()
-            } else {
-                Button {
-                    presentTicketEdit = true
-                } label: {
-                    Text("Ticket hinzufügen")
-                        .font(.cjBody)
-                }
-                .padding()
-                .glassEffect()
+                .padding(.horizontal)
             }
+        } else {
+            Button {
+                presentTicketEdit = true
+            } label: {
+                Text("Ticket infos hinzufügen")
+                    .font(.cjBody)
+            }
+            .padding()
+            .glassEffect()
+            .padding(.horizontal)
         }
     }
     

@@ -17,6 +17,7 @@ struct ConcertImage: Identifiable {
 }
 
 struct ConcertDetailView: View {
+    @AppStorage("hidePrices") private var hidePrices = false
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dependencies) private var dependencies
@@ -34,7 +35,9 @@ struct ConcertDetailView: View {
     @State private var selectedImage: ConcertImage?
     
     @State private var loadingSetlist = false
-    
+
+    @State private var localHidePrices = false
+
     let eventStore = EKEventStore()
     
     var body: some View {
@@ -173,6 +176,11 @@ struct ConcertDetailView: View {
                                         baseFont: .cjBody,
                                         highlightColor: dependencies.colorThemeManager.appTint
                                     )
+                                    .conditionalRedacted(localHidePrices)
+                                    .contentShape(Rectangle())
+                                    .contextMenu {
+                                        Toggle("Preise ausblenden", isOn: $localHidePrices)
+                                    }
                                 }
                                 if let hotelExpenses = travel.hotelExpenses {
                                     Text.highlighted(
@@ -181,12 +189,26 @@ struct ConcertDetailView: View {
                                         baseFont: .cjBody,
                                         highlightColor: dependencies.colorThemeManager.appTint
                                     )
+                                    .conditionalRedacted(localHidePrices)
+                                    .contentShape(Rectangle())
+                                    .contextMenu {
+                                        Toggle("Preise ausblenden", isOn: $localHidePrices)
+                                    }
                                 }
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding()
                             .glassEffect(in: RoundedRectangle(cornerRadius: 20, style: .circular))
                             .padding(.horizontal)
+                        }
+
+                        if let ticket = viewModel.concert.ticket {
+                            Text("Mein Ticket")
+                                .font(.cjTitle)
+                                .padding(.horizontal)
+
+                            ticketSection(ticket: ticket)
+                                .padding(.horizontal)
                         }
 
                         if let setlistItems = viewModel.setlistItems, !setlistItems.isEmpty {
@@ -346,6 +368,12 @@ struct ConcertDetailView: View {
                 startIndex: item.index
             )
         }
+        .onAppear {
+            localHidePrices = hidePrices
+        }
+        .onChange(of: localHidePrices) { _, newValue in
+            hidePrices = newValue
+        }
     }
 
     @ViewBuilder
@@ -419,6 +447,90 @@ struct ConcertDetailView: View {
         }
     }
 
+    @ViewBuilder
+    func ticketSection(ticket: Ticket) -> some View {
+        VStack {
+            Text(ticket.ticketType.label)
+                .font(.cjTitle)
+                .frame(maxWidth: .infinity, alignment: .center)
+
+            VStack {
+                Text(ticket.ticketCategory.label)
+                    .font(.cjTitleF)
+                    .frame(maxWidth: .infinity, alignment: .center)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 80)
+            .background {
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(ticket.ticketCategory.color)
+                    .blur(radius: 1)
+            }
+
+            switch ticket.ticketType {
+            case .seated:
+                Grid {
+                    GridRow {
+                        if ticket.seatBlock != nil {
+                            Text("Block")
+                                .font(.cjHeadline)
+                        }
+                        if ticket.seatRow != nil {
+                            Text("Reihe")
+                                .font(.cjHeadline)
+                        }
+                        if ticket.seatNumber != nil {
+                            Text("Platz")
+                                .font(.cjHeadline)
+                        }
+                    }
+                    GridRow {
+                        if let block = ticket.seatBlock {
+                            Text(block)
+                                .font(.cjTitle)
+                        }
+                        if let row = ticket.seatRow {
+                            Text(row)
+                                .font(.cjTitle)
+                        }
+                        if let seatNumber = ticket.seatNumber {
+                            Text(seatNumber)
+                                .font(.cjTitle)
+                        }
+                    }
+                }
+            case .standing:
+                if let standingPosition = ticket.standingPosition {
+                    Text(standingPosition)
+                        .font(.cjBody)
+                }
+            }
+
+            if let ticketPrice = concert.ticketPrice {
+                HStack {
+                    Text("Ticketpreis:")
+                        .font(.cjHeadline)
+
+                        Text(ticketPrice.formatted)
+                            .font(.cjTitle)
+                            .conditionalRedacted(localHidePrices)
+                }
+                .padding(.horizontal)
+                .contentShape(Rectangle())
+                .contextMenu {
+                    Toggle("Preise ausblenden", isOn: $localHidePrices)
+                }
+            }
+
+            if let notes = ticket.notes {
+                Text(notes)
+                    .font(.cjBody)
+                    .padding(.horizontal)
+            }
+        }
+        .padding()
+        .rectangleGlass()
+    }
 
     func requestCalendarAccess() {
         Task {
@@ -571,5 +683,16 @@ extension Text {
         }
 
         return Text(attributed)
+    }
+}
+
+extension View {
+    @ViewBuilder
+    func conditionalRedacted(_ shouldRedact: Bool) -> some View {
+        if shouldRedact {
+            self.redacted(reason: .placeholder)
+        } else {
+            self
+        }
     }
 }

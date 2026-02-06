@@ -303,13 +303,13 @@ struct ExpensesValidatedTextField: View {
                     .foregroundStyle(.red)
                     .transition(.move(edge: .top).combined(with: .opacity))
             } else if let previewLabel {
-                HStack {
-                    Spacer()
-                    Text("Preview:")
-                        .font(.cjCaption)
-                    Text(previewLabel)
-                        .font(.cjCaption)
-                }
+                Text("Preview: \(previewLabel)")
+                    .font(.cjFootnote)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            } else {
+                Text("Preview:")
+                    .font(.cjFootnote)
+                    .foregroundStyle(.clear)
             }
         }
     }

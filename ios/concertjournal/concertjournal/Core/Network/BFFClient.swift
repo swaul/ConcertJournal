@@ -58,7 +58,7 @@ class BFFClient {
             // Try to decode error
             if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
                 let error = BFFError.serverError(errorResponse.error)
-                print("LOG: Could not fetch resource", request.url?.absoluteString, httpResponse.statusCode)
+                logError("Could not fetch resource for \(request.url?.absoluteString). Response code: \(httpResponse.statusCode)", function: "request")
                 throw error
             }
             throw BFFError.httpError(httpResponse.statusCode)
@@ -76,7 +76,15 @@ class BFFClient {
     func post<T: Decodable>(_ path: String, body: Encodable?) async throws -> T {
         try await request(method: "POST", path: path, body: body)
     }
-    
+
+    func put(_ path: String, body: Encodable?) async throws {
+        let _: EmptyResponse = try await request(
+            method: "PUT",
+            path: path,
+            body: body
+        )
+    }
+
     func patch<T: Decodable>(_ path: String, body: Encodable?) async throws -> T {
         try await request(method: "PATCH", path: path, body: body)
     }

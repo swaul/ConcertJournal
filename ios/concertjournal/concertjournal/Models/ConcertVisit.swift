@@ -27,7 +27,16 @@ public struct ConcertVisit: Decodable {
     let travelDistance: Double?
     let travelExpenses: Price?
     let hotelExpenses: Price?
-    
+
+    let ticketType: TicketType?
+    let ticketCategory: TicketCategory?
+    let ticketPrice: Price?
+    let seatBlock: String?
+    let seatRow: String?
+    let seatNumber: String?
+    let standingPosition: String?
+    let ticketNotes: String?
+
     enum CodingKeys: String, CodingKey {
         case id
         case createdAt = "created_at"
@@ -46,6 +55,15 @@ public struct ConcertVisit: Decodable {
         case travelDistance = "travel_distance"
         case travelExpenses = "travel_expenses"
         case hotelExpenses = "hotel_expenses"
+
+        case ticketType = "ticket_type"
+        case ticketCategory = "ticket_category"
+        case ticketPrice = "ticket_price"
+        case seatBlock = "seat_block"
+        case seatRow = "seat_row"
+        case seatNumber = "seat_number"
+        case standingPosition = "standing_position"
+        case ticketNotes = "ticket_notes"
     }
 }
 
@@ -95,6 +113,25 @@ public struct FullConcertVisit: Decodable, Identifiable, Equatable, Hashable {
         Travel(travelType: travelType, travelDuration: travelDuration, travelDistance: travelDistance, travelExpenses: travelExpenses, hotelExpenses: hotelExpenses)
     }
 
+    let ticketType: TicketType?
+    let ticketCategory: TicketCategory?
+    let ticketPrice: Price?
+
+    // Seated Ticket Info
+    let seatBlock: String?
+    let seatRow: String?
+    let seatNumber: String?
+
+    // Standing Ticket info
+    let standingPosition: String?
+
+    let ticketNotes: String?
+
+    var ticket: Ticket? {
+        guard let ticketType = ticketType, let ticketCategory = ticketCategory else { return nil }
+        return Ticket(ticketType: ticketType, ticketCategory: ticketCategory, ticketPrice: ticketPrice, seatBlock: seatBlock, seatRow: seatRow, seatNumber: seatNumber, standingPosition: standingPosition, notes: ticketNotes)
+    }
+
     enum CodingKeys: String, CodingKey {
         case id
         case createdAtString = "created_at"
@@ -112,5 +149,14 @@ public struct FullConcertVisit: Decodable, Identifiable, Equatable, Hashable {
         case travelDistance = "travel_distance"
         case travelExpenses = "travel_expenses"
         case hotelExpenses = "hotel_expenses"
+
+        case ticketType = "ticket_type"
+        case ticketCategory = "ticket_category"
+        case ticketPrice = "ticket_price"
+        case seatBlock = "seat_block"
+        case seatRow = "seat_row"
+        case seatNumber = "seat_number"
+        case standingPosition = "standing_position"
+        case ticketNotes = "ticket_notes"
     }
 }
