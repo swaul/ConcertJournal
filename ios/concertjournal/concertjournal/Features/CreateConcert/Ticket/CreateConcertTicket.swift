@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CreateConcertTicket: View {
     
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.dependencies) private var dependencies
     
     let artist: Artist?
@@ -22,11 +23,13 @@ struct CreateConcertTicket: View {
     @State private var seatNumber: String = ""
 
     @State private var standingPosition: String = ""
+    @State private var additionalNotes: String = ""
     
     @FocusState var descriptionFocus
+    @FocusState var notesDescriptionFocus
     @FocusState var customTicketCategoryFocus
     
-    @State var seatTypeAnimated: TicketType = .standing
+    @State var seatTypeAnimated: Bool = true
     @State var descriptionFocusAnimated = false
     @State var showCustomTicketCategoryTextField = false
     
@@ -35,30 +38,31 @@ struct CreateConcertTicket: View {
     
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading) {
-                if let artist {
-                    Text("Was für ein Ticket hattest du für \(artist.name)")
-                        .font(.cjTitle)
-                        .padding(.horizontal)
-                } else {
-                    Text("Was für ein Ticket hattest du")
-                        .font(.cjTitle)
-                        .padding(.horizontal)
-                }
-                Picker("", selection: $ticketType) {
-                    ForEach(TicketType.allCases, id: \.self) { item in
-                        Text(item.label)
-                            .tag(item)
+            ScrollView {
+                VStack(alignment: .leading) {
+                    if let artist {
+                        Text("Was für ein Ticket hattest du für \(artist.name)")
+                            .font(.cjTitle)
+                            .padding(.horizontal)
+                    } else {
+                        Text("Was für ein Ticket hattest du")
+                            .font(.cjTitle)
+                            .padding(.horizontal)
                     }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-                
-                Text("War das eine bestimmte Ticketkategorie?")
+                    Picker("", selection: $ticketType) {
+                        ForEach(TicketType.allCases, id: \.self) { item in
+                            Text(item.label)
+                                .tag(item)
+                        }
+                    }
+                    .pickerStyle(.segmented)
                     .padding(.horizontal)
-                    .padding(.top)
-                
-                TabView(selection: $ticketCategory) {
+                    
+                    Text("War das eine bestimmte Ticketkategorie?")
+                        .padding(.horizontal)
+                        .padding(.top)
+                    
+                    TabView(selection: $ticketCategory) {
                         ForEach(TicketCategory.allCases, id: \.self) { item in
                             VStack {
                                 Text(item.label)
@@ -73,104 +77,145 @@ struct CreateConcertTicket: View {
                             .tag(item)
                             .padding()
                         }
-                }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(height: 100)
-                .frame(maxWidth: .infinity)
-                
-                if showProblems {
-                    if let problem = problems.first(where: { $0 == .customButEmpty }) {
-                        Text(problem.getProblemDescription())
-                            .foregroundStyle(.red)
-                            .padding(.horizontal)
                     }
-                }
-                
-                if seatTypeAnimated == .seated {
-                    Text("Was war die Ticket Nummer?")
-                        .padding(.horizontal)
-                        .transition(.offset(x: -400))
-                        .padding(.top)
-                    HStack {
-                        VStack {
-                            Text("Block")
-                            TextField("", text: $seatBlock, prompt: Text("C"))
-                                .multilineTextAlignment(.center)
-                        }
-                        .padding(4)
-                        
-                        VStack {
-                            Text("Reihe")
-                            TextField("", text: $seatRow, prompt: Text("8"))
-                                .multilineTextAlignment(.center)
-                        }
-                        .padding(4)
-                        
-                        VStack {
-                            Text("Sitz")
-                            TextField("", text: $seatNumber, prompt: Text("29"))
-                                .multilineTextAlignment(.center)
-                        }
-                        .padding(4)
-                        
-                    }
-                    .padding(.horizontal)
-                    .transition(.offset(x: -400))
-                    .onChange(of: seatRow) { _, newValue in
-                        if !newValue.isEmpty {
-                            withAnimation {
-                                self.problems.removeAll(where: { $0 == .seatButEmpty })
-                            }
-                        }
-                    }
-                    .onChange(of: seatNumber) { _, newValue in
-                        if !newValue.isEmpty {
-                            withAnimation {
-                                self.problems.removeAll(where: { $0 == .seatButEmpty })
-                            }
-                        }
-                    }
+                    .tabViewStyle(.page(indexDisplayMode: .never))
+                    .frame(height: 100)
+                    .frame(maxWidth: .infinity)
                     
                     if showProblems {
-                        if let problem = problems.first(where: { $0 == .seatButEmpty }) {
+                        if let problem = problems.first(where: { $0 == .customButEmpty }) {
                             Text(problem.getProblemDescription())
                                 .foregroundStyle(.red)
                                 .padding(.horizontal)
                         }
                     }
                     
-                } else {
-                    HStack {
-                        Text("Wo bist du gestanden?")
-                            .padding(.leading)
-                        
-                        Spacer()
-                        
-                        if descriptionFocusAnimated {
-                            Button {
-                                descriptionFocus = false
-                            } label: {
-                                Text("Abbrechen")
+                    if seatTypeAnimated  {
+                        Text("Was war die Ticket Nummer?")
+                            .padding(.horizontal)
+                            .transition(.offset(x: -400))
+                            .padding(.top)
+                        HStack {
+                            VStack {
+                                Text("Block")
+                                    .frame(maxWidth: .infinity)
+                                TextField("", text: $seatBlock, prompt: Text("C"))
+                                    .multilineTextAlignment(.center)
+                                    .padding()
+                                    .glassEffect()
+                                    .frame(width: 60)
                             }
-                            .padding(.trailing)
-                            .transition(.offset(y: 50))
+                            .padding(4)
+                            
+                            VStack {
+                                Text("Reihe")
+                                    .frame(maxWidth: .infinity)
+                                TextField("", text: $seatRow, prompt: Text("8"))
+                                    .multilineTextAlignment(.center)
+                                    .padding()
+                                    .glassEffect()
+                                    .frame(width: 60)
+                            }
+                            .padding(4)
+                            
+                            VStack {
+                                Text("Sitz")
+                                    .frame(maxWidth: .infinity)
+                                TextField("", text: $seatNumber, prompt: Text("29"))
+                                    .multilineTextAlignment(.center)
+                                    .padding()
+                                    .glassEffect()
+                                    .frame(width: 60)
+                            }
+                            .padding(4)
+                            
                         }
+                        .padding(.horizontal)
+                        .transition(.move(edge: .leading))
+                        .onChange(of: seatRow) { _, newValue in
+                            if !newValue.isEmpty {
+                                withAnimation {
+                                    self.problems.removeAll(where: { $0 == .seatButEmpty })
+                                }
+                            }
+                        }
+                        .onChange(of: seatNumber) { _, newValue in
+                            if !newValue.isEmpty {
+                                withAnimation {
+                                    self.problems.removeAll(where: { $0 == .seatButEmpty })
+                                }
+                            }
+                        }
+                        
+                        if showProblems {
+                            if let problem = problems.first(where: { $0 == .seatButEmpty }) {
+                                Text(problem.getProblemDescription())
+                                    .foregroundStyle(.red)
+                                    .padding(.horizontal)
+                            }
+                        }
+                        
+                    } else {
+                        VStack {
+                            HStack {
+                                Text("Wo bist du gestanden?")
+                                    .padding(.leading)
+                                
+                                Spacer()
+                                
+                                if descriptionFocusAnimated {
+                                    Button {
+                                        descriptionFocus = false
+                                    } label: {
+                                        Text("Abbrechen")
+                                    }
+                                    .padding(.trailing)
+                                    .transition(.offset(y: 50))
+                                }
+                            }
+                            
+                            TextEditor(text: $standingPosition)
+                                .focused($descriptionFocus)
+                                .scrollContentBackground(.hidden)
+                                .frame(minHeight: 120)
+                                .padding()
+                                .glassEffect(in: RoundedRectangle(cornerRadius: 20, style: .circular))
+                                .padding(.horizontal)
+                                .font(.cjBody)
+                        }
+                        .padding(.top)
+                        .transition(.move(edge: .trailing))
                     }
-                    .padding(.top)
-                    .transition(.offset(x: 400))
+                    
+                    Text("Notes")
+                        .padding(.horizontal)
+                        .padding(.top)
+                    
+                    TextEditor(text: $additionalNotes)
+                        .focused($notesDescriptionFocus)
+                        .scrollContentBackground(.hidden)
+                        .frame(minHeight: 120)
+                        .padding()
+                        .glassEffect(in: RoundedRectangle(cornerRadius: 20, style: .circular))
+                        .padding(.horizontal)
+                        .font(.cjBody)
                 }
-                
-                TextEditor(text: $standingPosition)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .padding(1)
-                    .transition(.offset(x: 400))
-                    .padding(.horizontal)
-                    .focused($descriptionFocus)
             }
+            .scrollBounceBehavior(.basedOnSize)
             .onChange(of: ticketType, { _, newValue in
-                seatTypeAnimated = newValue
+                withAnimation(.bouncy) {
+                    seatTypeAnimated = (newValue == .seated)
+                }
             })
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("Abbrechen")
+                            .font(.cjBody)
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         

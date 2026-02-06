@@ -80,6 +80,8 @@ enum TicketType: String, CaseIterable {
 enum TicketCategory: String, CaseIterable {
     case regular
     case vip
+    case goldenCircle
+    case diamondCircle
     
     var label: String {
         switch self {
@@ -87,15 +89,23 @@ enum TicketCategory: String, CaseIterable {
             return "Normal"
         case .vip:
             return "V.I.P."
+        case .goldenCircle:
+            return "Golden Circle"
+        case .diamondCircle:
+            return "Diamond Circle"
         }
     }
     
     var color: Color {
         switch self {
         case .regular:
-            return .cyan.opacity(0.2)
+            return .green.opacity(0.2)
         case .vip:
             return .red.opacity(0.2)
+        case .goldenCircle:
+            return .yellow.opacity(0.2)
+        case .diamondCircle:
+            return .cyan.opacity(0.2)
         }
     }
 }
