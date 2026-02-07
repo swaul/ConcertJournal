@@ -31,6 +31,8 @@ enum NavigationRoute: Hashable {
     case createSetlist(concertId: String)
     case orderSetlist(CreateSetlistViewModel)
 
+    case playlist
+    
     // Settings
     case settings
     case colorPicker
@@ -182,6 +184,7 @@ extension NavigationRoute: Identifiable {
         case .about: return "about"
         case .privacy: return "privacy"
         case .impressum: return "impressum"
+        case .playlist: return ""
         }
     }
 }

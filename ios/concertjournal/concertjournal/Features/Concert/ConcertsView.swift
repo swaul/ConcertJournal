@@ -20,6 +20,14 @@ struct ConcertsView: View {
                 if let viewModel {
                     if let errorMessage = viewModel.errorMessage {
                         Text(errorMessage)
+                    } else if viewModel.futureConcerts.isEmpty && viewModel.pastConcerts.isEmpty {
+                        Button {
+                            navigationManager.push(.createConcert)
+                        } label: {
+                            Label("Neues Konzert hinzufügen", systemImage: "plus.circle.fill")
+                                .font(.cjHeadline)
+                        }
+                        .buttonStyle(.glassProminent)
                     } else {
                         viewWithViewModel(viewModel: viewModel)
                     }
@@ -47,6 +55,15 @@ struct ConcertsView: View {
             .navigationTitle("Concerts")
             .navigationDestination(for: NavigationRoute.self) { route in
                 navigationDestination(for: route)
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        navigationManager.push(.profile)
+                    } label: {
+                        Image(systemName: "person")
+                    }
+                }
             }
         }
         .withNavigationManager(navigationManager)
@@ -115,15 +132,6 @@ struct ConcertsView: View {
             await viewModel.refreshConcerts()
         }
         .tabBarMinimizeBehavior(.onScrollDown)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    navigationManager.push(.profile)
-                } label: {
-                    Image(systemName: "person")
-                }
-            }
-        }
     }
 
     @ViewBuilder
@@ -232,7 +240,7 @@ struct ConcertsView: View {
     }
 
     @ViewBuilder
-    func createButton(viewModel: ConcertsViewModel) -> some View {
+    func createButton(viewModel: ConcertsViewModel, showMapButton: Bool = true) -> some View {
         HStack {
             Spacer()
             VStack {

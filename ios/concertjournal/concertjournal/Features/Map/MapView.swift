@@ -142,6 +142,7 @@ struct MapView: View {
                     ForEach(item.concerts, id: \.self) { concert in
                         Button {
                             navigationManager.push(.concertDetail(concert))
+                            selectedItem = nil
                         } label: {
                             HStack {
                                 VStack {

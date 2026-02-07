@@ -33,7 +33,8 @@ struct ConcertDetailView: View {
     @State private var showEditSheet = false
     @State private var showDeleteDialog = false
     @State private var selectedImage: ConcertImage?
-    
+    @State private var showPlaylistPicker = false
+
     @State private var loadingSetlist = false
 
     @State private var localHidePrices = false
@@ -56,6 +57,7 @@ struct ConcertDetailView: View {
         .task {
             guard viewModel == nil else { return }
             viewModel = ConcertDetailViewModel(concert: concert,
+                                               bffClient: dependencies.bffClient,
                                                concertRepository: dependencies.concertRepository,
                                                setlistRepository: dependencies.setlistRepository,
                                                photoRepository: dependencies.photoRepository)
@@ -219,6 +221,19 @@ struct ConcertDetailView: View {
                             VStack {
                                 ForEach(setlistItems, id: \.spotifyTrackId) { item in
                                     makeSetlistItemView(with: item)
+                                }
+                                
+                                
+                                if dependencies.userSessionManager.user?.identities?.contains(where: { $0.provider == "spotify" }) == true {
+                                    CreatePlaylistButton(viewModel: viewModel)
+                                        .padding(.horizontal)
+                                        .sheet(isPresented: $showPlaylistPicker) {
+                                            SpotifyPlaylistPicker { playlistId in
+                                                Task {
+                                                    await viewModel.importPlaylistToSetlist(playlistId: playlistId)
+                                                }
+                                            }
+                                        }
                                 }
                             }
                             .padding()

@@ -63,11 +63,27 @@ struct ConcertJournalApp: App {
                 await dependencies.localizationRepository.loadLocale("de")
                 isLoading = false
             }
-
-            // Auth Callback Handler
             .onOpenURL { url in
-                Task {
-                    try? await dependencies.supabaseClient.handleAuthCallback(from: url)
+                logInfo("Received URL: \(url.absoluteString)", category: .auth)
+                
+                // Check if this is an auth callback
+                if url.scheme == "concertjournal" && url.host == "auth-callback" {
+                    logInfo("Processing auth callback", category: .auth)
+                    
+                    Task {
+                        do {
+                            // ✅ Supabase verarbeitet den Callback
+                            try await dependencies.supabaseClient.handleAuthCallback(from: url)
+                            
+                            logSuccess("Auth callback processed successfully", category: .auth)
+                            
+                            // Refresh user session
+                            try await dependencies.userSessionManager.start()
+                            
+                        } catch {
+                            logError("Failed to process auth callback", error: error, category: .auth)
+                        }
+                    }
                 }
             }
         }

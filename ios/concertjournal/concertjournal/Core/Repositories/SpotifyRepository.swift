@@ -28,6 +28,6 @@ class BFFSpotifyRepository: SpotifyRepositoryProtocol {
 
     func searchArtist(query: String) async throws -> [SpotifyArtist] {
         let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
-        return try await client.get("/spotify/search/trtists?q=\(encoded)")
+        return try await client.get("/spotify/search/artists?q=\(encoded)")
     }
 }

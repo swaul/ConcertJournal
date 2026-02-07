@@ -12,7 +12,6 @@ class BFFClient {
     private let baseURL: String
     private let session: URLSession
     
-    // ✅ Token Provider (Supabase Auth)
     var getAuthToken: (() async throws -> String)?
     
     init(baseURL: String = "https://concertjournal-bff.vercel.app") {
@@ -25,10 +24,11 @@ class BFFClient {
     
     // MARK: - Generic Request
     
-    private func request<T: Decodable>(
+    func request<T: Decodable>(
         method: String,
         path: String,
-        body: Encodable? = nil
+        body: Encodable? = nil,
+        providerToken: String? = nil
     ) async throws -> T {
         
         guard let url = URL(string: baseURL + path) else {
@@ -41,6 +41,10 @@ class BFFClient {
         
         if let token = try? await getAuthToken?() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        if let providerToken {
+            request.setValue(providerToken, forHTTPHeaderField: "ProviderToken")
         }
         
         if let body = body {
