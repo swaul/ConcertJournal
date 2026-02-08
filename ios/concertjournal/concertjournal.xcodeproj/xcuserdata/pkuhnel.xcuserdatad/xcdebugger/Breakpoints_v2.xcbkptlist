@@ -78,8 +78,8 @@
             filePath = "concertjournal/Core/Network/BFFClient.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "34"
-            endingLineNumber = "34"
+            startingLineNumber = "41"
+            endingLineNumber = "41"
             landmarkName = "request(method:path:body:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -94,8 +94,8 @@
             filePath = "concertjournal/Core/Network/BFFClient.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "50"
-            endingLineNumber = "50"
+            startingLineNumber = "53"
+            endingLineNumber = "53"
             landmarkName = "request(method:path:body:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -103,16 +103,90 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "FE7E0C09-3326-477A-9A59-D31BA904E3F6"
+            uuid = "E3576197-1C4B-407C-8C47-220114EAA9C1"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "concertjournal/Features/ConcertDetail/ConcertDetailViewModel.swift"
+            filePath = "concertjournal/Features/EditConcert/EditConcertView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "157"
-            endingLineNumber = "157"
-            landmarkName = "reloadConcertData()"
+            startingLineNumber = "402"
+            endingLineNumber = "402"
+            landmarkName = "importPlaylistToSetlist()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "E3576197-1C4B-407C-8C47-220114EAA9C1 - ecd7e1c40be2361b"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(1) suspend resume partial function for concertjournal.ConcertEditView.importPlaylistToSetlist() async throws -&gt; ()"
+                  moduleName = "concertjournal.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/pkuhnel/Projects/Testable/ConcertJournal/ios/concertjournal/concertjournal/Features/EditConcert/EditConcertView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "402"
+                  endingLineNumber = "402">
+               </Location>
+               <Location
+                  uuid = "E3576197-1C4B-407C-8C47-220114EAA9C1 - 58de7a8e2d0db737"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(2) await resume partial function for concertjournal.ConcertEditView.importPlaylistToSetlist() async throws -&gt; ()"
+                  moduleName = "concertjournal.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/pkuhnel/Projects/Testable/ConcertJournal/ios/concertjournal/concertjournal/Features/EditConcert/EditConcertView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "402"
+                  endingLineNumber = "402">
+               </Location>
+               <Location
+                  uuid = "E3576197-1C4B-407C-8C47-220114EAA9C1 - fefd15ded3505018"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(4) suspend resume partial function for concertjournal.ConcertEditView.importPlaylistToSetlist() async throws -&gt; ()"
+                  moduleName = "concertjournal.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/pkuhnel/Projects/Testable/ConcertJournal/ios/concertjournal/concertjournal/Features/EditConcert/EditConcertView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "402"
+                  endingLineNumber = "402">
+               </Location>
+               <Location
+                  uuid = "E3576197-1C4B-407C-8C47-220114EAA9C1 - fefd15ded3505018"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(4) suspend resume partial function for concertjournal.ConcertEditView.importPlaylistToSetlist() async throws -&gt; ()"
+                  moduleName = "concertjournal.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/pkuhnel/Projects/Testable/ConcertJournal/ios/concertjournal/concertjournal/Features/EditConcert/EditConcertView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "402"
+                  endingLineNumber = "402">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "BED9299A-3A97-4E9A-8FA4-FC1E850812EE"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "concertjournal/Core/Network/BFFClient.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "74"
+            endingLineNumber = "74"
+            landmarkName = "request(method:path:body:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

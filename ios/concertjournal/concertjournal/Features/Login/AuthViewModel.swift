@@ -86,82 +86,6 @@ final class AuthViewModel {
     }
 }
 
-// =============================================================================
-// iOS Implementation Examples - Spotify Playlist Features
-// =============================================================================
-
-import Foundation
-import SwiftUI
-
-// =============================================================================
-// MARK: - Response Types
-// =============================================================================
-
-struct CreatePlaylistResponse: Codable {
-    let success: Bool
-    let playlist: PlaylistInfo
-    
-    struct PlaylistInfo: Codable {
-        let id: String
-        let name: String
-        let url: String
-    }
-}
-
-struct ImportPlaylistResponse: Codable {
-    let success: Bool
-    let message: String
-    let imported: Int
-    let skipped: Int
-    let items: [SetlistItem]
-}
-
-struct SpotifyPlaylistsResponse: Codable {
-    let total: Int
-    let playlists: [SpotifyPlaylist]
-}
-
-struct SpotifyPlaylist: Codable, Identifiable {
-    let id: String
-    let name: String
-    let description: String?
-    let tracks_total: Int
-    let images: [SpotifyImage]?
-    
-    struct SpotifyImage: Codable {
-        let url: String
-    }
-}
-
-// =============================================================================
-// MARK: - ViewModel Extension
-// =============================================================================
-
-extension ConcertDetailViewModel {
-    
-    // =========================================================================
-    // Create Spotify Playlist from Setlist
-    // =========================================================================
-    
-
-}
-
-// =============================================================================
-// MARK: - Request Types
-// =============================================================================
-
-struct CreatePlaylistRequest: Codable {
-    let concertId: String
-    let playlistName: String
-    let playlistDescription: String?
-    let isPublic: Bool?
-}
-
-struct ImportPlaylistRequest: Codable {
-    let concertId: String
-    let playlistId: String
-}
-
 struct CreatePlaylistButton: View {
     
     @Environment(\.dependencies) var dependencies
@@ -172,7 +96,7 @@ struct CreatePlaylistButton: View {
     var body: some View {
         Button {
             Task {
-                await viewModel.createSpotifyPlaylist(token: dependencies.userSessionManager.session?.providerToken)
+                await viewModel.createSpotifyPlaylist(spotifyRepository: dependencies.spotifyRepository)
             }
         } label: {
             HStack {
@@ -197,6 +121,7 @@ struct CreatePlaylistButton: View {
                 Button("Open in Spotify") {
                     UIApplication.shared.open(spotifyURL)
                 }
+                .font(.cjBody)
             }
         } message: {
             Text(viewModel.successMessage ?? "")
@@ -204,52 +129,58 @@ struct CreatePlaylistButton: View {
     }
 }
 
-// =========================================================================
-// Import Playlist Picker
-// =========================================================================
-
 struct SpotifyPlaylistPicker: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.dependencies) var dependencies
+
     @StateObject private var viewModel = PlaylistPickerViewModel()
     
-    let onSelect: (String) -> Void
-    
+    var onSelect: (SpotifyPlaylist) -> Void
+
     var body: some View {
         NavigationStack {
             Group {
                 if viewModel.isLoading {
-                    ProgressView("Loading playlists...")
+                    ProgressView("Lade Playlists...")
+                        .font(.cjBody)
                 } else if viewModel.playlists.isEmpty {
                     ContentUnavailableView(
-                        "No Playlists",
+                        "Keine Playlists",
                         systemImage: "music.note.list",
-                        description: Text("You don't have any Spotify playlists yet")
+                        description: Text("Du hast keine playlists auf Spotify. Speichere eine Playlist in deinem Spotify Account um sie hier zu importieren")
                     )
+                    .font(.cjBody)
                 } else {
                     List(viewModel.playlists) { playlist in
-                        PlaylistRow(playlist: playlist)
-                            .onTapGesture {
-                                onSelect(playlist.id)
-                                dismiss()
-                            }
+                        Button {
+                            onSelect(playlist)
+                            dismiss()
+                        } label: {
+                            PlaylistRow(playlist: playlist)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }
-            .navigationTitle("Import from Spotify")
+            .navigationTitle("Import aus Spotify")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("Abbrechen") { dismiss() }
+                        .font(.cjBody)
                 }
             }
             .task {
-                await viewModel.loadPlaylists()
+                await viewModel.loadPlaylists(spotifyRepository: dependencies.spotifyRepository, userSessionManager: dependencies.userSessionManager)
             }
             .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
                 Button("OK") { viewModel.errorMessage = nil }
+                    .font(.cjBody)
             } message: {
                 if let error = viewModel.errorMessage {
                     Text(error)
+                        .font(.cjBody)
                 }
             }
         }
@@ -320,23 +251,15 @@ class PlaylistPickerViewModel: ObservableObject {
     @Published var playlists: [SpotifyPlaylist] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
-    
-    private let bffClient: BFFClient
-    
-    init(bffClient: BFFClient = DependencyContainer().bffClient) {
-        self.bffClient = bffClient
-    }
-    
-    func loadPlaylists() async {
+
+    func loadPlaylists(spotifyRepository: SpotifyRepositoryProtocol,
+                       userSessionManager: UserSessionManagerProtocol) async {
         isLoading = true
         defer { isLoading = false }
         
         do {
-            let response: SpotifyPlaylistsResponse = try await bffClient.request(
-                method: "GET",
-                path: "/spotify/playlists?limit=50"
-            )
-            playlists = response.playlists
+            let response: [SpotifyPlaylist] = try await spotifyRepository.getUserPlaylists(limit: 50)
+            playlists = response
         } catch {
             errorMessage = "Failed to load playlists"
             logError("Load playlists failed", error: error, category: .viewModel)

@@ -33,7 +33,6 @@ struct ConcertDetailView: View {
     @State private var showEditSheet = false
     @State private var showDeleteDialog = false
     @State private var selectedImage: ConcertImage?
-    @State private var showPlaylistPicker = false
 
     @State private var loadingSetlist = false
 
@@ -227,13 +226,6 @@ struct ConcertDetailView: View {
                                 if dependencies.userSessionManager.user?.identities?.contains(where: { $0.provider == "spotify" }) == true {
                                     CreatePlaylistButton(viewModel: viewModel)
                                         .padding(.horizontal)
-                                        .sheet(isPresented: $showPlaylistPicker) {
-                                            SpotifyPlaylistPicker { playlistId in
-                                                Task {
-                                                    await viewModel.importPlaylistToSetlist(playlistId: playlistId)
-                                                }
-                                            }
-                                        }
                                 }
                             }
                             .padding()

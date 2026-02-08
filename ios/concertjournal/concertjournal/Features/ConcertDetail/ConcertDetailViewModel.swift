@@ -173,8 +173,7 @@ class ConcertDetailViewModel {
     }
 
     @MainActor
-    func createSpotifyPlaylist(token: String?) async {
-        guard let token else { return }
+    func createSpotifyPlaylist(spotifyRepository: SpotifyRepositoryProtocol) async {
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
@@ -192,22 +191,15 @@ class ConcertDetailViewModel {
                 playlistDescription: description,
                 isPublic: false
             )
+
+            let response: CreatedPlaylist = try await spotifyRepository.createPlaylistFromSetlist(concertId: concert.id, playlistName: playlistName, description: description, isPublic: false)
+
+            logSuccess("Playlist created: \(response.name)", category: .viewModel)
             
-            let response: CreatePlaylistResponse = try await client.request(
-                method: "POST",
-                path: "/spotify/playlists/from-setlist",
-                body: request,
-                providerToken: token
-            )
-            
-            logSuccess("Playlist created: \(response.playlist.name)", category: .viewModel)
-            
-            // Show success message
             successMessage = "Playlist created successfully!"
-            createdPlaylistURL = response.playlist.url
+            createdPlaylistURL = response.url
             
-            // Optionally open in Spotify
-            if let url = URL(string: response.playlist.url) {
+            if let url = URL(string: response.url), UIApplication.shared.canOpenURL(url) {
                 await UIApplication.shared.open(url)
             }
             
@@ -222,41 +214,37 @@ class ConcertDetailViewModel {
     // =========================================================================
     
     @MainActor
-    func importPlaylistToSetlist(playlistId: String) async {
+    func importPlaylistToSetlist(playlistId: String,
+                                 spotifyRepository: SpotifyRepositoryProtocol,
+                                 userSessionManager: UserSessionManagerProtocol) async {
         isLoading = true
         errorMessage = nil
-        defer { isLoading = false }
-        
-        logInfo("Importing playlist \(playlistId) to setlist", category: .viewModel)
-        
-        do {
-            let request = ImportPlaylistRequest(
-                concertId: concert.id,
-                playlistId: playlistId
-            )
-            
-            let response: ImportPlaylistResponse = try await client.request(
-                method: "POST",
-                path: "/spotify/playlists/import",
-                body: request
-            )
-            
-            logSuccess("Imported \(response.imported) tracks", category: .viewModel)
-            
-            // Update setlist
-            setlistItems = response.items
-            concert.setlistItems = response.items
-            
-            // Show success
-            successMessage = "Imported \(response.imported) tracks"
-            if response.skipped > 0 {
-                successMessage! += " (\(response.skipped) duplicates skipped)"
-            }
-            
-        } catch {
-            logError("Failed to import playlist", error: error, category: .viewModel)
-            handlePlaylistError(error)
-        }
+//
+//        guard let providerToken = userSessionManager.session?.providerToken else { return }
+//
+//        defer { isLoading = false }
+//        
+//        logInfo("Importing playlist \(playlistId) to setlist", category: .viewModel)
+//        
+//        do {
+//            let response = try await spotifyRepository.importPlaylistToSetlist(concertId: concert.id, playlistId: playlistId)
+//            
+//            logSuccess("Imported \(response.items.count) tracks", category: .viewModel)
+//
+//            // Update setlist
+//            setlistItems = response.items
+//            concert.setlistItems = response.items
+//            
+//            // Show success
+//            successMessage = "Imported \(response.items.count) tracks"
+//            if response.skipped > 0 {
+//                successMessage! += " (\(response.skipped) duplicates skipped)"
+//            }
+//            
+//        } catch {
+//            logError("Failed to import playlist", error: error, category: .viewModel)
+//            handlePlaylistError(error)
+//        }
     }
     
     // =========================================================================
@@ -264,17 +252,17 @@ class ConcertDetailViewModel {
     // =========================================================================
     
     @MainActor
-    func loadSpotifyPlaylists() async -> [SpotifyPlaylist] {
+    func loadSpotifyPlaylists(spotifyRepository: SpotifyRepositoryProtocol,
+                              userSessionManager: UserSessionManagerProtocol) async throws -> [SpotifyPlaylist] {
         logInfo("Loading user's Spotify playlists", category: .viewModel)
-        
+
+        guard let providerToken = userSessionManager.session?.providerToken else { throw SpotifyRepositoryError.noProviderToken }
+
         do {
-            let response: SpotifyPlaylistsResponse = try await client.request(
-                method: "GET",
-                path: "/spotify/playlists?limit=50"
-            )
-            
-            logSuccess("Loaded \(response.total) playlists", category: .viewModel)
-            return response.playlists
+            let response = try await spotifyRepository.getUserPlaylists(limit: 50)
+
+            logSuccess("Loaded \(response.count) playlists", category: .viewModel)
+            return response
             
         } catch {
             logError("Failed to load playlists", error: error, category: .viewModel)

@@ -32,7 +32,7 @@ class CreateConcertSelectArtistViewModel {
 
     func searchArtists(with text: String) {
         Task {
-            let result = try await spotifyRepository.searchArtist(query: text)
+            let result = try await spotifyRepository.searchArtists(query: text, limit: 10)
             artistsResponse = result
         }
     }

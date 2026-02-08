@@ -7,6 +7,14 @@
 
 import Foundation
 
+enum HTTPMethod: String {
+    case get = "GET"
+    case put = "PUT"
+    case patch = "PATCH"
+    case post = "POST"
+    case delete = "DELTE"
+}
+
 class BFFClient {
     
     private let baseURL: String
@@ -25,10 +33,9 @@ class BFFClient {
     // MARK: - Generic Request
     
     func request<T: Decodable>(
-        method: String,
+        method: HTTPMethod,
         path: String,
-        body: Encodable? = nil,
-        providerToken: String? = nil
+        body: Encodable? = nil
     ) async throws -> T {
         
         guard let url = URL(string: baseURL + path) else {
@@ -36,17 +43,13 @@ class BFFClient {
         }
         
         var request = URLRequest(url: url)
-        request.httpMethod = method
+        request.httpMethod = method.rawValue
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         if let token = try? await getAuthToken?() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
-        
-        if let providerToken {
-            request.setValue(providerToken, forHTTPHeaderField: "ProviderToken")
-        }
-        
+
         if let body = body {
             request.httpBody = try JSONEncoder().encode(body)
         }
@@ -73,28 +76,28 @@ class BFFClient {
     
     // MARK: - Helper Methods
     
-    func get<T: Decodable>(_ path: String) async throws -> T {
-        try await request(method: "GET", path: path)
+    func get<T: Decodable>(_ path: String, proiderToken: String? = nil) async throws -> T {
+        try await request(method: .get, path: path)
     }
     
     func post<T: Decodable>(_ path: String, body: Encodable?) async throws -> T {
-        try await request(method: "POST", path: path, body: body)
+        try await request(method: .post, path: path, body: body)
     }
 
     func put(_ path: String, body: Encodable?) async throws {
         let _: EmptyResponse = try await request(
-            method: "PUT",
+            method: .put,
             path: path,
             body: body
         )
     }
 
     func patch<T: Decodable>(_ path: String, body: Encodable?) async throws -> T {
-        try await request(method: "PATCH", path: path, body: body)
+        try await request(method: .patch, path: path, body: body)
     }
     
     func delete(_ path: String) async throws {
-        let _: EmptyResponse = try await request(method: "DELETE", path: path)
+        let _: EmptyResponse = try await request(method: .delete, path: path)
     }
 }
 

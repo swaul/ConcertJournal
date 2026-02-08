@@ -119,7 +119,8 @@ struct CreateConcertVisitView: View {
         .navigationTitle("New Concert")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $createSetlistPresenting) {
-            CreateSetlistView(viewModel: CreateSetlistViewModel(artist: viewModel?.artist,
+            CreateSetlistView(viewModel: CreateSetlistViewModel(currentSelection: draft.setlistItems,
+                                                                artist: viewModel?.artist,
                                                                 spotifyRepository: dependencies.spotifyRepository,
                                                                 setlistRepository: dependencies.setlistRepository)) { setlistItems in
                 draft.setlistItems = setlistItems
@@ -529,31 +530,71 @@ struct CreateConcertVisitView: View {
 
             if !draft.setlistItems.isEmpty {
                 VStack(alignment: .leading, spacing: 12) {
-                    ForEach(draft.setlistItems, id: \.spotifyTrackId) { item in
+                    ForEach(draft.setlistItems, id: \.id) { item in
                         makeSetlistItemView(with: item)
                     }
                     Button {
-                        
+                        createSetlistPresenting = true
                     } label: {
                         Text("Setlist bearbeiten")
                             .padding()
+                            .glassEffect()
                             .font(.cjBody)
                     }
                 }
                 .padding(.horizontal)
-
             } else {
                 Button {
                     createSetlistPresenting = true
                 } label: {
                     Text("Setlist hinzufügen")
                         .padding()
+                        .glassEffect()
                         .font(.cjBody)
                 }
                 .padding(.horizontal)
+                if dependencies.userSessionManager.user?.identities?.contains(where: { $0.provider == "spotify" }) == true {
+                    Button {
+                        playlistPickerPresenting = true
+                    } label: {
+                        HStack {
+                            Image("Spotify")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(height: 38)
+                            Text("Aus Spotify importieren")
+                                .font(.cjBody)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .foregroundStyle(Color.white)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .padding(6)
+                    .background { Color.black }
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .padding(.horizontal)
+                    .sheet(isPresented: $playlistPickerPresenting) {
+                        SpotifyPlaylistPicker { playlist in
+                            parsePlaylistToSetlist(playlist)
+                        }
+                    }
+                }
             }
         }
     }
+
+    func parsePlaylistToSetlist(_ playlist: SpotifyPlaylist) {
+        Task {
+            do {
+                let setlistItems = try await dependencies.spotifyRepository.importPlaylistToSetlist(concertId: nil, playlistId: playlist.id)
+                draft.setlistItems = setlistItems.items
+            } catch {
+                print(error)
+            }
+        }
+    }
+
+    @State var playlistPickerPresenting: Bool = false
 
     @ViewBuilder
     func makeSetlistItemView(with item: TempCeateSetlistItem) -> some View {
@@ -605,6 +646,9 @@ struct CreateConcertVisitView: View {
 
         }
         .rectangleGlass()
+        .onAppear {
+            print(item.title)
+        }
     }
 
     @MainActor

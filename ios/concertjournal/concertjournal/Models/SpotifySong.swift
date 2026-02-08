@@ -135,6 +135,8 @@ enum ArtistType: String, Codable {
 
 enum ReleaseDatePrecision: String, Codable {
     case day = "day"
+    case month = "month"
+    case year = "year"
 }
 
 // MARK: - ExternalIDS

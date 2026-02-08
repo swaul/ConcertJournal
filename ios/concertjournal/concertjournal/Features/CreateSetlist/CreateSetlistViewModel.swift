@@ -56,19 +56,14 @@ class CreateSetlistViewModel: Hashable, Equatable {
     private let spotifyRepository: SpotifyRepositoryProtocol
     private let setlistRepository: SetlistRepositoryProtocol
 
-    init(artist: Artist? = nil, spotifyRepository: SpotifyRepositoryProtocol, setlistRepository: SetlistRepositoryProtocol) {
-        self.id = UUID()
-        self.spotifyRepository = spotifyRepository
-        self.setlistRepository = setlistRepository
-        guard let artist else { return }
-        searchSongs(with: artist.name)
-    }
-
-    init(currentSelection: [TempCeateSetlistItem], spotifyRepository: SpotifyRepositoryProtocol, setlistRepository: SetlistRepositoryProtocol) {
+    init(currentSelection: [TempCeateSetlistItem], artist: Artist? = nil, spotifyRepository: SpotifyRepositoryProtocol, setlistRepository: SetlistRepositoryProtocol) {
         self.id = UUID()
         self.spotifyRepository = spotifyRepository
         self.setlistRepository = setlistRepository
         self.selectedSongs = currentSelection.map { SetlistSong(setlistItem: $0) }
+
+        guard let artist else { return }
+        searchSongs(with: artist.name)
     }
 
     func saveSetlist() {
@@ -81,7 +76,7 @@ class CreateSetlistViewModel: Hashable, Equatable {
         Task {
             do {
                 songLoadingState = .loading
-                let result = try await spotifyRepository.searchSongs(query: text)
+                let result = try await spotifyRepository.searchTracks(query: text, limit: 10)
                 let setlistSongs = result.map { SetlistSong(spotifySong: $0) }
                 songLoadingState = .loaded(setlistSongs)
             } catch {

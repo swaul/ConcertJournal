@@ -40,7 +40,7 @@ final class UserSessionManager: UserSessionManagerProtocol {
         user?.id.uuidString
     }
 
-    private let client: SupabaseClient
+    let client: SupabaseClient
 
     init(client: SupabaseClient) {
         self.client = client
@@ -48,18 +48,21 @@ final class UserSessionManager: UserSessionManagerProtocol {
 
     func start() async throws {
         let session = try await client.auth.session
-        update(session: session)
-            
+        try await update(session: session)
+
         for await event in client.auth.authStateChanges {
-            update(session: event.session)
+            try await update(session: event.session)
         }
     }
     
-    private func update(session: Session?) {
+    private func update(session: Session?) async throws {
         self.session = session
         self.user = session?.user
-        
+
         userSessionChangedSubject.send(session?.user)
+
+        guard let session else { return }
+        try await storeSpotifyProviderToken(with: session)
     }
     
     func loadUser() async throws -> User {

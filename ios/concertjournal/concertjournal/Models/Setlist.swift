@@ -51,10 +51,10 @@ public struct SetlistItem: Codable {
     }
 }
 
-public struct TempCeateSetlistItem: Equatable, Identifiable {
+public struct TempCeateSetlistItem: Equatable, Identifiable, Codable {
 
     public var id: String {
-        title + (spotifyTrackId ?? "")
+        title + (spotifyTrackId ?? "") + String(position) + artistNames
     }
 
     let existingItemid: String?
@@ -66,6 +66,18 @@ public struct TempCeateSetlistItem: Equatable, Identifiable {
     let coverImage: String?
     let albumName: String?
     let notes: String?
+
+    enum CodingKeys: String, CodingKey {
+        case existingItemid = "existing_item_id"
+        case position
+        case section
+        case spotifyTrackId = "spotify_track_id"
+        case title
+        case artistNames = "artist_names"
+        case coverImage = "cover_image"
+        case albumName = "album_name"
+        case notes
+    }
 
     init(spotifySong: SetlistSong, index: Int, notes: String? = nil) {
         self.position = index

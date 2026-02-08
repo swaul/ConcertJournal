@@ -397,6 +397,11 @@ struct ConcertEditView: View {
             }
         }
     }
+
+    func importPlaylistToSetlist() async throws {
+        let playlists = try await dependencies.spotifyRepository.getUserPlaylists(limit: 50)
+        print(playlists)
+    }
 }
 
 struct ConcertUpdate {
