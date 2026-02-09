@@ -14,6 +14,8 @@ struct LoginView: View {
     @State private var isLoadingAnimated: Bool = false
     @State private var errorMessageAnimated: String? = nil
     
+    @State private var passwordResetPresenting: Bool = false
+    
     @FocusState var emailTextField: Bool
     @FocusState var passwordTextField: Bool
     @FocusState var newPassowrdRepeatTextField: Bool
@@ -38,7 +40,6 @@ struct LoginView: View {
         @Bindable var viewModel = viewModel
 
         VStack {
-            
             Spacer()
             Text("Concert Journal")
                 .font(.cjLargeTitle)
@@ -67,6 +68,9 @@ struct LoginView: View {
                 errorMessageAnimated = newValue
             }
         })
+        .sheet(isPresented: $passwordResetPresenting) {
+            PasswordResetView(email: viewModel.email)
+        }
         .overlay {
             if isLoadingAnimated {
                 loadingOverlay()
@@ -156,6 +160,17 @@ struct LoginView: View {
                         }
                         .contentShape(Rectangle())
                         .padding(.horizontal)
+                    }
+                }
+                
+                HStack {
+                    Spacer()
+                    Button {
+                        passwordResetPresenting = true
+                    } label: {
+                        Text("Passwort vergessen")
+                            .font(.cjFootnote)
+                            .underline()
                     }
                 }
                 

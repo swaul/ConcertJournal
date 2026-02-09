@@ -34,7 +34,9 @@ struct ConcertDetailView: View {
     @State private var showEditSheet = false
     @State private var showDeleteDialog = false
     @State private var selectedImage: ConcertImage?
-
+ 
+    @State private var savingConcertPresenting = false
+    
     @State private var loadingSetlist = false
 
     @State private var localHidePrices = false
@@ -361,8 +363,12 @@ struct ConcertDetailView: View {
                 concert: viewModel.concert,
                 onSave: { updatedConcert in
                     Task {
+                        savingConcertPresenting = true
                         await viewModel.applyUpdate(updatedConcert)
-                        confirmationText = ConfirmationMessage(message: "Updates gespeichert!")
+                        savingConcertPresenting = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            confirmationText = ConfirmationMessage(message: "Updates gespeichert!")
+                        }
                     }
                 }
             )
@@ -375,6 +381,9 @@ struct ConcertDetailView: View {
                 imageUrls: viewModel.imageUrls,
                 startIndex: item.index
             )
+        }
+        .sheet(isPresented: $savingConcertPresenting) {
+            LoadingSheet(message: "Laden...")
         }
         .onAppear {
             localHidePrices = hidePrices

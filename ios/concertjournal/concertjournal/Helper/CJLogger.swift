@@ -89,9 +89,6 @@ final class CJLogger {
 
         // Log to OSLog
         logger.log(level: level.osLogType, "\(level.rawValue) \(formattedMessage)")
-
-        // Also print for easier debugging in console
-        print("[\(category.rawValue)] \(level.rawValue) \(formattedMessage)")
     }
 
     // MARK: - Convenience Methods

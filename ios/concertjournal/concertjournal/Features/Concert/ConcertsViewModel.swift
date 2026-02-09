@@ -49,8 +49,7 @@ class ConcertsViewModel {
         errorMessage = nil
 
         do {
-            let user = try await userManager.loadUser()
-            let concerts = try await concertRepository.fetchConcerts(for: user.id.uuidString, reload: false)
+            let concerts = try await concertRepository.fetchConcerts(reload: false)
             filterConcerts(concerts)
         } catch let error as NetworkError {
             errorMessage = error.localizedDescription
@@ -66,8 +65,7 @@ class ConcertsViewModel {
         futureConcerts.removeAll()
 
         do {
-            let user = try await userManager.loadUser()
-            let concerts = try await concertRepository.fetchConcerts(for: user.id.uuidString, reload: true)
+            let concerts = try await concertRepository.reloadConcerts()
             filterConcerts(concerts)
         } catch let error as NetworkError {
             errorMessage = error.localizedDescription

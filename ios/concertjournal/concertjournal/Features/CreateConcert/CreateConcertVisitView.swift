@@ -156,6 +156,7 @@ struct CreateConcertVisitView: View {
                     ProgressView()
                         .tint(dependencies.colorThemeManager.appTint)
                     Text("Speichern..")
+                        .font(.cjBody)
                 }
             }
             .frame(height: 250)
@@ -165,9 +166,11 @@ struct CreateConcertVisitView: View {
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") { navigationManager.pop() }
+                    .font(.cjBody)
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") { save() }
+                    .font(.cjBody)
             }
         }
     }
@@ -197,13 +200,18 @@ struct CreateConcertVisitView: View {
 
             DatePicker("Datum", selection: $draft.date, displayedComponents: [.date])
                 .padding(.horizontal)
+                .font(.cjBody)
 
             DatePicker("Einlass", selection: $draft.entranceTime, displayedComponents: [.hourAndMinute])
                 .padding(.horizontal)
+                .font(.cjBody)
 
-            TextField("Title (optional)", text: $draft.title)
+            TextField("Titel (optional)", text: $draft.title)
                 .textInputAutocapitalization(.words)
-                .padding(.horizontal)
+                .font(.cjBody)
+                .padding()
+                .glassEffect()
+                .padding()
         }
     }
 

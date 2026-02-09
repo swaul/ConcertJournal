@@ -126,6 +126,12 @@ final class AuthViewModel {
         }
     }
 
+    // MARK: - Password reset
+    
+    func passwordReset(email: String?) {
+        
+    }
+
     // MARK: - Private Methods
 
     private func refreshSessionState() async {

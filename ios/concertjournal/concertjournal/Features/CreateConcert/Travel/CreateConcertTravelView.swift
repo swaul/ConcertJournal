@@ -315,6 +315,47 @@ struct ExpensesValidatedTextField: View {
     }
 }
 
+struct EmailValidatedTextField: View {
+
+    init(_ placeholder: String, text: Binding<String>) {
+        self._text = text
+        self.placeholder = placeholder
+    }
+
+    let placeholder: String
+
+    @Binding var text: String
+
+    @State private var isValid: Bool = true
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+
+            ValidatedTextField(placeholder: placeholder, text: $text)
+                .onChange(of: text) { _, newValue in
+                    let valid = newValue.isEmpty || validateInput(input: newValue)
+                    withAnimation {
+                        isValid = valid
+                    }
+                }
+
+            if !isValid {
+                Text("Ungültiges Format")
+                    .font(.cjCaption)
+                    .foregroundStyle(.red)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+    }
+    
+    func validateInput(input: String) -> Bool {
+        let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+
+        let emailPred = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
+        return emailPred.evaluate(with: input)
+    }
+}
+
 
 struct ValidatedTextField: View {
 

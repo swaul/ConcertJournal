@@ -13,9 +13,9 @@ protocol ConcertRepositoryProtocol {
     var concertsDidUpdate: AnyPublisher<[FullConcertVisit], Never> { get }
     var cachedConcerts: [FullConcertVisit] { get }
     
-    func fetchConcerts(for userId: String, reload: Bool) async throws -> [FullConcertVisit]
+    func fetchConcerts(reload: Bool) async throws -> [FullConcertVisit]
     func getConcert(id: String) async throws -> FullConcertVisit
-    func reloadConcerts() async throws
+    func reloadConcerts() async throws -> [FullConcertVisit]
     func createConcert(_ concert: NewConcertDTO) async throws -> ConcertVisit
     func updateConcert(id: String, concert: ConcertVisitUpdateDTO) async throws
     func deleteConcert(id: String) async throws
@@ -39,33 +39,46 @@ class BFFConcertRepository: ConcertRepositoryProtocol {
         self.client = client
     }
     
-    func reloadConcerts() async throws {
+    func reloadConcerts() async throws -> [FullConcertVisit] {
+        logInfo("Reloading concerts", category: .repository)
         let concerts: [FullConcertVisit] = try await client.get("/concerts")
+        logSuccess("Loaded \(concerts.count) concerts", category: .repository)
         concertsSubject.send(concerts)
         self.cachedConcerts = concerts
+        return concerts
     }
     
-    func fetchConcerts(for userId: String, reload: Bool = false) async throws -> [FullConcertVisit] {
-        guard cachedConcerts.isEmpty || reload else { return cachedConcerts }
+    func fetchConcerts(reload: Bool = false) async throws -> [FullConcertVisit] {
+        guard cachedConcerts.isEmpty || reload else {
+            logSuccess("Returning \(cachedConcerts.count) cached concerts", category: .repository)
+            return cachedConcerts
+        }
+        logInfo("Reloading concerts", category: .repository)
+
         let concerts: [FullConcertVisit] = try await client.get("/concerts")
+        logSuccess("Loaded \(concerts.count) concerts", category: .repository)
         self.cachedConcerts = concerts
         concertsSubject.send(concerts)
         return concerts
     }
     
     func getConcert(id: String) async throws -> FullConcertVisit {
-        try await client.get("/concerts/\(id)")
+        logInfo("Getting details for concert with id: \(id)", category: .repository)
+        return try await client.get("/concerts/\(id)")
     }
     
     func createConcert(_ concert: NewConcertDTO) async throws -> ConcertVisit {
-        try await client.post("/concerts", body: concert)
+        logInfo("Creating concert with title: \(concert.title)", category: .repository)
+        return try await client.post("/concerts", body: concert)
     }
     
     func updateConcert(id: String, concert: ConcertVisitUpdateDTO) async throws {
-        try await client.put("/concerts/\(id)", body: concert)
+        logInfo("Updating concert with id: \(id)", category: .repository)
+        return try await client.put("/concerts/\(id)", body: concert)
     }
 
     func deleteConcert(id: String) async throws {
+        logInfo("Deleting concert with id: \(id)", category: .repository)
         try await client.delete("/concerts/\(id)")
     }
 
