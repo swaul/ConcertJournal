@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 @main
 struct ConcertJournalApp: App {
@@ -53,15 +54,22 @@ struct ConcertJournalApp: App {
             .environment(\.appTintColor, dependencies.colorThemeManager.appTint)
             .withDependencies(dependencies)
             .task {
+                logInfo("App starting user session", category: .auth)
                 do {
                     try await dependencies.userSessionManager.start()
+                    logInfo("User session started successfully", category: .auth)
                 } catch {
-                    print(error)
+                    logError("Failed to start user session", error: error, category: .auth)
                 }
             }
             .task {
                 await dependencies.localizationRepository.loadLocale("de")
-                isLoading = false
+            }
+            .onReceive(dependencies.userSessionManager.userSessionChanged) { _ in
+                if isLoading {
+                    isLoading = false
+                }
+                dependencies.concertRepository.reset()
             }
             .onOpenURL { url in
                 logInfo("Received URL: \(url.absoluteString)", category: .auth)
@@ -77,8 +85,8 @@ struct ConcertJournalApp: App {
                             
                             logSuccess("Auth callback processed successfully", category: .auth)
                             
-                            // Refresh user session
-                            try await dependencies.userSessionManager.start()
+                            // Removed: try await dependencies.userSessionManager.start()
+                            // Rely on auth state stream to update session
                             
                         } catch {
                             logError("Failed to process auth callback", error: error, category: .auth)

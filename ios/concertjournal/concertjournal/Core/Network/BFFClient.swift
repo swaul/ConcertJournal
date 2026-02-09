@@ -15,6 +15,11 @@ enum HTTPMethod: String {
     case delete = "DELTE"
 }
 
+enum Endpoint {
+    case spotify
+    case vercel
+}
+
 class BFFClient {
     
     private let baseURL: String
@@ -29,7 +34,7 @@ class BFFClient {
         configuration.timeoutIntervalForRequest = 30
         self.session = URLSession(configuration: configuration)
     }
-    
+
     // MARK: - Generic Request
     
     func request<T: Decodable>(
@@ -73,7 +78,46 @@ class BFFClient {
         
         return try JSONDecoder().decode(T.self, from: data)
     }
-    
+
+    func requestSpotify<T: Decodable>(
+        method: HTTPMethod,
+        url: String,
+        body: Encodable? = nil,
+        token: String
+    ) async throws -> T {
+        guard let url = URL(string: url) else {
+            throw BFFError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = method.rawValue
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        if let body = body {
+            request.httpBody = try JSONEncoder().encode(body)
+        }
+
+        let (data, response) = try await session.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            print("LOG: Response is no HTTPURLResponse", response)
+            throw BFFError.invalidResponse
+        }
+
+        guard (200...299).contains(httpResponse.statusCode) else {
+            // Try to decode error
+            if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
+                let error = BFFError.serverError(errorResponse.error)
+                logError("Could not fetch resource for \(request.url?.absoluteString). Response code: \(httpResponse.statusCode)", function: "request")
+                throw error
+            }
+            throw BFFError.httpError(httpResponse.statusCode)
+        }
+
+        return try JSONDecoder().decode(T.self, from: data)
+    }
+
     // MARK: - Helper Methods
     
     func get<T: Decodable>(_ path: String, proiderToken: String? = nil) async throws -> T {

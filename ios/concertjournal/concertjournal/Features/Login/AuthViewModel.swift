@@ -3,32 +3,54 @@ import Combine
 import Supabase
 import SwiftUI
 
+// MARK: - Auth View Model
+
 @MainActor
 @Observable
 final class AuthViewModel {
+
+    // MARK: - Published Properties
+
     var email: String = ""
     var password: String = ""
     var newPasswordRepeat: String = ""
     var isLoading: Bool = false
     var errorMessage: String?
 
+    // MARK: - Dependencies
+
     private let supabaseClient: SupabaseClientManagerProtocol
     private let userSessionManager: UserSessionManagerProtocol
 
-    init(supabaseClient: SupabaseClientManagerProtocol, userSessionManager: UserSessionManagerProtocol) {
+    // MARK: - Initialization
+
+    init(
+        supabaseClient: SupabaseClientManagerProtocol,
+        userSessionManager: UserSessionManagerProtocol
+    ) {
         self.supabaseClient = supabaseClient
         self.userSessionManager = userSessionManager
-        Task { await refreshSessionState() }
+
+        Task {
+            await refreshSessionState()
+        }
     }
+
+    // MARK: - Email Authentication
 
     func signInWithEmail() async {
         errorMessage = nil
         isLoading = true
         defer { isLoading = false }
+
         do {
-            _ = try await supabaseClient.client.auth.signIn(email: email, password: password)
+            _ = try await supabaseClient.client.auth.signIn(
+                email: email,
+                password: password
+            )
             await refreshSessionState()
         } catch {
+            logError("Email sign in failed", error: error, category: .auth)
             errorMessage = error.localizedDescription
         }
     }
@@ -37,66 +59,111 @@ final class AuthViewModel {
         errorMessage = nil
         isLoading = true
         defer { isLoading = false }
+
         do {
-            let result = try await supabaseClient.client.auth.signUp(email: email, password: password)
-            print(result)
+            let result = try await supabaseClient.client.auth.signUp(
+                email: email,
+                password: password
+            )
+            logInfo("Sign up successful: \(result.user.email ?? "unknown")", category: .auth)
             await refreshSessionState()
         } catch {
+            logError("Email sign up failed", error: error, category: .auth)
             errorMessage = error.localizedDescription
         }
     }
 
-    func signOut() async {
-        errorMessage = nil
-        isLoading = true
-        defer { isLoading = false }
-        do {
-            try await supabaseClient.client.auth.signOut()
-            await refreshSessionState()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
+    // MARK: - Spotify OAuth
 
     func signInWithSpotify() async {
         errorMessage = nil
         isLoading = true
         defer { isLoading = false }
-        let scopes = "user-read-email playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private user-library-read"
+
+        let scopes = [
+            "user-read-email",
+            "playlist-read-private",
+            "playlist-read-collaborative",
+            "playlist-modify-public",
+            "playlist-modify-private",
+            "user-library-read"
+        ].joined(separator: " ")
 
         do {
-            let provider: Provider = .spotify
-            let redirectTo = URL(string: supabaseClient.redirectURLString)!
-            _ = try await supabaseClient.client.auth.signInWithOAuth(provider: provider, redirectTo: redirectTo, scopes: scopes)
-            
+            guard let redirectURL = URL(string: supabaseClient.redirectURLString) else {
+                throw AuthError.invalidRedirectURL
+            }
+
+            let session = try await supabaseClient.client.auth.signInWithOAuth(
+                provider: .spotify,
+                redirectTo: redirectURL,
+                scopes: scopes
+            )
+
             logInfo("Spotify OAuth initiated", category: .auth)
             try await userSessionManager.start()
-          } catch {
-              logError("Spotify OAuth failed", error: error, category: .auth)
-              errorMessage = "Failed to connect Spotify: \(error.localizedDescription)"
-          }
+
+        } catch {
+            logError("Spotify OAuth failed", error: error, category: .auth)
+            errorMessage = "Failed to connect Spotify: \(error.localizedDescription)"
+        }
     }
+
+    // MARK: - Sign Out
+
+    func signOut() async {
+        errorMessage = nil
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            try await supabaseClient.client.auth.signOut()
+            await refreshSessionState()
+            logInfo("User signed out", category: .auth)
+        } catch {
+            logError("Sign out failed", error: error, category: .auth)
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    // MARK: - Private Methods
 
     private func refreshSessionState() async {
         do {
             try await userSessionManager.start()
         } catch {
-            print("Login failed")
+            logError("Failed to refresh session state", error: error, category: .auth)
         }
     }
 }
 
+// MARK: - Auth Errors
+
+enum AuthError: Error, LocalizedError {
+    case invalidRedirectURL
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidRedirectURL:
+            return "Invalid redirect URL configuration"
+        }
+    }
+}
+
+// MARK: - Create Playlist Button
+
 struct CreatePlaylistButton: View {
-    
+
     @Environment(\.dependencies) var dependencies
-    
+
     @State var viewModel: ConcertDetailViewModel
     @State private var showingSuccess = false
-    
+
     var body: some View {
         Button {
             Task {
-                await viewModel.createSpotifyPlaylist(spotifyRepository: dependencies.spotifyRepository)
+                try await viewModel.createSpotifyPlaylist(spotifyRepository: dependencies.spotifyRepository,
+                                                          userSessionManager: dependencies.userSessionManager)
             }
         } label: {
             HStack {
@@ -104,6 +171,7 @@ struct CreatePlaylistButton: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(height: 32)
+
                 Text("Create Playlist")
                     .font(.cjBody)
                     .foregroundStyle(Color.white)
@@ -117,6 +185,7 @@ struct CreatePlaylistButton: View {
         .disabled(viewModel.isLoading || viewModel.setlistItems?.isEmpty == true)
         .alert("Playlist Created", isPresented: $showingSuccess) {
             Button("OK") { }
+
             if let url = viewModel.createdPlaylistURL,
                let spotifyURL = URL(string: url) {
                 Button("Open in Spotify") {
@@ -130,38 +199,70 @@ struct CreatePlaylistButton: View {
     }
 }
 
+// MARK: - Spotify Playlist Picker
+
 struct SpotifyPlaylistPicker: View {
+
     @Environment(\.dismiss) var dismiss
     @Environment(\.dependencies) var dependencies
 
     @StateObject private var viewModel = PlaylistPickerViewModel()
-    
+    @State private var searchText: String = ""
+    @FocusState private var searchFieldFocused
+
     var onSelect: (SpotifyPlaylist) -> Void
 
     var body: some View {
         NavigationStack {
-            Group {
-                if viewModel.isLoading {
-                    ProgressView("Lade Playlists...")
+            VStack {
+                Group {
+                    if viewModel.isLoading {
+                        ProgressView("Lade Playlists...")
+                            .font(.cjBody)
+                    } else if viewModel.playlists.isEmpty {
+                        ContentUnavailableView(
+                            "Keine Playlists",
+                            systemImage: "music.note.list",
+                            description: Text("Du hast keine playlists auf Spotify. Speichere eine Playlist in deinem Spotify Account um sie hier zu importieren")
+                        )
                         .font(.cjBody)
-                } else if viewModel.playlists.isEmpty {
-                    ContentUnavailableView(
-                        "Keine Playlists",
-                        systemImage: "music.note.list",
-                        description: Text("Du hast keine playlists auf Spotify. Speichere eine Playlist in deinem Spotify Account um sie hier zu importieren")
-                    )
-                    .font(.cjBody)
-                } else {
-                    List(viewModel.playlists) { playlist in
-                        Button {
-                            onSelect(playlist)
-                            dismiss()
-                        } label: {
-                            PlaylistRow(playlist: playlist)
-                                .contentShape(Rectangle())
+                    } else {
+                        List(viewModel.playlists) { playlist in
+                            Button {
+                                onSelect(playlist)
+                                dismiss()
+                            } label: {
+                                PlaylistRow(playlist: playlist)
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
+                }
+
+                if !viewModel.isLoading {
+                    HStack {
+                        TextField("Playlist suchen", text: $searchText)
+                            .focused($searchFieldFocused)
+                            .submitLabel(.search)
+                            .font(.cjBody)
+                            .padding()
+                            .glassEffect()
+
+                        Button {
+                            Task {
+                                await viewModel.searchPlaylists(
+                                    query: searchText,
+                                    spotifyRepository: dependencies.spotifyRepository
+                                )
+                            }
+                        } label: {
+                            Text("Suchen")
+                                .font(.cjBody)
+                        }
+                        .buttonStyle(.glassProminent)
+                    }
+                    .padding()
                 }
             }
             .navigationTitle("Import aus Spotify")
@@ -173,7 +274,9 @@ struct SpotifyPlaylistPicker: View {
                 }
             }
             .task {
-                await viewModel.loadPlaylists(spotifyRepository: dependencies.spotifyRepository, userSessionManager: dependencies.userSessionManager)
+                await viewModel.loadPlaylists(
+                    spotifyRepository: dependencies.spotifyRepository
+                )
             }
             .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
                 Button("OK") { viewModel.errorMessage = nil }
@@ -188,9 +291,11 @@ struct SpotifyPlaylistPicker: View {
     }
 }
 
+// MARK: - Playlist Row
+
 struct PlaylistRow: View {
     let playlist: SpotifyPlaylist
-    
+
     var body: some View {
         HStack(spacing: 12) {
             // Playlist Image
@@ -216,26 +321,26 @@ struct PlaylistRow: View {
                             .foregroundColor(.gray)
                     )
             }
-            
+
             VStack(alignment: .leading, spacing: 4) {
                 Text(playlist.name)
                     .font(.cjBody)
                     .lineLimit(1)
-                
+
                 if let description = playlist.description, !description.isEmpty {
                     Text(description)
                         .font(.cjFootnote)
                         .foregroundColor(.secondary)
                         .lineLimit(2)
                 }
-                
-                Text("\(playlist.tracks_total) tracks")
+
+                Text("\(playlist.tracks.total) tracks")
                     .font(.cjCaption)
                     .foregroundColor(.secondary)
             }
-            
+
             Spacer()
-            
+
             Image(systemName: "chevron.right")
                 .foregroundColor(.secondary)
         }
@@ -243,79 +348,47 @@ struct PlaylistRow: View {
     }
 }
 
-// =========================================================================
-// Playlist Picker ViewModel
-// =========================================================================
+// MARK: - Playlist Picker View Model
 
 @MainActor
 class PlaylistPickerViewModel: ObservableObject {
+
     @Published var playlists: [SpotifyPlaylist] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
 
-    func loadPlaylists(spotifyRepository: SpotifyRepositoryProtocol,
-                       userSessionManager: UserSessionManagerProtocol) async {
+    func loadPlaylists(spotifyRepository: SpotifyRepositoryProtocol) async {
         isLoading = true
         defer { isLoading = false }
-        
+
         do {
-            let response: [SpotifyPlaylist] = try await spotifyRepository.getUserPlaylists(limit: 50)
-            playlists = response
+            playlists = try await spotifyRepository.getUserPlaylists(limit: 50)
+            logSuccess("Loaded \(playlists.count) playlists", category: .viewModel)
         } catch {
-            errorMessage = "Failed to load playlists"
+            errorMessage = "Failed to load playlists: \(error.localizedDescription)"
             logError("Load playlists failed", error: error, category: .viewModel)
         }
     }
+
+    func searchPlaylists(
+        query: String,
+        spotifyRepository: SpotifyRepositoryProtocol
+    ) async {
+        guard !query.isEmpty else {
+            // If query is empty, reload user playlists
+            await loadPlaylists(spotifyRepository: spotifyRepository)
+            return
+        }
+
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            playlists = try await spotifyRepository.searchPlaylists(query: query, limit: 20)
+            logSuccess("Found \(playlists.count) playlists", category: .viewModel)
+        } catch {
+            errorMessage = "Failed to search playlists: \(error.localizedDescription)"
+            logError("Search playlists failed", error: error, category: .viewModel)
+        }
+    }
 }
-
-// =============================================================================
-// MARK: - Usage in Concert Detail View
-// =============================================================================
-
-//struct ConcertDetailView: View {
-//    @StateObject var viewModel: ConcertDetailViewModel
-//    @State private var showPlaylistPicker = false
-//    
-//    var body: some View {
-//        ScrollView {
-//            VStack(spacing: 16) {
-//                // ... existing concert details ...
-//                
-//                // Spotify Integration Section
-//                VStack(spacing: 12) {
-//                    Text("Spotify Integration")
-//                        .font(.cjHeadline)
-//                        .frame(maxWidth: .infinity, alignment: .leading)
-//                    
-//                    // Create Playlist Button
-//                    CreatePlaylistButton(viewModel: viewModel)
-//                    
-//                    // Import Playlist Button
-//                    Button {
-//                        showPlaylistPicker = true
-//                    } label: {
-//                        HStack {
-//                            Image(systemName: "square.and.arrow.down")
-//                            Text("Import from Spotify")
-//                                .font(.cjBody)
-//                        }
-//                        .frame(maxWidth: .infinity)
-//                    }
-//                    .buttonStyle(.bordered)
-//                    .disabled(viewModel.isLoading)
-//                }
-//                .padding()
-//                .background(Color(.systemGray6))
-//                .cornerRadius(12)
-//            }
-//            .padding()
-//        }
-//        .sheet(isPresented: $showPlaylistPicker) {
-//            SpotifyPlaylistPicker { playlistId in
-//                Task {
-//                    await viewModel.importPlaylistToSetlist(playlistId: playlistId)
-//                }
-//            }
-//        }
-//    }
-//}

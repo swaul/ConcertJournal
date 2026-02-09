@@ -186,26 +186,19 @@ class ConcertDetailViewModel {
     }
 
     @MainActor
-    func createSpotifyPlaylist(spotifyRepository: SpotifyRepositoryProtocol) async {
+    func createSpotifyPlaylist(spotifyRepository: SpotifyRepositoryProtocol, userSessionManager: UserSessionManagerProtocol) async throws {
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
         
         logInfo("Creating Spotify playlist from setlist", category: .viewModel)
-        
+
         do {
             // Build playlist name
             let playlistName = "Setlist von \(concert.artist.name)"
             let description = "Konzert im \(concert.venue?.name ?? "Unknown") am \(formatDate(concert.date.shortDateOnlyString))"
-            
-            let request = CreatePlaylistRequest(
-                concertId: concert.id,
-                playlistName: playlistName,
-                playlistDescription: description,
-                isPublic: false
-            )
 
-            let response: CreatedPlaylist = try await spotifyRepository.createPlaylistFromSetlist(concertId: concert.id, playlistName: playlistName, description: description, isPublic: false)
+            let response: CreatedPlaylist = try await spotifyRepository.createPlaylist(name: playlistName, description: description, isPublic: true)
 
             logSuccess("Playlist created: \(response.name)", category: .viewModel)
             
@@ -221,83 +214,10 @@ class ConcertDetailViewModel {
             handlePlaylistError(error)
         }
     }
-    
-    // =========================================================================
-    // Import Spotify Playlist to Setlist
-    // =========================================================================
-    
-    @MainActor
-    func importPlaylistToSetlist(playlistId: String,
-                                 spotifyRepository: SpotifyRepositoryProtocol,
-                                 userSessionManager: UserSessionManagerProtocol) async {
-        isLoading = true
-        errorMessage = nil
-//
-//        guard let providerToken = userSessionManager.session?.providerToken else { return }
-//
-//        defer { isLoading = false }
-//        
-//        logInfo("Importing playlist \(playlistId) to setlist", category: .viewModel)
-//        
-//        do {
-//            let response = try await spotifyRepository.importPlaylistToSetlist(concertId: concert.id, playlistId: playlistId)
-//            
-//            logSuccess("Imported \(response.items.count) tracks", category: .viewModel)
-//
-//            // Update setlist
-//            setlistItems = response.items
-//            concert.setlistItems = response.items
-//            
-//            // Show success
-//            successMessage = "Imported \(response.items.count) tracks"
-//            if response.skipped > 0 {
-//                successMessage! += " (\(response.skipped) duplicates skipped)"
-//            }
-//            
-//        } catch {
-//            logError("Failed to import playlist", error: error, category: .viewModel)
-//            handlePlaylistError(error)
-//        }
-    }
-    
-    // =========================================================================
-    // Load User's Spotify Playlists
-    // =========================================================================
-    
-    @MainActor
-    func loadSpotifyPlaylists(spotifyRepository: SpotifyRepositoryProtocol,
-                              userSessionManager: UserSessionManagerProtocol) async throws -> [SpotifyPlaylist] {
-        logInfo("Loading user's Spotify playlists", category: .viewModel)
 
-        guard let providerToken = userSessionManager.session?.providerToken else { throw SpotifyRepositoryError.noProviderToken }
-
-        do {
-            let response = try await spotifyRepository.getUserPlaylists(limit: 50)
-
-            logSuccess("Loaded \(response.count) playlists", category: .viewModel)
-            return response
-            
-        } catch {
-            logError("Failed to load playlists", error: error, category: .viewModel)
-            handlePlaylistError(error)
-            return []
-        }
-    }
-    
-    // =========================================================================
-    // Error Handling
-    // =========================================================================
-    
     private func handlePlaylistError(_ error: Error) {
         if let bffError = error as? BFFError {
             switch bffError {
-//            case .unauthorized:
-//                errorMessage = "Please log in again"
-//            case .forbidden:
-//                errorMessage = "Please connect your Spotify account in Settings"
-//                showSpotifyConnectPrompt = true
-//            case .notFound:
-//                errorMessage = "Concert or playlist not found"
             case .serverError(let message):
                 if message.contains("No setlist items") {
                     errorMessage = "This concert has no setlist to export"
@@ -319,11 +239,7 @@ class ConcertDetailViewModel {
             errorMessage = "An error occurred: \(error.localizedDescription)"
         }
     }
-    
-    // =========================================================================
-    // Helper: Date Formatting
-    // =========================================================================
-    
+
     private func formatDate(_ dateString: String) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"

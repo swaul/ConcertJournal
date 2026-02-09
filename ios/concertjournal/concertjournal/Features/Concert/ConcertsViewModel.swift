@@ -8,6 +8,7 @@
 import Combine
 import SwiftUI
 import Observation
+internal import Auth
 
 @Observable
 class ConcertsViewModel {
@@ -48,8 +49,8 @@ class ConcertsViewModel {
         errorMessage = nil
 
         do {
-            guard let userId = userManager.userId else { throw UserError.notLoggedIn }
-            let concerts = try await concertRepository.fetchConcerts(for: userId, reload: false)
+            let user = try await userManager.loadUser()
+            let concerts = try await concertRepository.fetchConcerts(for: user.id.uuidString, reload: false)
             filterConcerts(concerts)
         } catch let error as NetworkError {
             errorMessage = error.localizedDescription
@@ -65,8 +66,8 @@ class ConcertsViewModel {
         futureConcerts.removeAll()
 
         do {
-            guard let userId = userManager.userId else { throw UserError.notLoggedIn }
-            let concerts = try await concertRepository.fetchConcerts(for: userId, reload: true)
+            let user = try await userManager.loadUser()
+            let concerts = try await concertRepository.fetchConcerts(for: user.id.uuidString, reload: true)
             filterConcerts(concerts)
         } catch let error as NetworkError {
             errorMessage = error.localizedDescription

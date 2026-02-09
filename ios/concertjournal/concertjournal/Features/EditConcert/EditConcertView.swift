@@ -399,6 +399,11 @@ struct ConcertEditView: View {
     }
 
     func importPlaylistToSetlist() async throws {
+        try await dependencies.userSessionManager.refreshSpotifyProviderTokenIfNeeded()
+        guard let providerToken = dependencies.userSessionManager.providerToken else { throw SpotifyError.noProviderToken }
+
+        logInfo("Provider token found, loading playlists", category: .viewModel)
+
         let playlists = try await dependencies.spotifyRepository.getUserPlaylists(limit: 50)
         print(playlists)
     }

@@ -53,7 +53,7 @@ class DependencyContainer {
         self.venueRepository = BFFVenueRepository(client: bffClient)
         self.setlistRepository = BFFSetlistRepository(client: bffClient)
         self.photoRepository = BFFPhotoRepository(client: bffClient)
-        self.spotifyRepository = BFFSpotifyRepository(client: bffClient)
+        self.spotifyRepository = SpotifyRepository(userSessionManager: userSessionManager)
         
         // Local repositories (stay unchanged)
         self.faqRepository = FAQRepository(supabaseClient: supabaseClient)

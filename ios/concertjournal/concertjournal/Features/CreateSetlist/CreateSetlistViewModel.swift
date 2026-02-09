@@ -76,7 +76,7 @@ class CreateSetlistViewModel: Hashable, Equatable, Identifiable {
         Task {
             do {
                 songLoadingState = .loading
-                let result = try await spotifyRepository.searchTracks(query: text, limit: 10)
+                let result = try await spotifyRepository.searchTracks(query: text, limit: 10, offset: 0)
                 let setlistSongs = result.map { SetlistSong(spotifySong: $0) }
                 songLoadingState = .loaded(setlistSongs)
             } catch {

@@ -19,6 +19,8 @@ protocol ConcertRepositoryProtocol {
     func createConcert(_ concert: NewConcertDTO) async throws -> ConcertVisit
     func updateConcert(id: String, concert: ConcertVisitUpdateDTO) async throws
     func deleteConcert(id: String) async throws
+
+    func reset()
 }
 
 class BFFConcertRepository: ConcertRepositoryProtocol {
@@ -65,6 +67,10 @@ class BFFConcertRepository: ConcertRepositoryProtocol {
 
     func deleteConcert(id: String) async throws {
         try await client.delete("/concerts/\(id)")
+    }
+
+    func reset() {
+        cachedConcerts.removeAll()
     }
 }
 

@@ -102,6 +102,18 @@ public struct TempCeateSetlistItem: Equatable, Identifiable, Codable {
         self.coverImage = setlistItem.coverImage
         self.notes = setlistItem.notes
     }
+
+    init(_ item: Track, index: Int) {
+        self.existingItemid = nil
+        self.section = nil
+        self.spotifyTrackId = item.id
+        self.title = item.name
+        self.albumName = item.album?.name
+        self.artistNames = item.artists.map { $0.name }.joined(separator: ", ")
+        self.coverImage = item.album?.images?.first?.url
+        self.notes = nil
+        self.position = index
+    }
 }
 
 public struct CreateSetlistItemDTO: Encodable {

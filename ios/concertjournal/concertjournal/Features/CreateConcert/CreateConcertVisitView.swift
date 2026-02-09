@@ -588,9 +588,16 @@ struct CreateConcertVisitView: View {
 
     func parsePlaylistToSetlist(_ playlist: SpotifyPlaylist) {
         Task {
+            try await dependencies.userSessionManager.refreshSpotifyProviderTokenIfNeeded()
+            guard let providerToken = dependencies.userSessionManager.providerToken else {
+                return
+            }
+
+            logInfo("Provider token found, creating playlists", category: .viewModel)
+
             do {
-                let setlistItems = try await dependencies.spotifyRepository.importPlaylistToSetlist(concertId: nil, playlistId: playlist.id)
-                draft.setlistItems = setlistItems.items
+                let setlistItems = try await dependencies.spotifyRepository.importPlaylistToSetlist(playlistId: playlist.id)
+                draft.setlistItems = setlistItems
             } catch {
                 print(error)
             }
