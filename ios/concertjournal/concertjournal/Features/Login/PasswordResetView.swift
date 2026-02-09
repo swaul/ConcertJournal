@@ -70,7 +70,7 @@ struct PasswordResetView: View {
     func initiatePasswordReset() {
         Task {
             savingConcertPresenting = true
-            try await dependencies.supabaseClient.client.auth.resetPasswordForEmail(email, redirectTo: URL(string: "https://swaul.github.io/ConcertJournal/reset-password"))
+            try await dependencies.supabaseClient.client.auth.resetPasswordForEmail(email, redirectTo: URL(string: "https://swaul.github.io/ConcertJournal/reset-password.html"))
             savingConcertPresenting = false
             confirmationText = ConfirmationMessage(message: "Email gesendet 🎉") {
                 dismiss()
