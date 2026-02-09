@@ -23,16 +23,16 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "C949D582-3667-4015-AA96-BC91ACDF8370"
-            shouldBeEnabled = "Yes"
+            uuid = "1BEF020D-4A38-47EA-AFB7-51AF490E670A"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "concertjournal/Core/Network/BFFClient.swift"
+            filePath = "concertjournal/Core/Managers/UserSessionManager.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "35"
-            endingLineNumber = "35"
-            landmarkName = "request(method:path:body:providerToken:)"
+            startingLineNumber = "53"
+            endingLineNumber = "53"
+            landmarkName = "start()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

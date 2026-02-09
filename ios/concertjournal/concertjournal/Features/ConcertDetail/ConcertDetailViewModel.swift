@@ -124,7 +124,20 @@ class ConcertDetailViewModel {
         // 4. Update Setlist
         if changes.hasSetlistChanges, let items = update.setlistItems {
             do {
+                if let currentSetlistItems = setlistItems {
+                    let currentIDs = Set(currentSetlistItems.map(\.id))
+                    let newIDs = Set(items.compactMap(\.existingItemid))
+                    
+                    let idsToDelete = currentIDs.subtracting(newIDs)
+                    
+                    for id in idsToDelete {
+                        try await setlistRepository.deleteSetlistItem(id)
+                        logSuccess("Setlist updated. Removed item with id \(id)", category: .setlist)
+                    }
+                }
+                
                 try await updateSetlistItems(items)
+
                 logSuccess("Setlist updated", category: .setlist)
             } catch {
                 logError("Setlist update failed", error: error, category: .setlist)

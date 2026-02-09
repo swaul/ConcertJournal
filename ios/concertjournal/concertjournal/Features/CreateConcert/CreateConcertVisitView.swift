@@ -386,15 +386,17 @@ struct CreateConcertVisitView: View {
 
     @ViewBuilder
     func ticketSection() -> some View {
-        if let ticket = draft.ticket {
-            VStack(alignment: .leading) {
-                CJDivider(title: "Ticket", image: nil)
-                    .padding(.horizontal)
-
-                Text(ticket.ticketType.label)
-                    .font(.cjTitle)
-                    .frame(maxWidth: .infinity, alignment: .center)
-
+        VStack(alignment: .leading) {
+            CJDivider(title: "Ticket", image: nil)
+                .padding(.horizontal)
+            
+            if let ticket = draft.ticket {
+                VStack(alignment: .leading) {
+                    
+                    Text(ticket.ticketType.label)
+                        .font(.cjTitle)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    
                     ticket.ticketCategory.color
                         .clipShape(RoundedRectangle(cornerRadius: 20))
                         .frame(maxWidth: .infinity)
@@ -403,52 +405,63 @@ struct CreateConcertVisitView: View {
                             Text(ticket.ticketCategory.label)
                                 .font(.cjTitleF)
                         }
-                
-                switch ticket.ticketType {
-                case .seated:
-                    Grid {
-                        GridRow {
-                            if ticket.seatBlock != nil {
-                                Text("Block")
-                                    .font(.cjHeadline)
+                    
+                    switch ticket.ticketType {
+                    case .seated:
+                        Grid {
+                            GridRow {
+                                if ticket.seatBlock != nil {
+                                    Text("Block")
+                                        .font(.cjHeadline)
+                                }
+                                if ticket.seatRow != nil {
+                                    Text("Reihe")
+                                        .font(.cjHeadline)
+                                }
+                                if ticket.seatNumber != nil {
+                                    Text("Platz")
+                                        .font(.cjHeadline)
+                                }
                             }
-                            if ticket.seatRow != nil {
-                                Text("Reihe")
-                                    .font(.cjHeadline)
-                            }
-                            if ticket.seatNumber != nil {
-                                Text("Platz")
-                                    .font(.cjHeadline)
+                            GridRow {
+                                if let block = ticket.seatBlock {
+                                    Text(block)
+                                        .font(.cjTitle)
+                                }
+                                if let row = ticket.seatRow {
+                                    Text(row)
+                                        .font(.cjTitle)
+                                }
+                                if let seatNumber = ticket.seatNumber {
+                                    Text(seatNumber)
+                                        .font(.cjTitle)
+                                }
                             }
                         }
-                        GridRow {
-                            if let block = ticket.seatBlock {
-                                Text(block)
-                                    .font(.cjTitle)
-                            }
-                            if let row = ticket.seatRow {
-                                Text(row)
-                                    .font(.cjTitle)
-                            }
-                            if let seatNumber = ticket.seatNumber {
-                                Text(seatNumber)
-                                    .font(.cjTitle)
-                            }
+                    case .standing:
+                        if let standingPosition = ticket.standingPosition {
+                            Text(standingPosition)
+                                .font(.cjBody)
                         }
                     }
-                case .standing:
-                    if let standingPosition = ticket.standingPosition {
-                        Text(standingPosition)
+                    
+                    if let notes = ticket.notes {
+                        Text(notes)
+                            .font(.cjBody)
+                            .padding(.horizontal)
+                    }
+                    
+                    Button {
+                        presentTicketEdit = true
+                    } label: {
+                        Text("Ticket infos hinzufügen")
                             .font(.cjBody)
                     }
+                    .padding()
+                    .glassEffect()
+                    .padding(.horizontal)
                 }
-
-                if let notes = ticket.notes {
-                    Text(notes)
-                        .font(.cjBody)
-                        .padding(.horizontal)
-                }
-
+            } else {
                 Button {
                     presentTicketEdit = true
                 } label: {
@@ -459,16 +472,6 @@ struct CreateConcertVisitView: View {
                 .glassEffect()
                 .padding(.horizontal)
             }
-        } else {
-            Button {
-                presentTicketEdit = true
-            } label: {
-                Text("Ticket infos hinzufügen")
-                    .font(.cjBody)
-            }
-            .padding()
-            .glassEffect()
-            .padding(.horizontal)
         }
     }
     

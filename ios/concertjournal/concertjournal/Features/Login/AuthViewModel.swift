@@ -102,13 +102,14 @@ struct CreatePlaylistButton: View {
             HStack {
                 Image("Spotify")
                     .resizable()
+                    .aspectRatio(contentMode: .fit)
                     .frame(height: 32)
                 Text("Create Playlist")
                     .font(.cjBody)
                     .foregroundStyle(Color.white)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 4)
         }
         .padding(6)
         .background { Color.black }

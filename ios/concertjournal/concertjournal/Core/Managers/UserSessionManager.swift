@@ -49,10 +49,12 @@ final class UserSessionManager: UserSessionManagerProtocol {
     func start() async throws {
         let session = try await client.auth.session
         try await update(session: session)
-
-        for await event in client.auth.authStateChanges {
-            try await update(session: event.session)
-        }
+        
+//        for await event in client.auth.authStateChanges {
+//            try await update(session: event.session)
+//        }
+        
+        try await storeSpotifyProviderToken(with: session)
     }
     
     private func update(session: Session?) async throws {
@@ -60,9 +62,6 @@ final class UserSessionManager: UserSessionManagerProtocol {
         self.user = session?.user
 
         userSessionChangedSubject.send(session?.user)
-
-        guard let session else { return }
-        try await storeSpotifyProviderToken(with: session)
     }
     
     func loadUser() async throws -> User {

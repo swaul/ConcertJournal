@@ -19,7 +19,18 @@ struct ConcertsView: View {
             Group {
                 if let viewModel {
                     if let errorMessage = viewModel.errorMessage {
-                        Text(errorMessage)
+                        VStack {
+                            Text(errorMessage)
+                            Button {
+                                Task {
+                                    await viewModel.refreshConcerts()
+                                }
+                            } label: {
+                                Label("Neu laden", systemImage: "arrow.counterclockwise")
+                                    .font(.cjHeadline)
+                            }
+                            .buttonStyle(.glassProminent)
+                        }
                     } else if viewModel.futureConcerts.isEmpty && viewModel.pastConcerts.isEmpty {
                         Button {
                             navigationManager.push(.createConcert)

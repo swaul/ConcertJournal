@@ -33,7 +33,7 @@ struct SetlistSong: Identifiable {
 }
 
 @Observable
-class CreateSetlistViewModel: Hashable, Equatable {
+class CreateSetlistViewModel: Hashable, Equatable, Identifiable {
 
     private let didSaveSetlistSubject = PassthroughSubject<[TempCeateSetlistItem], Never>()
 

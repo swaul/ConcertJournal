@@ -9,6 +9,7 @@ import Combine
 import SwiftUI
 import Supabase
 import EventKitUI
+import SpotifyiOS
 
 struct ConcertImage: Identifiable {
     let url: URL
@@ -397,60 +398,67 @@ struct ConcertDetailView: View {
 
     @ViewBuilder
     func makeSetlistItemView(with item: SetlistItem) -> some View {
-        HStack {
-            Text(String(item.position + 1))
-                .font(.cjTitle)
-            VStack(alignment: .leading, spacing: 4) {
-                if let albumName = item.albumName {
-                    Text(albumName)
-                        .font(.cjCaption)
+        Button {
+            guard let spotifyTrackId = item.spotifyTrackId, !spotifyTrackId.isEmpty else { return }
+            let url = "https://open.spotify.com/track/\(spotifyTrackId)"
+            UIApplication.shared.open(URL(string: url)!)
+        } label: {
+            HStack {
+                Text(String(item.position + 1))
+                    .font(.cjTitle)
+                VStack(alignment: .leading, spacing: 4) {
+                    if let albumName = item.albumName {
+                        Text(albumName)
+                            .font(.cjCaption)
+                            .padding(.leading)
+                            .padding(.top)
+                    } else {
+                        Text(" ")
+                    }
+                    HStack {
+                        Group {
+                            AsyncImage(url: URL(string: item.coverImage ?? ""), content: { image in
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 40, height: 40)
+                            }, placeholder: {
+                                Rectangle()
+                                    .fill(Color.gray)
+                                    .frame(width: 40, height: 40)
+                            })
+                        }
+                        .clipShape(.circle)
+                        .frame(width: 40, height: 40)
                         .padding(.leading)
-                        .padding(.top)
-                } else {
-                    Text(" ")
-                }
-                HStack {
-                    Group {
-                        AsyncImage(url: URL(string: item.coverImage ?? ""), content: { image in
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 40, height: 40)
-                        }, placeholder: {
-                            Rectangle()
-                                .fill(Color.gray)
-                                .frame(width: 40, height: 40)
-                        })
+                        
+                        VStack(alignment: .leading) {
+                            Text(item.title)
+                                .font(.cjBody)
+                                .bold()
+                                .lineLimit(2)
+                                .multilineTextAlignment(.leading)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            Text(item.artistNames)
+                                .font(.cjBody)
+                                .lineLimit(2)
+                                .multilineTextAlignment(.leading)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.trailing)
                     }
-                    .clipShape(.circle)
-                    .frame(width: 40, height: 40)
-                    .padding(.leading)
-
-                    VStack(alignment: .leading) {
-                        Text(item.title)
-                            .font(.cjBody)
-                            .bold()
-                            .lineLimit(2)
-                            .multilineTextAlignment(.leading)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-
-                        Text(item.artistNames)
-                            .font(.cjBody)
-                            .lineLimit(2)
-                            .multilineTextAlignment(.leading)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.trailing)
+                    .padding(.bottom)
+                    
                 }
-                .padding(.bottom)
-
+                .background {
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(dependencies.colorThemeManager.appTint.opacity(0.2))
+                }
             }
-            .background {
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(dependencies.colorThemeManager.appTint.opacity(0.2))
-            }
+            .buttonStyle(.plain)
         }
     }
 

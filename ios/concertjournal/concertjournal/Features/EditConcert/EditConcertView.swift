@@ -26,7 +26,7 @@ struct ConcertEditView: View {
     @State private var setlistItems: [TempCeateSetlistItem]
 
     @State private var selectVenuePresenting = false
-    @State private var editSeltistPresenting = false
+    @State private var editSeltistPresenting: CreateSetlistViewModel? = nil
     @State private var editTravelPresenting = false
     @State private var presentTicketEdit = false
 
@@ -128,14 +128,15 @@ struct ConcertEditView: View {
                             }
                         }
                         Button {
-                            editSeltistPresenting = true
+                            editSeltistPresenting = CreateSetlistViewModel(currentSelection: setlistItems, spotifyRepository: dependencies.spotifyRepository, setlistRepository: dependencies.setlistRepository)
+
                         } label: {
                             Text("Setlist hinzufügen")
                                 .font(.cjBody)
                         }
                     } else {
                         Button {
-                            editSeltistPresenting = true
+                            editSeltistPresenting = CreateSetlistViewModel(currentSelection: setlistItems, spotifyRepository: dependencies.spotifyRepository, setlistRepository: dependencies.setlistRepository)
                         } label: {
                             Text("Setlist hinzufügen")
                                 .font(.cjBody)
@@ -144,13 +145,6 @@ struct ConcertEditView: View {
                 } header: {
                     Text("Setlist")
                         .font(.cjBody)
-                }
-                .sheet(isPresented: $editSeltistPresenting) {
-                    let viewModel = CreateSetlistViewModel(currentSelection: setlistItems, spotifyRepository: dependencies.spotifyRepository, setlistRepository: dependencies.setlistRepository)
-                    CreateSetlistView(viewModel: viewModel) { items in
-                        setlistItems = items
-                        editSeltistPresenting = false
-                    }
                 }
 
                 Section {
@@ -210,6 +204,12 @@ struct ConcertEditView: View {
                     self.venueName = venue.name
                     self.venue = venue
                 })
+            }
+            .sheet(item: $editSeltistPresenting) { item in
+                CreateSetlistView(viewModel: item) { items in
+                    setlistItems = items
+                    editSeltistPresenting = nil
+                }
             }
         }
     }
