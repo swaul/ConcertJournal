@@ -76,7 +76,8 @@ struct ConcertJournalApp: App {
             }
             .sheet(item: $importConcertItem) { item in
                 ConcertImportView(extractedInfo: item) { importedConcert in
-                    navigationManager.presentSheet(NavigationRoute.createConcertFromImport(importedConcert))
+                    importConcertItem = nil
+                    navigationManager.push(NavigationRoute.createConcertFromImport(importedConcert))
                 }
             }
             .task {

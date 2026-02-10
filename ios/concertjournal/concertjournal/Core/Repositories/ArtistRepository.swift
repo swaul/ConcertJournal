@@ -10,7 +10,7 @@ import Supabase
 
 protocol ArtistRepositoryProtocol {
     func searchArtists(query: String) async throws -> [Artist]
-    func getOrCreateArtist(_ artist: CreateArtistDTO) async throws -> String
+    func getOrCreateArtist(_ artist: CreateArtistDTO) async throws -> Artist
 }
 
 class BFFArtistRepository: ArtistRepositoryProtocol {
@@ -26,11 +26,8 @@ class BFFArtistRepository: ArtistRepositoryProtocol {
         return try await client.get("/artists/search?q=\(encoded)")
     }
     
-    func getOrCreateArtist(_ artist: CreateArtistDTO) async throws -> String {
-        struct Response: Codable {
-            let id: String
-        }
-        let response: Response = try await client.post("/artists", body: artist)
-        return response.id
+    func getOrCreateArtist(_ artist: CreateArtistDTO) async throws -> Artist {
+        let response: Artist = try await client.post("/artists", body: artist)
+        return response
     }
 }

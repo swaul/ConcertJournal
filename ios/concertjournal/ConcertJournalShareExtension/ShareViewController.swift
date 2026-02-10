@@ -254,7 +254,7 @@ class ShareViewController: UIViewController {
 
     private func saveConcertToSharedContainer(_ concert: ExtractedConcertInfo) {
         guard let sharedContainer = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: "group.com.yourcompany.concertjournal"
+            forSecurityApplicationGroupIdentifier: "group.de.kuehnel.concertjournal"
         ) else {
             print("Failed to access shared container")
             return
@@ -277,7 +277,7 @@ class ShareViewController: UIViewController {
         while responder != nil {
             if let application = responder as? UIApplication {
                 let url = URL(string: "concertjournal://import-concert")!
-                application.perform(#selector(UIApplication.open(_:options:)), with: url)
+                application.open(url)
                 break
             }
             responder = responder?.next
@@ -603,6 +603,7 @@ class ConcertLinkExtractor {
     // MARK: - Helpers
 
     private func fetchHTML(from url: URL) async throws -> String {
+        print("Trying to handle url: \(url.absoluteString)")
         let (data, _) = try await URLSession.shared.data(from: url)
         guard let html = String(data: data, encoding: .utf8) else {
             throw ExtractionError.invalidHTML

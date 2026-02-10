@@ -179,6 +179,7 @@ extension NavigationRoute: Identifiable {
         case .profile: return "profile"
         case .concertDetail(let concert): return "concert-\(concert.id)"
         case .createConcert: return "create-concert"
+        case .createConcertFromImport(let imported): return "create-concert-from-\(imported)"
         case .editConcert(let concert): return "edit-\(concert.id)"
         case .selectArtist: return "select-artist"
         case .artistDetail(let artist): return "artist-\(artist.id)"

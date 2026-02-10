@@ -48,10 +48,10 @@ class CreateConcertVisitViewModel: Hashable, Equatable {
     func createVisit(from new: NewConcertVisit) async throws -> String {
         guard let artist else { throw URLError(.notConnectedToInternet) }
         let createArtist = CreateArtistDTO(artist: artist)
-        let artistId = try await artistRepository.getOrCreateArtist(createArtist)
+        let artistResponse = try await artistRepository.getOrCreateArtist(createArtist)
 
         guard let userId = userSessionManager.user?.id.uuidString else { throw URLError(.notConnectedToInternet) }
-        let newConcert = NewConcertDTO(with: new, by: userId, with: artistId)
+        let newConcert = NewConcertDTO(with: new, by: userId, with: artistResponse.id)
 
         let concert = try await concertRepository.createConcert(newConcert)
 

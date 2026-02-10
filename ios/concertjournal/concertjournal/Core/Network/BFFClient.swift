@@ -115,7 +115,13 @@ class BFFClient {
             throw BFFError.httpError(httpResponse.statusCode)
         }
 
-        return try JSONDecoder().decode(T.self, from: data)
+        do {
+            let decoded: T = try JSONDecoder().decode(T.self, from: data)
+            
+            return decoded
+        } catch {
+            throw NetworkError.decodingError
+        }
     }
 
     // MARK: - Helper Methods

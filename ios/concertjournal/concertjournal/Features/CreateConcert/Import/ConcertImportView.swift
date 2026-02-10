@@ -193,13 +193,24 @@ struct ConcertImportView: View {
 
     func searchForExtractedArtist() async throws -> Artist? {
         // Erstelle neuen Künstler
-        let artistsForQuery = try await dependencies.artistRepository.searchArtists(query: extractedInfo.artistName)
-        return artistsForQuery.first
+        var importedArtsit: Artist?
+        
+        importedArtsit = try await dependencies.artistRepository.searchArtists(query: extractedInfo.artistName).first
+        
+        if importedArtsit == nil {
+            let spotifyArtist = try await dependencies.spotifyRepository.searchArtists(query: extractedInfo.artistName, limit: 1, offset: 0)
+            if let foundSpotifyArtist = spotifyArtist.first {
+                importedArtsit = try await dependencies.artistRepository.getOrCreateArtist(CreateArtistDTO(artist: Artist(artist: foundSpotifyArtist)))
+            }
+        }
+
+        return importedArtsit
     }
 
     func findOrCreateVenue() async throws -> Venue? {
+        guard let venueName = extractedInfo.venueName, !venueName.isEmpty else { return nil }
         let request = MKLocalSearch.Request()
-        request.naturalLanguageQuery = extractedInfo.venueName
+        request.naturalLanguageQuery = venueName
         request.resultTypes = .pointOfInterest
 
         let result = try await MKLocalSearch(request: request).start()
@@ -228,7 +239,8 @@ struct ConcertImportView: View {
     }
 }
 
-struct ImportedConcert {
+struct ImportedConcert: Hashable {
+    
     let date: Date?
     let venue: Venue?
     let venueName: String?

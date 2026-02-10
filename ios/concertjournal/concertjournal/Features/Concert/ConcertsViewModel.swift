@@ -69,7 +69,9 @@ class ConcertsViewModel {
             filterConcerts(concerts)
         } catch let error as NetworkError {
             errorMessage = error.localizedDescription
+            logError("Getting concerts failed", error: error, category: .repository)
         } catch {
+            logError("Getting concerts failed", error: error, category: .repository)
             errorMessage = "Ein unbekannter Fehler ist aufgetreten"
         }
     }
