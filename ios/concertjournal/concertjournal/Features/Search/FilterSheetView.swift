@@ -370,8 +370,10 @@ struct FilterChipView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
-        Capsule()
-            .fill(Color(uiColor: .systemBackground))
+        .background(
+            Capsule()
+                .fill(Color(uiColor: .systemBackground))
+        )
         .background(
             Capsule()
                 .fill(dependencies.colorThemeManager.appTint.opacity(0.15))
