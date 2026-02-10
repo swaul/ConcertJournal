@@ -11,28 +11,54 @@ import Foundation
 struct SearchView: View {
 
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.navigationManager) private var navigationManager
 
     @Bindable var viewModel: SearchViewModel
 
+    @State private var filterPresented = false
+
     var body: some View {
-        NavigationStack {
+        @Bindable var navigationManager = navigationManager
+
+        NavigationStack(path: $navigationManager.path) {
             ScrollView {
                 VStack {
                     ForEach(viewModel.concertsToDisaplay, id: \.id) { concert in
-                        visitItem(visit: concert)
+                        Button {
+                            navigationManager.push(.concertDetail(concert))
+                        } label: {
+                            visitItem(visit: concert)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
-                .padding(.horizontal)
+                .padding()
             }
             .scrollIndicators(.never)
             .scrollBounceBehavior(.basedOnSize)
             .searchable(text: $viewModel.searchText)
+            .navigationTitle("Durchsuchen")
+            .sheet(isPresented: $filterPresented) {
+                FilterSheetView(filters: viewModel.concertFilter,
+                                availableArtists: viewModel.availableArtists,
+                                availableCities: viewModel.availableCities)
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    FilterButton(filterCount: viewModel.concertFilter.activeFilterCount) {
+                        filterPresented = true
+                    }
+                }
+            }
             .task {
                 do {
                     try await viewModel.loadConcerts()
                 } catch {
                     viewModel.errorMessage = error.localizedDescription
                 }
+            }
+            .navigationDestination(for: NavigationRoute.self) { route in
+                navigationDestination(for: route)
             }
         }
     }
@@ -91,4 +117,17 @@ struct SearchView: View {
                 .shadow(radius: 3, x: 2, y: 2)
         }
     }
+
+    @ViewBuilder
+    private func navigationDestination(for route: NavigationRoute) -> some View {
+        switch route {
+        case .concertDetail(let concert):
+            ConcertDetailView(concert: concert)
+                .toolbarVisibility(.hidden, for: .tabBar)
+
+        default:
+            Text("Not implemented: \(String(describing: route))")
+        }
+    }
+
 }

@@ -12,9 +12,19 @@ class SearchViewModel {
 
     private let concertRepository: ConcertRepositoryProtocol
 
+    var concertFilter = ConcertFilters()
+
     var errorMessage: String? = nil
     var concerts: [FullConcertVisit] = []
     var searchText: String = ""
+
+    var availableArtists: [String] {
+        concerts.map { $0.artist.name }
+    }
+
+    var availableCities: [String] {
+        concerts.compactMap { $0.city }
+    }
 
     var concertsToDisaplay: [FullConcertVisit] {
         if searchText.isEmpty {

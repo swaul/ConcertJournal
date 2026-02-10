@@ -25,8 +25,9 @@ struct MapView: View {
     @State private var detentHeight: CGFloat = 330
 
     var body: some View {
-        @Bindable var navigationManager = navigationManager
-
+        NavigationStack {
+            @Bindable var navigationManager = navigationManager
+            
             Group {
                 if let viewModel, !viewModel.isLoading {
                     map(viewModel: viewModel)
@@ -38,6 +39,7 @@ struct MapView: View {
                 guard viewModel == nil else { return }
                 viewModel = MapViewModel(concertRepository: dependencies.concertRepository)
             }
+        }
     }
 
     @ViewBuilder

@@ -78,7 +78,6 @@ struct ConcertsView: View {
                 }
             }
         }
-        .withNavigationManager(navigationManager)
         .onReceive(dependencies.userSessionManager.userSessionChanged) { user in
             if user == nil {
                 navigationManager.popToRoot()
@@ -295,7 +294,6 @@ struct ConcertsView: View {
             Text("Not implemented: \(String(describing: route))")
         }
     }
-
 
     private func refreshVisits() async {
         await viewModel?.loadConcerts()

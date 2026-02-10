@@ -27,6 +27,10 @@ struct MainAppView: View {
                 SearchView(viewModel: SearchViewModel(concertRepository: dependencies.concertRepository))
             }
         }
+        .withNavigationManager(navigationManager)
         .tabBarMinimizeBehavior(.onScrollDown)
+        .onChange(of: navigationManager.selectedTab) { oldValue, newValue in
+            print(newValue)
+        }
     }
 }
