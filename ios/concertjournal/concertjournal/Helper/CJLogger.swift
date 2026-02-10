@@ -46,6 +46,7 @@ enum LogCategory: String {
     case ui = "UI"
     case supabase = "Supabase"
     case bff = "BFF"
+    case `import` = "import"
 }
 
 struct LogEntry {

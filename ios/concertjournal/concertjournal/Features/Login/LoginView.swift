@@ -100,7 +100,7 @@ struct LoginView: View, KeyboardReadable {
             }
         })
         .sheet(isPresented: $passwordResetPresenting) {
-            PasswordResetView(email: viewModel.email)
+            ForgotPasswordView(email: viewModel.email)
         }
         .overlay {
             if isLoadingAnimated {

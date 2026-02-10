@@ -274,6 +274,10 @@ struct ConcertsView: View {
             CreateConcertVisitView()
                 .toolbarVisibility(.hidden, for: .tabBar)
 
+        case .createConcertFromImport(let importedConcert):
+            CreateConcertVisitView(importedConcert: importedConcert)
+                .toolbarVisibility(.hidden, for: .tabBar)
+
         case .concertDetail(let concert):
             ConcertDetailView(concert: concert)
                 .toolbarVisibility(.hidden, for: .tabBar)

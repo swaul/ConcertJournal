@@ -2,44 +2,71 @@
 //  PasswordResetView.swift
 //  concertjournal
 //
-//  Created by Paul Kühnel on 09.02.26.
+//  Created by Paul Kühnel on 10.02.26.
 //
 
 import SwiftUI
 import Supabase
 
 struct PasswordResetView: View {
-    
+
     @Environment(\.dependencies) var dependencies
     @Environment(\.dismiss) var dismiss
-    
-    init(email: String) {
-        self._email = State(initialValue: email)
-    }
-    
-    @State var email: String
+
+    let passwordResetRequest: PasswordResetRequest
+
+    @State private var errorMessage: String?
+
+    @State private var newPasswordText: String = ""
+    @State private var repeatNewPasswordText: String = ""
+
     @State private var confirmationText: ConfirmationMessage? = nil
-    @State private var savingConcertPresenting: Bool = false
-    
+    @State private var loadingPasswordChangePresenting: Bool = false
+
+    @FocusState private var newPasswordTextField: Bool
+    @FocusState private var repeatNewPasswordTextField: Bool
+
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading) {
-                
-                Text("Gib deine E-Mail damit wir dir einen Link senden können um Dein Passwort zurück zu setzen.")
+
+                Text("Gib ein neues Passwort ein und zur Überprüfung noch einmal das gleiche")
                     .font(.cjBody)
                     .padding()
-                
-                EmailValidatedTextField("E-Mail", text: $email)
-                    .frame(maxWidth: .infinity)
+
+                SecureField("Neues Passwort", text: $newPasswordText)
+                    .font(.cjBody)
+                    .textContentType(.newPassword)
+                    .focused($newPasswordTextField)
+                    .submitLabel(.next)
                     .padding()
-                
-                
+                    .glassEffect()
+                    .onSubmit {
+                        repeatNewPasswordTextField = true
+                    }
+
+                SecureField("Neues Passwort Wiederholen", text: $repeatNewPasswordText)
+                    .font(.cjBody)
+                    .textContentType(.newPassword)
+                    .focused($repeatNewPasswordTextField)
+                    .submitLabel(.send)
+                    .padding()
+                    .glassEffect()
+                    .onSubmit {
+                        resetPassword()
+                    }
+
+                if let error = errorMessage {
+                    Text(error)
+                        .foregroundColor(.red)
+                }
+
                 Spacer()
-                
+
                 Button {
-                    initiatePasswordReset()
+                    resetPassword()
                 } label: {
-                    Text("Reset link senden")
+                    Text("Passwort ändern")
                         .font(.cjBody)
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -47,11 +74,15 @@ struct PasswordResetView: View {
                 .buttonStyle(.glassProminent)
                 .padding()
             }
+            .padding()
+            .task {
+                await verifyCode()
+            }
             .sheet(item: $confirmationText) { item in
                 ConfirmationView(message: item)
             }
-            .sheet(isPresented: $savingConcertPresenting) {
-                LoadingSheet(message: "Email versenden..")
+            .sheet(isPresented: $loadingPasswordChangePresenting) {
+                LoadingSheet(message: "Password wird geändert..")
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -63,17 +94,46 @@ struct PasswordResetView: View {
                     }
                 }
             }
-            .navigationTitle("Passwort vergessen")
+            .navigationTitle("Neues Passwort")
+            .interactiveDismissDisabled()
         }
     }
-    
-    func initiatePasswordReset() {
+
+    func verifyCode() async {
+        do {
+            let session = try await dependencies.supabaseClient.client.auth.exchangeCodeForSession(authCode: passwordResetRequest.code)
+            logSuccess("Code verified, session created")
+        } catch {
+            errorMessage = "Reset-Link ist ungültig oder abgelaufen"
+            logError("Code verification failed", error: error)
+        }
+    }
+
+    func resetPassword() {
         Task {
-            savingConcertPresenting = true
-            try await dependencies.supabaseClient.client.auth.resetPasswordForEmail(email, redirectTo: URL(string: "https://swaul.github.io/ConcertJournal/reset-password.html"))
-            savingConcertPresenting = false
-            confirmationText = ConfirmationMessage(message: "Email gesendet 🎉") {
-                dismiss()
+            guard newPasswordText == repeatNewPasswordText else {
+                errorMessage = "Passwörter stimmen nicht überein"
+                return
+            }
+
+            guard newPasswordText.count >= 6 else {
+                errorMessage = "Passwort muss mindestens 6 Zeichen lang sein"
+                return
+            }
+
+            loadingPasswordChangePresenting = true
+            errorMessage = nil
+
+            do {
+                try await dependencies.supabaseClient.client.auth.update(user: UserAttributes(password: newPasswordText))
+
+                loadingPasswordChangePresenting = false
+                confirmationText = ConfirmationMessage(message: "Passwort geändert! 🎉") {
+                    dismiss()
+                }
+
+            } catch {
+                errorMessage = error.localizedDescription
             }
         }
     }

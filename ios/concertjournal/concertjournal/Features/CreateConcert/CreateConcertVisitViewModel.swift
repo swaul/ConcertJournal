@@ -29,7 +29,8 @@ class CreateConcertVisitViewModel: Hashable, Equatable {
     private let userSessionManager: UserSessionManagerProtocol
     private let photoRepository: PhotoRepositoryProtocol
 
-    init(artistRepository: ArtistRepositoryProtocol,
+    init(artist: Artist? = nil,
+         artistRepository: ArtistRepositoryProtocol,
          concertRepository: ConcertRepositoryProtocol,
          userSessionManager: UserSessionManagerProtocol,
          photoRepository: PhotoRepositoryProtocol,
@@ -40,6 +41,7 @@ class CreateConcertVisitViewModel: Hashable, Equatable {
         self.userSessionManager = userSessionManager
         self.setlistRepository = setlistRepository
 
+        self.artist = artist
         self.id = UUID().uuidString
     }
 

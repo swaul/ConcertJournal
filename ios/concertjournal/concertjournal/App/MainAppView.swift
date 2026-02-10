@@ -10,14 +10,15 @@ import SwiftUI
 struct MainAppView: View {
 
     @Environment(\.dependencies) private var dependencies
-
-    @State private var navigationManager = NavigationManager()
+    @Environment(\.navigationManager) private var navigationManager
 
     #if DEBUG
         @State private var showDebugLogs = false
     #endif
 
     var body: some View {
+        @Bindable var navigationManager = navigationManager
+
         TabView(selection: $navigationManager.selectedTab) {
             Tab("Konzerte", systemImage: "music.note.list", value: NavigationRoute.concerts) {
                 ConcertsView()
@@ -31,7 +32,6 @@ struct MainAppView: View {
                 SearchView(viewModel: SearchViewModel(concertRepository: dependencies.concertRepository))
             }
         }
-        .withNavigationManager(navigationManager)
         .tabBarMinimizeBehavior(.onScrollDown)
         .onChange(of: navigationManager.selectedTab) { oldValue, newValue in
             print(newValue)

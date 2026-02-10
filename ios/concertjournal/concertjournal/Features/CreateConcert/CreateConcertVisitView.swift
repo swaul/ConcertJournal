@@ -19,6 +19,36 @@ struct NewConcertVisit: Identifiable, Equatable {
     var travel: Travel? = nil
     var venue: Venue? = nil
     var setlistItems: [TempCeateSetlistItem] = []
+
+    init(importeConcert: ImportedConcert) {
+        self.date = importeConcert.date ?? .now
+        self.entranceTime = .now
+        self.artistName = importeConcert.artistName ?? ""
+        self.venueName = importeConcert.venueName ?? ""
+        self.title = importeConcert.title ?? ""
+        self.notes = importeConcert.notes ?? ""
+        self.rating = 0
+
+        self.ticket = nil
+        self.travel = nil
+        self.venue = importeConcert.venue
+        self.setlistItems = []
+    }
+
+    init() {
+        self.date = .now
+        self.entranceTime = .now
+        self.artistName = ""
+        self.venueName = ""
+        self.title = ""
+        self.notes = ""
+        self.rating = 0
+
+        self.ticket = nil
+        self.travel = nil
+        self.venue = nil
+        self.setlistItems = []
+    }
 }
 
 extension View {
@@ -44,7 +74,7 @@ struct CreateConcertVisitView: View {
 
     @State var viewModel: CreateConcertVisitViewModel?
 
-    @State private var draft = NewConcertVisit()
+    @State private var draft: NewConcertVisit
     @State private var presentConfirmation = false
     
     @State private var selectArtistPresenting = false
@@ -59,7 +89,20 @@ struct CreateConcertVisitView: View {
     @FocusState private var noteEditorFocused
 
     @State private var savingConcertPresenting: Bool = false
-    
+
+    let possibleArtist: Artist?
+
+    init(importedConcert: ImportedConcert? = nil) {
+        guard let importedConcert else {
+            draft = NewConcertVisit()
+            possibleArtist = nil
+            return
+        }
+
+        possibleArtist = importedConcert.artist
+        draft = NewConcertVisit(importeConcert: importedConcert)
+    }
+
     var body: some View {
         Group {
             if let artist = viewModel?.artist {
@@ -104,7 +147,8 @@ struct CreateConcertVisitView: View {
         }
         .task {
             guard viewModel == nil else { return }
-            self.viewModel = CreateConcertVisitViewModel(artistRepository: dependencies.artistRepository,
+            self.viewModel = CreateConcertVisitViewModel(artist: possibleArtist,
+                                                         artistRepository: dependencies.artistRepository,
                                                          concertRepository: dependencies.concertRepository,
                                                          userSessionManager: dependencies.userSessionManager,
                                                          photoRepository: dependencies.photoRepository,
