@@ -12,28 +12,38 @@ struct MapView: View {
     @Environment(\.dependencies) var dependencies
     @Environment(\.navigationManager) var navigationManager
 
-    let concertLocations: [ConcertMapItem]
-    @State var position: MapCameraPosition
+    @State private var viewModel: MapViewModel?
+
+    @State private var position: MapCameraPosition = .automatic
     @State private var selectedItem: ConcertMapItem?
     @State private var pendingItem: ConcertMapItem?
     @State private var isCameraMoving = false
-    
+
     @State private var defaultPosition: MapCameraPosition? = nil
 
     @State private var selectedDetent: PresentationDetent = .height(330)
     @State private var detentHeight: CGFloat = 330
 
-    init(concerts: [FullConcertVisit]) {
-        self.concertLocations = Self.groupConcertsByLocation(concerts)
-        
-        _position = State(initialValue: .region(
-            MKCoordinateRegion(center: Self.centerCoordinate(of: concertLocations),
-                               span: MKCoordinateSpan(latitudeDelta: 0.5, longitudeDelta: 0.5))))
-    }
-    
     var body: some View {
+        @Bindable var navigationManager = navigationManager
+
+            Group {
+                if let viewModel, !viewModel.isLoading {
+                    map(viewModel: viewModel)
+                } else {
+                    LoadingView()
+                }
+            }
+            .task {
+                guard viewModel == nil else { return }
+                viewModel = MapViewModel(concertRepository: dependencies.concertRepository)
+            }
+    }
+
+    @ViewBuilder
+    func map(viewModel: MapViewModel) -> some View {
         Map(position: $position) {
-            ForEach(concertLocations) { item in
+            ForEach(viewModel.concertLocations) { item in
                 Annotation(item.venueName, coordinate: item.coordinates) {
                     Text("\(item.concerts.count)")
                         .font(.cjBody)
@@ -44,10 +54,10 @@ struct MapView: View {
                         .onTapGesture {
                             let targetRegion = region(for: item)
                             pendingItem = item
-                            
+
                             if let currentRegion = position.region,
                                currentRegion.isApproximatelyEqual(to: targetRegion) {
-                                
+
                                 // Kamera bewegt sich nicht → direkt anzeigen
                                 withAnimation(.easeInOut(duration: 0.3)) {
                                     selectedItem = item
@@ -62,6 +72,10 @@ struct MapView: View {
                         }
                 }
             }
+        }
+        .onChange(of: viewModel.concertLocations) { _, newValue in
+            position = .region(MKCoordinateRegion(center: Self.centerCoordinate(of: newValue),
+                                                  span: MKCoordinateSpan(latitudeDelta: 0.5, longitudeDelta: 0.5)))
         }
         .toolbar {
             if let defaultPosition {
@@ -116,7 +130,7 @@ struct MapView: View {
             defaultPosition = position
         }
     }
-    
+
     func detailInfo(item: ConcertMapItem) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
@@ -141,6 +155,7 @@ struct MapView: View {
                 VStack(alignment: .leading) {
                     ForEach(item.concerts, id: \.self) { concert in
                         Button {
+                            navigationManager.selectedTab = .concerts
                             navigationManager.push(.concertDetail(concert))
                             selectedItem = nil
                         } label: {
@@ -192,7 +207,7 @@ struct MapView: View {
             }
         }
     }
-    
+
     func region(for item: ConcertMapItem) -> MKCoordinateRegion {
         MKCoordinateRegion(
             center: item.coordinates,
@@ -202,55 +217,30 @@ struct MapView: View {
             )
         )
     }
-    
+
     static func centerCoordinate(of items: [ConcertMapItem]) -> CLLocationCoordinate2D {
         let latitudes = items.map { $0.coordinates.latitude }
         let longitudes = items.map { $0.coordinates.longitude }
-        
+
         return CLLocationCoordinate2D(
             latitude: latitudes.reduce(0, +) / Double(latitudes.count),
             longitude: longitudes.reduce(0, +) / Double(longitudes.count)
         )
     }
-    
-    static func groupConcertsByLocation(_ concerts: [FullConcertVisit]) -> [ConcertMapItem] {
-        let concertsWithVenue = concerts.filter { concert in
-            guard
-                let venue = concert.venue,
-                (venue.latitude != nil) && (venue.longitude != nil)
-            else { return false }
-            return true
-        }
-        let grouped = Dictionary(grouping: concertsWithVenue) { concert in
-            let lat = concert.venue!.latitude!
-            let lon = concert.venue!.longitude!
-            return "\(lat.rounded(toPlaces: 5))-\(lon.rounded(toPlaces: 5))"
-        }
-        
-        return grouped.compactMap { (_, concerts) in
-            guard
-                let venue = concerts.first?.venue,
-                let lat = venue.latitude,
-                let lon = venue.longitude
-            else { return nil }
-            
-            return ConcertMapItem(
-                venueName: venue.name,
-                coordinates: CLLocationCoordinate2D(latitude: lat, longitude: lon),
-                concerts: concerts
-            )
-        }
+}
+
+struct ConcertMapItem: Identifiable, Equatable {
+    static func == (lhs: ConcertMapItem, rhs: ConcertMapItem) -> Bool {
+        lhs.id == rhs.id
     }
     
-    struct ConcertMapItem: Identifiable {
-        let id = UUID()
-        let venueName: String
-        let coordinates: CLLocationCoordinate2D
-        let concerts: [FullConcertVisit]
-        
-        var title: String {
-            concerts.count == 1 ? concerts.first!.title ?? concerts.first!.artist.name : "\(concerts.count) Konzerte"
-        }
+    let id = UUID()
+    let venueName: String
+    let coordinates: CLLocationCoordinate2D
+    let concerts: [FullConcertVisit]
+
+    var title: String {
+        concerts.count == 1 ? concerts.first!.title ?? concerts.first!.artist.name : "\(concerts.count) Konzerte"
     }
 }
 

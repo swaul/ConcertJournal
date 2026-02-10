@@ -1,9 +1,12 @@
 import SwiftUI
 import SpotifyiOS
 
-struct LoginView: View {
+struct LoginView: View, KeyboardReadable {
 
     @Environment(\.dependencies) var dependencies
+    @Bindable var manager: OnboardingManager
+
+    @State private var isKeyboardVisible = false
 
     @State var viewModel: AuthViewModel?
     
@@ -21,17 +24,50 @@ struct LoginView: View {
     @FocusState var newPassowrdRepeatTextField: Bool
 
     var body: some View {
-        Group {
-            if let viewModel {
-                viewWithViewModel(viewModel: viewModel)
-            } else {
-                Text("Laden fehlgeschlagen")
+        NavigationStack {
+            ZStack {
+                LinearGradient(
+                    colors: [
+                        Color.accentColor.opacity(0.3),
+                        Color.accentColor.opacity(0.1)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
+                .onTapGesture {
+                    dismissKeyboard()
+                }
+
+                if let viewModel {
+                    viewWithViewModel(viewModel: viewModel)
+                } else {
+                    Text("Laden fehlgeschlagen")
+                }
             }
-        }
-        .task {
-            guard viewModel == nil else { return }
-            print("Dependencies", dependencies)
-            viewModel = AuthViewModel(supabaseClient: dependencies.supabaseClient, userSessionManager: dependencies.userSessionManager)
+            .onReceive(keyboardPublisher, perform: { value in
+                withAnimation {
+                    isKeyboardVisible = value
+                }
+            })
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button {
+                            manager.resetOnboarding()
+                        } label: {
+                            Text("Onboarding neu starten")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                    }
+                }
+            }
+            .task {
+                guard viewModel == nil else { return }
+                print("Dependencies", dependencies)
+                viewModel = AuthViewModel(supabaseClient: dependencies.supabaseClient, userSessionManager: dependencies.userSessionManager)
+            }
         }
     }
     
@@ -40,24 +76,19 @@ struct LoginView: View {
         @Bindable var viewModel = viewModel
 
         VStack {
-            Spacer()
-            Text("Concert Journal")
-                .font(.cjLargeTitle)
-            
-            Text("All Deine Konzerte, gespeichert an einem Ort.")
-                .font(.cjBody)
-            
+            if !isKeyboardVisible {
+                Spacer()
+                Text("Concert Journal")
+                    .font(.cjLargeTitle)
+
+                Text("All Deine Konzerte, gespeichert an einem Ort.")
+                    .font(.cjBody)
+            }
             Spacer()
 
             loginContent(viewModel: viewModel)
         }
         .padding()
-        .background {
-            Color(uiColor: .systemBackground).ignoresSafeArea()
-                .onTapGesture {
-                    dismissKeyboard()
-                }
-        }
         .onChange(of: viewModel.isLoading, { _, newValue in
             withAnimation {
                 isLoadingAnimated = newValue
@@ -163,17 +194,6 @@ struct LoginView: View {
                     }
                 }
                 
-                HStack {
-                    Spacer()
-                    Button {
-                        passwordResetPresenting = true
-                    } label: {
-                        Text("Passwort vergessen")
-                            .font(.cjFootnote)
-                            .underline()
-                    }
-                }
-                
                 if loginTypeAnimated == .register {
                     ZStack {
                         if showPassword {
@@ -215,6 +235,17 @@ struct LoginView: View {
                     }
                     .transition(.move(edge: .trailing).combined(with: .opacity))
                 }
+
+                HStack {
+                    Spacer()
+                    Button {
+                        passwordResetPresenting = true
+                    } label: {
+                        Text("Passwort vergessen")
+                            .font(.cjFootnote)
+                            .underline()
+                    }
+                }
             }
             
             if let error = errorMessageAnimated {
@@ -227,9 +258,9 @@ struct LoginView: View {
             loginButtons(viewModel: viewModel)
         }
         .padding()
+        .rectangleGlass()
         .background {
-            Color(uiColor: .secondarySystemBackground)
-                .clipShape(RoundedRectangle(cornerRadius: 25))
+            Color.clear
                 .onTapGesture {
                     dismissKeyboard()
                 }
@@ -322,7 +353,7 @@ struct LoginView: View {
             }
         }
     }
-    
+
     func dismissKeyboard() {
         emailTextField = false
         passwordTextField = false
@@ -341,5 +372,26 @@ struct LoginView: View {
                 return "Registrieren"
             }
         }
+    }
+}
+
+import Combine
+
+protocol KeyboardReadable {
+    var keyboardPublisher: AnyPublisher<Bool, Never> { get }
+}
+
+extension KeyboardReadable {
+    var keyboardPublisher: AnyPublisher<Bool, Never> {
+        Publishers.Merge(
+            NotificationCenter.default
+                .publisher(for: UIResponder.keyboardWillShowNotification)
+                .map { _ in true },
+
+            NotificationCenter.default
+                .publisher(for: UIResponder.keyboardWillHideNotification)
+                .map { _ in false}
+        )
+        .eraseToAnyPublisher()
     }
 }

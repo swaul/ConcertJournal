@@ -30,6 +30,9 @@ struct ConcertJournalApp: App {
     // MARK: - Dependency Container (erstellt alle Dependencies)
 
     @State private var dependencies = DependencyContainer()
+    @State private var onboardingManager = OnboardingManager()
+
+    @State private var hasCompletedOnboarding = false
 
     // MARK: - App State
 
@@ -37,23 +40,34 @@ struct ConcertJournalApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ZStack {
+            Group {
                 if isLoading {
                     ProgressView()
                         .progressViewStyle(.circular)
                         .scaleEffect(2.5)
+                } else if !hasCompletedOnboarding {
+                    OnboardingView(manager: onboardingManager)
+                        .transition(.move(edge: .leading).combined(with: .opacity))
                 } else {
                     if dependencies.userSessionManager.user != nil {
-                        ConcertsView()
+                        MainAppView()
+                            .transition(.move(edge: .trailing).combined(with: .opacity))
                     } else {
-                        LoginView(viewModel: AuthViewModel(supabaseClient: dependencies.supabaseClient, userSessionManager: dependencies.userSessionManager))
+                        LoginView(manager: onboardingManager, viewModel: AuthViewModel(supabaseClient: dependencies.supabaseClient, userSessionManager: dependencies.userSessionManager))
+                            .transition(.move(edge: .trailing).combined(with: .opacity))
                     }
                 }
             }
             .tint(dependencies.colorThemeManager.appTint)
             .environment(\.appTintColor, dependencies.colorThemeManager.appTint)
             .withDependencies(dependencies)
+            .onChange(of: onboardingManager.hasCompletedOnboarding) { _, newValue in
+                withAnimation {
+                    hasCompletedOnboarding = newValue
+                }
+            }
             .task {
+                hasCompletedOnboarding = onboardingManager.hasCompletedOnboarding
                 logInfo("App starting user session", category: .auth)
                 do {
                     try await dependencies.userSessionManager.start()
@@ -67,7 +81,9 @@ struct ConcertJournalApp: App {
             }
             .onReceive(dependencies.userSessionManager.userSessionChanged) { _ in
                 if isLoading {
-                    isLoading = false
+                    withAnimation {
+                        isLoading = false
+                    }
                 }
                 dependencies.concertRepository.reset()
             }

@@ -25,5 +25,11 @@
 		<string>Manrope-Regular.otf</string>
 		<string>Manrope-SemiBold.otf</string>
 	</array>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Concert Journal möchte auf deine Fotos zugreifen, um Bilder zu deinen Konzerten hinzuzufügen.</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>Concert Journal möchte Fotos in deiner Galerie speichern.</string>
+    <key>NSUserTrackingUsageDescription</key>
+    <string>Concert Journal möchte deine App-Nutzung verfolgen, um dir eine bessere Erfahrung zu bieten und die App zu verbessern.</string>
 </dict>
 </plist>

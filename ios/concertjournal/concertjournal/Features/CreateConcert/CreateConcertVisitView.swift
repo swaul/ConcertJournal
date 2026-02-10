@@ -33,8 +33,7 @@ extension View {
     
     @ViewBuilder
     func rectangleGlass() -> some View {
-        self
-            .glassEffect(in: RoundedRectangle(cornerRadius: 20))
+        self.glassEffect(in: RoundedRectangle(cornerRadius: 20))
     }
 }
 

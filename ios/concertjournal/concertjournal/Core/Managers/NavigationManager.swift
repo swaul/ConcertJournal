@@ -11,8 +11,8 @@ import Observation
 enum NavigationRoute: Hashable {
     // Main Tabs
     case concerts
-    case map([FullConcertVisit])
-    case profile
+    case map
+    case search
 
     // Concert Related
     case concertDetail(FullConcertVisit)
@@ -33,13 +33,20 @@ enum NavigationRoute: Hashable {
 
     case playlist
     
-    // Settings
+    // Profile
+    case profile
     case settings
     case colorPicker
     case faq
     case about
     case privacy
     case impressum
+
+    // Onboarding
+    case trackingPermission
+    case photoPermission
+    case featurePage
+    case completion
 }
 
 @Observable
@@ -185,6 +192,11 @@ extension NavigationRoute: Identifiable {
         case .privacy: return "privacy"
         case .impressum: return "impressum"
         case .playlist: return ""
+        case .trackingPermission: return "trackingPermission"
+        case .photoPermission: return "photoPermission"
+        case .featurePage: return "featurePage"
+        case .completion: return "completion"
+        case .search: return "search"
         }
     }
 }

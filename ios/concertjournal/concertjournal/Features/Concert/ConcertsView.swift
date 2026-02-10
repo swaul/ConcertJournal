@@ -9,12 +9,13 @@ import SwiftUI
 
 struct ConcertsView: View {
     @Environment(\.dependencies) private var dependencies
-    
-    @State private var navigationManager = NavigationManager()
+    @Environment(\.navigationManager) private var navigationManager
+
     @State private var viewModel: ConcertsViewModel? = nil
-    @State private var searchText: String = ""
-        
+
     var body: some View {
+        @Bindable var navigationManager = navigationManager
+
         NavigationStack(path: $navigationManager.path) {
             Group {
                 if let viewModel {
@@ -137,12 +138,11 @@ struct ConcertsView: View {
         }
         .scrollIndicators(.hidden)
         .safeAreaInset(edge: .bottom) {
-            createButton(viewModel: viewModel)
+            createButton()
         }
         .refreshable {
             await viewModel.refreshConcerts()
         }
-        .tabBarMinimizeBehavior(.onScrollDown)
     }
 
     @ViewBuilder
@@ -251,22 +251,9 @@ struct ConcertsView: View {
     }
 
     @ViewBuilder
-    func createButton(viewModel: ConcertsViewModel, showMapButton: Bool = true) -> some View {
+    func createButton() -> some View {
         HStack {
             Spacer()
-            VStack {
-                Button {
-                    var allConcerts = viewModel.pastConcerts
-                    allConcerts.append(contentsOf: viewModel.futureConcerts)
-                    navigationManager.push(.map(allConcerts))
-                } label: {
-                    Image(systemName: "map")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(height: 28)
-                        .padding(8)
-                }
-                .buttonStyle(.glass)
                 Button {
                     navigationManager.push(.createConcert)
                 } label: {
@@ -277,7 +264,6 @@ struct ConcertsView: View {
                         .padding(8)
                 }
                 .buttonStyle(.glassProminent)
-            }
         }
         .padding()
     }
@@ -287,21 +273,23 @@ struct ConcertsView: View {
         switch route {
         case .createConcert:
             CreateConcertVisitView()
-            
+                .toolbarVisibility(.hidden, for: .tabBar)
+
         case .concertDetail(let concert):
             ConcertDetailView(concert: concert)
+                .toolbarVisibility(.hidden, for: .tabBar)
 
         case .colorPicker:
             ColorSetView()
+                .toolbarVisibility(.hidden, for: .tabBar)
 
         case .faq:
             FAQView()
+                .toolbarVisibility(.hidden, for: .tabBar)
 
         case .profile:
             ProfileView()
-
-        case .map(let concerts):
-            MapView(concerts: concerts)
+                .toolbarVisibility(.hidden, for: .tabBar)
 
         default:
             Text("Not implemented: \(String(describing: route))")
