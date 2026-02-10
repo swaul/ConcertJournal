@@ -18,7 +18,7 @@ struct ConcertsView: View {
 
         NavigationStack(path: $navigationManager.path) {
             Group {
-                if let viewModel {
+                if let viewModel, !viewModel.isLoading {
                     if let errorMessage = viewModel.errorMessage {
                         VStack {
                             Text(errorMessage)

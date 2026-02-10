@@ -135,47 +135,33 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "58F90E5B-C1D8-4A27-B3AA-8F43742CD46A"
+            uuid = "E130F566-357D-4A3C-9256-9F9F9952FDA9"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "concertjournal/Features/Concert/ConcertsViewModel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "75"
-            endingLineNumber = "75"
+            startingLineNumber = "71"
+            endingLineNumber = "71"
             landmarkName = "refreshConcerts()"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "58F90E5B-C1D8-4A27-B3AA-8F43742CD46A - 8c8df528e5e5679b"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(3) suspend resume partial function for concertjournal.ConcertsViewModel.refreshConcerts() async -&gt; ()"
-                  moduleName = "concertjournal.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/pkuhnel/Projects/Testable/ConcertJournal/ios/concertjournal/concertjournal/Features/Concert/ConcertsViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "75"
-                  endingLineNumber = "75">
-               </Location>
-               <Location
-                  uuid = "58F90E5B-C1D8-4A27-B3AA-8F43742CD46A - a131f6ac13ff81da"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(4) suspend resume partial function for concertjournal.ConcertsViewModel.refreshConcerts() async -&gt; ()"
-                  moduleName = "concertjournal.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/pkuhnel/Projects/Testable/ConcertJournal/ios/concertjournal/concertjournal/Features/Concert/ConcertsViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "75"
-                  endingLineNumber = "75">
-               </Location>
-            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "C574C628-912E-48B1-B349-2E7E517A2480"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "concertjournal/Features/Concert/ConcertsViewModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "73"
+            endingLineNumber = "73"
+            landmarkName = "refreshConcerts()"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

@@ -9,7 +9,9 @@ import SwiftUI
 
 struct FilterSheetView: View {
 
+    @Environment(\.dependencies) private var dependencies
     @Environment(\.dismiss) private var dismiss
+
     @Bindable var filters: ConcertFilters
 
     let availableArtists: [String]
@@ -20,197 +22,21 @@ struct FilterSheetView: View {
     var body: some View {
         NavigationStack {
             List {
-                // Sort Section
-                Section {
-                    ForEach(ConcertSortOption.allCases) { option in
-                        Button {
-                            filters.sortOption = option
-                        } label: {
-                            HStack {
-                                Image(systemName: option.icon)
-                                    .foregroundColor(.accentColor)
-                                    .frame(width: 30)
 
-                                Text(option.rawValue)
-                                    .font(.cjBody)
-                                    .foregroundColor(.primary)
+                sortingSection
 
-                                Spacer()
+                dateSection
 
-                                if filters.sortOption == option {
-                                    Image(systemName: "checkmark")
-                                        .foregroundColor(.accentColor)
-                                }
-                            }
-                        }
-                    }
-                } header: {
-                    Text("Sortierung")
-                        .font(.cjCaption)
-                }
-
-                // Date Filter Section
-                Section {
-                    ForEach(DateFilterOption.allCases) { option in
-                        Button {
-                            filters.dateFilter = option
-                            if option == .custom {
-                                showCustomDatePicker = true
-                            }
-                        } label: {
-                            HStack {
-                                Image(systemName: option.icon)
-                                    .foregroundColor(.accentColor)
-                                    .frame(width: 30)
-
-                                Text(option.rawValue)
-                                    .font(.cjBody)
-                                    .foregroundColor(.primary)
-
-                                Spacer()
-
-                                if filters.dateFilter == option {
-                                    Image(systemName: "checkmark")
-                                        .foregroundColor(.accentColor)
-                                }
-                            }
-                        }
-                    }
-
-                    // Custom date range display
-                    if filters.dateFilter == .custom {
-                        VStack(alignment: .leading, spacing: 8) {
-                            DatePicker(
-                                "Von",
-                                selection: Binding(
-                                    get: { filters.customDateRange.start ?? Date() },
-                                    set: { filters.customDateRange.start = $0 }
-                                ),
-                                displayedComponents: .date
-                            )
-                            .font(.cjBody)
-
-                            DatePicker(
-                                "Bis",
-                                selection: Binding(
-                                    get: { filters.customDateRange.end ?? Date() },
-                                    set: { filters.customDateRange.end = $0 }
-                                ),
-                                displayedComponents: .date
-                            )
-                            .font(.cjBody)
-                        }
-                    }
-                } header: {
-                    Text("Datum")
-                        .font(.cjCaption)
-                }
-
-                // Rating Filter Section
-                Section {
-                    ForEach(RatingFilterOption.allCases) { option in
-                        Button {
-                            filters.ratingFilter = option
-                        } label: {
-                            HStack {
-                                Image(systemName: option.icon)
-                                    .foregroundColor(.accentColor)
-                                    .frame(width: 30)
-
-                                Text(option.displayName)
-                                    .font(.cjBody)
-                                    .foregroundColor(.primary)
-
-                                Spacer()
-
-                                if filters.ratingFilter == option {
-                                    Image(systemName: "checkmark")
-                                        .foregroundColor(.accentColor)
-                                }
-                            }
-                        }
-                    }
-                } header: {
-                    Text("Bewertung")
-                        .font(.cjCaption)
-                }
+                ratingSection
 
                 // Artist Filter Section
                 if !availableArtists.isEmpty {
-                    Section {
-                        ForEach(availableArtists, id: \.self) { artist in
-                            Button {
-                                filters.toggleArtist(artist)
-                            } label: {
-                                HStack {
-                                    Image(systemName: "music.mic")
-                                        .foregroundColor(.accentColor)
-                                        .frame(width: 30)
-
-                                    Text(artist)
-                                        .font(.cjBody)
-                                        .foregroundColor(.primary)
-
-                                    Spacer()
-
-                                    if filters.selectedArtists.contains(artist) {
-                                        Image(systemName: "checkmark")
-                                            .foregroundColor(.accentColor)
-                                    }
-                                }
-                            }
-                        }
-                    } header: {
-                        HStack {
-                            Text("Künstler")
-                                .font(.cjCaption)
-                            Spacer()
-                            if !filters.selectedArtists.isEmpty {
-                                Text("\(filters.selectedArtists.count) ausgewählt")
-                                    .font(.cjCaption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
+                    artistSection
                 }
 
                 // City Filter Section
                 if !availableCities.isEmpty {
-                    Section {
-                        ForEach(availableCities, id: \.self) { city in
-                            Button {
-                                filters.toggleCity(city)
-                            } label: {
-                                HStack {
-                                    Image(systemName: "location.fill")
-                                        .foregroundColor(.accentColor)
-                                        .frame(width: 30)
-
-                                    Text(city)
-                                        .font(.cjBody)
-                                        .foregroundColor(.primary)
-
-                                    Spacer()
-
-                                    if filters.selectedCities.contains(city) {
-                                        Image(systemName: "checkmark")
-                                            .foregroundColor(.accentColor)
-                                    }
-                                }
-                            }
-                        }
-                    } header: {
-                        HStack {
-                            Text("Städte")
-                                .font(.cjCaption)
-                            Spacer()
-                            if !filters.selectedCities.isEmpty {
-                                Text("\(filters.selectedCities.count) ausgewählt")
-                                    .font(.cjCaption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
+                    citySection
                 }
             }
             .navigationTitle("Filter & Sortierung")
@@ -237,32 +63,280 @@ struct FilterSheetView: View {
             }
         }
     }
+
+    @ViewBuilder
+    var sortingSection: some View {
+        // Sort Section
+        Section {
+            HStack {
+                Text("Sortierung:")
+                    .font(.cjBody)
+                Menu {
+                    ForEach(ConcertSortOption.allCases) { option in
+                        Button {
+                            filters.sortOption = option
+                        } label: {
+                            HStack {
+                                if filters.sortOption == option {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(dependencies.colorThemeManager.appTint)
+                                }
+
+                                Image(systemName: option.icon)
+                                    .foregroundColor(dependencies.colorThemeManager.appTint)
+                                    .frame(width: 30)
+
+                                Text(option.rawValue)
+                                    .font(.cjBody)
+                                    .foregroundColor(dependencies.colorThemeManager.appTint)
+                            }
+                        }
+                    }
+                } label: {
+                    Label {
+                        Text(filters.sortOption.rawValue)
+                            .font(.cjBody)
+                    } icon: {
+                        Image(systemName: filters.sortOption.icon)
+                    }
+
+                }
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .buttonStyle(.glass)
+            }
+        } header: {
+            Text("Sortierung")
+                .font(.cjCaption)
+        }
+    }
+
+    @ViewBuilder
+    var dateSection: some View {
+        // Date Filter Section
+        Section {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Zeitraum")
+
+                VStack {
+                    Menu {
+                        ForEach(DateFilterOption.allCases) { option in
+                            Button {
+                                filters.dateFilter = option
+                                if option == .custom {
+                                    showCustomDatePicker = true
+                                }
+                            } label: {
+                                HStack {
+                                    if filters.dateFilter == option {
+                                        Image(systemName: "checkmark")
+                                            .foregroundColor(dependencies.colorThemeManager.appTint)
+                                    }
+
+                                    Image(systemName: option.icon)
+                                        .foregroundColor(dependencies.colorThemeManager.appTint)
+                                        .frame(width: 30)
+
+                                    Text(option.rawValue)
+                                        .font(.cjBody)
+                                        .foregroundColor(dependencies.colorThemeManager.appTint)
+                                }
+                            }
+                        }
+                    } label: {
+                        Text(filters.dateFilter.rawValue)
+                            .font(.cjBody)
+                    }
+                    .buttonStyle(.glass)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+
+                    // Custom date range display
+                    if filters.dateFilter == .custom {
+                        VStack(alignment: .leading, spacing: 8) {
+                            DatePicker(
+                                "Von",
+                                selection: Binding(
+                                    get: { filters.customDateRange.start ?? Date() },
+                                    set: { filters.customDateRange.start = $0 }
+                                ),
+                                displayedComponents: .date
+                            )
+                            .font(.cjBody)
+
+                            DatePicker(
+                                "Bis",
+                                selection: Binding(
+                                    get: { filters.customDateRange.end ?? Date() },
+                                    set: { filters.customDateRange.end = $0 }
+                                ),
+                                displayedComponents: .date
+                            )
+                            .font(.cjBody)
+                        }
+                    }
+                }
+            }
+        } header: {
+            Text("Datum")
+                .font(.cjCaption)
+        }
+    }
+
+    @ViewBuilder
+    var ratingSection: some View {
+        // Rating Filter Section
+        Section {
+            HStack {
+                Text("Bewertung")
+                    .font(.cjBody)
+
+                Menu {
+                    ForEach(RatingFilterOption.allCases) { option in
+                        Button {
+                            filters.ratingFilter = option
+                        } label: {
+                            HStack {
+                                Image(systemName: option.icon)
+                                    .foregroundColor(dependencies.colorThemeManager.appTint)
+                                    .frame(width: 30)
+
+                                Text(option.displayName)
+                                    .font(.cjBody)
+                                    .foregroundColor(dependencies.colorThemeManager.appTint)
+
+                                Spacer()
+
+                                if filters.ratingFilter == option {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(dependencies.colorThemeManager.appTint)
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    Label {
+                        Text(filters.ratingFilter.displayName)
+                            .font(.cjBody)
+                    } icon: {
+                        Image(systemName: filters.ratingFilter.icon)
+                    }
+
+                }
+                .buttonStyle(.glass)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+        } header: {
+            Text("Bewertung")
+                .font(.cjCaption)
+        }
+    }
+
+    @ViewBuilder
+    var artistSection: some View {
+        Section {
+            ForEach(availableArtists, id: \.self) { artist in
+                Button {
+                    filters.toggleArtist(artist)
+                } label: {
+                    HStack {
+                        Image(systemName: "music.mic")
+                            .foregroundColor(dependencies.colorThemeManager.appTint.opacity(0.5))
+                            .frame(width: 30)
+
+                        Text(artist)
+                            .font(.cjBody)
+                            .foregroundColor(dependencies.colorThemeManager.appTint)
+
+                        Spacer()
+
+                        if filters.selectedArtists.contains(artist) {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(dependencies.colorThemeManager.appTint)
+                        }
+                    }
+                }
+            }
+        } header: {
+            HStack {
+                Text("Künstler")
+                    .font(.cjCaption)
+                Spacer()
+                if !filters.selectedArtists.isEmpty {
+                    Text("\(filters.selectedArtists.count) ausgewählt")
+                        .font(.cjCaption)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    var citySection: some View {
+        Section {
+            ForEach(availableCities, id: \.self) { city in
+                Button {
+                    filters.toggleCity(city)
+                } label: {
+                    HStack {
+                        Image(systemName: "location.fill")
+                            .foregroundColor(dependencies.colorThemeManager.appTint.opacity(0.5))
+                            .frame(width: 30)
+
+                        Text(city)
+                            .font(.cjBody)
+                            .foregroundColor(dependencies.colorThemeManager.appTint)
+
+                        Spacer()
+
+                        if filters.selectedCities.contains(city) {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(dependencies.colorThemeManager.appTint)
+                        }
+                    }
+                }
+            }
+        } header: {
+            HStack {
+                Text("Städte")
+                    .font(.cjCaption)
+                Spacer()
+                if !filters.selectedCities.isEmpty {
+                    Text("\(filters.selectedCities.count) ausgewählt")
+                        .font(.cjCaption)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+    }
 }
 
 // MARK: - Compact Filter Button
 
 struct FilterButton: View {
 
+    @Environment(\.dependencies) private var dependencies
+
     let filterCount: Int
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            ZStack(alignment: .topTrailing) {
-                Image(systemName: "line.3.horizontal.decrease.circle")
-                    .font(.system(size: 22))
-
-                if filterCount > 0 {
-                    Circle()
-                        .fill(Color.red)
-                        .frame(width: 16, height: 16)
-                        .overlay(
-                            Text("\(filterCount)")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundColor(.white)
-                        )
-                        .offset(x: 8, y: -8)
-                }
+            Image(systemName: "line.3.horizontal.decrease.circle")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(height: 28)
+                .padding(8)
+        }
+        .buttonStyle(.glassProminent)
+        .overlay(alignment: .topTrailing) {
+            if filterCount > 0 {
+                Text("\(filterCount)")
+                    .font(.system(size: 16, weight: .bold))
+                    .padding(4)
+                    .background {
+                        Color.red
+                    }
+                    .clipShape(Circle())
+                    .offset(x: 6, y: -6)
             }
         }
     }
@@ -271,6 +345,8 @@ struct FilterButton: View {
 // MARK: - Filter Chip View
 
 struct FilterChipView: View {
+
+    @Environment(\.dependencies) private var dependencies
 
     let chip: FilterChip
     let onRemove: () -> Void
@@ -296,11 +372,11 @@ struct FilterChipView: View {
         .padding(.vertical, 6)
         .background(
             Capsule()
-                .fill(Color.accentColor.opacity(0.15))
+                .fill(dependencies.colorThemeManager.appTint.opacity(0.15))
         )
         .overlay(
             Capsule()
-                .stroke(Color.accentColor.opacity(0.3), lineWidth: 1)
+                .stroke(dependencies.colorThemeManager.appTint.opacity(0.3), lineWidth: 1)
         )
     }
 }

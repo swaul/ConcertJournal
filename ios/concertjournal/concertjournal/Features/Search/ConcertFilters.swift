@@ -76,9 +76,9 @@ enum DateFilterOption: String, CaseIterable, Identifiable {
 
 enum RatingFilterOption: Int, CaseIterable, Identifiable {
     case all = 0
-    case fiveStars = 5
-    case fourPlus = 4
-    case threePlus = 3
+    case tenStars = 10
+    case sevenPlus = 7
+    case fivePlus = 5
 
     var id: Int { rawValue }
 
@@ -86,12 +86,12 @@ enum RatingFilterOption: Int, CaseIterable, Identifiable {
         switch self {
         case .all:
             return "Alle Bewertungen"
-        case .fiveStars:
-            return "5 Sterne"
-        case .fourPlus:
-            return "4+ Sterne"
-        case .threePlus:
-            return "3+ Sterne"
+        case .tenStars:
+            return "10 Sterne"
+        case .sevenPlus:
+            return "7+ Sterne"
+        case .fivePlus:
+            return "5+ Sterne"
         }
     }
 
@@ -113,7 +113,6 @@ class ConcertFilters {
     var ratingFilter: RatingFilterOption = .all
     var selectedArtists: Set<String> = []
     var selectedCities: Set<String> = []
-    var searchQuery: String = ""
 
     // MARK: - Computed Properties
 
@@ -122,7 +121,6 @@ class ConcertFilters {
         ratingFilter != .all ||
         !selectedArtists.isEmpty ||
         !selectedCities.isEmpty ||
-        !searchQuery.isEmpty ||
         (dateFilter == .custom && (customDateRange.start != nil || customDateRange.end != nil))
     }
 
@@ -132,7 +130,6 @@ class ConcertFilters {
         if ratingFilter != .all { count += 1 }
         if !selectedArtists.isEmpty { count += selectedArtists.count }
         if !selectedCities.isEmpty { count += selectedCities.count }
-        if !searchQuery.isEmpty { count += 1 }
         return count
     }
 
@@ -195,17 +192,6 @@ class ConcertFilters {
             ))
         }
 
-        // Search query
-        if !searchQuery.isEmpty {
-            chips.append(FilterChip(
-                id: "search",
-                title: "Suche: \(searchQuery)",
-                icon: "magnifyingglass",
-                isRemovable: true,
-                type: .search
-            ))
-        }
-
         return chips
     }
 
@@ -233,7 +219,6 @@ class ConcertFilters {
         ratingFilter = .all
         selectedArtists.removeAll()
         selectedCities.removeAll()
-        searchQuery = ""
     }
 
     func removeFilter(_ chip: FilterChip) {
@@ -249,8 +234,6 @@ class ConcertFilters {
             selectedArtists.remove(artist)
         case .city(let city):
             selectedCities.remove(city)
-        case .search:
-            searchQuery = ""
         }
     }
 
@@ -286,7 +269,6 @@ struct FilterChip: Identifiable {
         case rating
         case artist(String)
         case city(String)
-        case search
     }
 }
 
@@ -297,16 +279,6 @@ extension ConcertFilters {
     /// Applies all filters to a list of concerts
     func apply(to concerts: [FullConcertVisit]) -> [FullConcertVisit] {
         var filtered = concerts
-
-        // Apply search query
-        if !searchQuery.isEmpty {
-            filtered = filtered.filter { concert in
-                concert.artist.name.localizedCaseInsensitiveContains(searchQuery) ||
-                concert.venue?.name.localizedCaseInsensitiveContains(searchQuery) == true ||
-                concert.city?.localizedCaseInsensitiveContains(searchQuery) == true ||
-                concert.title?.localizedCaseInsensitiveContains(searchQuery) == true
-            }
-        }
 
         // Apply date filter
         let dateRange = dateFilter == .custom ? customDateRange : dateFilter.dateRange()

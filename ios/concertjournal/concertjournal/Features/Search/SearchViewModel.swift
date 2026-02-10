@@ -18,19 +18,23 @@ class SearchViewModel {
     var concerts: [FullConcertVisit] = []
     var searchText: String = ""
 
+    var filteredConcerts: [FullConcertVisit] {
+        concertFilter.apply(to: concerts)
+    }
+
     var availableArtists: [String] {
-        concerts.map { $0.artist.name }
+        Array(Set(concerts.map { $0.artist.name })).sorted()
     }
 
     var availableCities: [String] {
-        concerts.compactMap { $0.city }
+        Array(Set(concerts.compactMap { $0.city })).sorted()
     }
 
     var concertsToDisaplay: [FullConcertVisit] {
         if searchText.isEmpty {
-            return concerts
+            return filteredConcerts
         } else {
-            return concerts.filter { $0.containsText(query: searchText) }
+            return filteredConcerts.filter { $0.containsText(query: searchText) }
         }
     }
 

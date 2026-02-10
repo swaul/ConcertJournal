@@ -48,8 +48,27 @@ enum LogCategory: String {
     case bff = "BFF"
 }
 
+struct LogEntry {
+    let id: UUID
+    let level: LogLevel
+    let category: LogCategory
+    let message: String
+
+    init(level: LogLevel, category: LogCategory, message: String) {
+        self.id = UUID()
+        self.level = level
+        self.category = category
+        self.message = message
+    }
+
+    var formattedMessage: String {
+        "\(level.rawValue) \(category.rawValue) - \(message)"
+    }
+}
+
 // MARK: - App Logger
 
+@Observable
 final class CJLogger {
 
     // MARK: - Singleton
@@ -66,6 +85,8 @@ final class CJLogger {
         return false
 #endif
     }
+
+    var logs = [LogEntry]()
 
     // MARK: - Private Init
 
@@ -89,6 +110,7 @@ final class CJLogger {
 
         // Log to OSLog
         logger.log(level: level.osLogType, "\(level.rawValue) \(formattedMessage)")
+        logs.append(LogEntry(level: level, category: category, message: formattedMessage))
     }
 
     // MARK: - Convenience Methods

@@ -13,6 +13,10 @@ struct MainAppView: View {
 
     @State private var navigationManager = NavigationManager()
 
+    #if DEBUG
+        @State private var showDebugLogs = false
+    #endif
+
     var body: some View {
         TabView(selection: $navigationManager.selectedTab) {
             Tab("Konzerte", systemImage: "music.note.list", value: NavigationRoute.concerts) {
@@ -32,5 +36,15 @@ struct MainAppView: View {
         .onChange(of: navigationManager.selectedTab) { oldValue, newValue in
             print(newValue)
         }
+        #if DEBUG
+        .sheet(isPresented: $showDebugLogs) {
+            DebugLogView()
+        }
+        .onAppear {
+            DebugShakeManager.shared.onShake = {
+                showDebugLogs.toggle()
+            }
+        }
+        #endif
     }
 }

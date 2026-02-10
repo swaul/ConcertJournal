@@ -21,34 +21,44 @@ struct SearchView: View {
         @Bindable var navigationManager = navigationManager
 
         NavigationStack(path: $navigationManager.path) {
-            ScrollView {
-                VStack {
-                    ForEach(viewModel.concertsToDisaplay, id: \.id) { concert in
-                        Button {
-                            navigationManager.push(.concertDetail(concert))
-                        } label: {
-                            visitItem(visit: concert)
-                        }
-                        .buttonStyle(.plain)
-                    }
+            VStack {
+                FilterChipsBar(chips: viewModel.concertFilter.activeFilterChips) { chip in
+                    viewModel.concertFilter.removeFilter(chip)
+                } onTapSort: {
+                    filterPresented = true
                 }
-                .padding()
+
+                ScrollView {
+                    VStack {
+                        ForEach(viewModel.concertsToDisaplay, id: \.id) { concert in
+                            Button {
+                                navigationManager.push(.concertDetail(concert))
+                            } label: {
+                                visitItem(visit: concert)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding()
+                }
+                .safeAreaInset(edge: .bottom) {
+                    HStack {
+                        Spacer()
+                        FilterButton(filterCount: viewModel.concertFilter.activeFilterCount) {
+                            filterPresented = true
+                        }
+                    }
+                    .padding()
+                }
+                .scrollIndicators(.never)
+                .scrollBounceBehavior(.basedOnSize)
             }
-            .scrollIndicators(.never)
-            .scrollBounceBehavior(.basedOnSize)
             .searchable(text: $viewModel.searchText)
             .navigationTitle("Durchsuchen")
             .sheet(isPresented: $filterPresented) {
                 FilterSheetView(filters: viewModel.concertFilter,
                                 availableArtists: viewModel.availableArtists,
                                 availableCities: viewModel.availableCities)
-            }
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    FilterButton(filterCount: viewModel.concertFilter.activeFilterCount) {
-                        filterPresented = true
-                    }
-                }
             }
             .task {
                 do {
