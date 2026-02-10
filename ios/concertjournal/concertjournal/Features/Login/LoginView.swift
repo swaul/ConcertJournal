@@ -271,6 +271,7 @@ struct LoginView: View, KeyboardReadable {
     func loginButtons(viewModel: AuthViewModel) -> some View {
         VStack(spacing: 16) {
             Button {
+                dismissKeyboard()
                 switch loginType {
                 case .login:
                     Task { await viewModel.signInWithEmail() }
@@ -328,6 +329,7 @@ struct LoginView: View, KeyboardReadable {
             if showLoading {
                 VStack {
                     ProgressView()
+                        .padding()
                     Text("Laden…")
                         .font(.cjTitle)
                 }

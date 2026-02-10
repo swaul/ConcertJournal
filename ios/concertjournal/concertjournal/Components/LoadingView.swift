@@ -14,7 +14,7 @@ struct LoadingView: View {
             ProgressView()
                 .progressViewStyle(.circular)
                 .scaleEffect(2.5)
-            Text("Loading")
+            Text("Laden...")
                 .font(.cjTitle2)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

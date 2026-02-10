@@ -9,50 +9,51 @@ import SwiftUI
 import Foundation
 
 struct SearchView: View {
-
+    
     @Environment(\.dependencies) private var dependencies
     @Environment(\.navigationManager) private var navigationManager
-
+    
     @Bindable var viewModel: SearchViewModel
-
+    
     @State private var filterPresented = false
-
+    
     var body: some View {
         @Bindable var navigationManager = navigationManager
-
+        
         NavigationStack(path: $navigationManager.path) {
-            VStack {
+            ScrollView {
+                VStack {
+                    ForEach(viewModel.concertsToDisaplay, id: \.id) { concert in
+                        Button {
+                            navigationManager.push(.concertDetail(concert))
+                        } label: {
+                            visitItem(visit: concert)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding()
+            }
+            .safeAreaInset(edge: .bottom) {
+                HStack {
+                    Spacer()
+                    FilterButton(filterCount: viewModel.concertFilter.activeFilterCount) {
+                        filterPresented = true
+                    }
+                }
+                .padding()
+            }
+            .safeAreaInset(edge: .top) {
                 FilterChipsBar(chips: viewModel.concertFilter.activeFilterChips) { chip in
                     viewModel.concertFilter.removeFilter(chip)
                 } onTapSort: {
                     filterPresented = true
                 }
-
-                ScrollView {
-                    VStack {
-                        ForEach(viewModel.concertsToDisaplay, id: \.id) { concert in
-                            Button {
-                                navigationManager.push(.concertDetail(concert))
-                            } label: {
-                                visitItem(visit: concert)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding()
-                }
-                .safeAreaInset(edge: .bottom) {
-                    HStack {
-                        Spacer()
-                        FilterButton(filterCount: viewModel.concertFilter.activeFilterCount) {
-                            filterPresented = true
-                        }
-                    }
-                    .padding()
-                }
-                .scrollIndicators(.never)
-                .scrollBounceBehavior(.basedOnSize)
+                
             }
+            .scrollIndicators(.never)
+            .scrollBounceBehavior(.basedOnSize)
+            .scrollClipDisabled()
             .searchable(text: $viewModel.searchText)
             .navigationTitle("Durchsuchen")
             .sheet(isPresented: $filterPresented) {
@@ -72,7 +73,7 @@ struct SearchView: View {
             }
         }
     }
-
+    
     @ViewBuilder
     func visitItem(visit: FullConcertVisit) -> some View {
         HStack(spacing: 0) {
@@ -93,7 +94,7 @@ struct SearchView: View {
                 }
             }
             .frame(width: 100, height: 100)
-
+            
             VStack(alignment: .leading) {
                 MarqueeText(visit.artist.name, font: .cjTitle)
                     .foregroundStyle(.white)
@@ -127,17 +128,17 @@ struct SearchView: View {
                 .shadow(radius: 3, x: 2, y: 2)
         }
     }
-
+    
     @ViewBuilder
     private func navigationDestination(for route: NavigationRoute) -> some View {
         switch route {
         case .concertDetail(let concert):
             ConcertDetailView(concert: concert)
                 .toolbarVisibility(.hidden, for: .tabBar)
-
+            
         default:
             Text("Not implemented: \(String(describing: route))")
         }
     }
-
+    
 }
