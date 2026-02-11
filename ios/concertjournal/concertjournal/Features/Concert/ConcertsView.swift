@@ -12,6 +12,8 @@ struct ConcertsView: View {
     @Environment(\.navigationManager) private var navigationManager
 
     @State private var viewModel: ConcertsViewModel? = nil
+    
+    @State private var chooseCreateFlowPresenting: Bool = false
 
     var body: some View {
         @Bindable var navigationManager = navigationManager
@@ -63,6 +65,45 @@ struct ConcertsView: View {
                     // Daten laden
                     await viewModel?.loadConcerts()
                 }
+            }
+            .sheet(isPresented: $chooseCreateFlowPresenting) {
+                VStack {
+                    Text("Wie möchtest du dein Konzert erstellen?")
+                        .font(.cjTitle)
+                        .padding()
+                    
+                    Spacer()
+                    
+                    Button {
+                        chooseCreateFlowPresenting = false
+                        navigationManager.push(.createConcert)
+                    } label: {
+                        Label("Manuell erstellen", systemImage: "long.text.page.and.pencil")
+                            .frame(maxWidth: .infinity)
+                            .font(.cjTitle2)
+                            .padding(4)
+                    }
+                    .buttonStyle(.glass)
+                    .padding()
+                    
+                    Button {
+                        chooseCreateFlowPresenting = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                            navigationManager.push(.ticketScan)
+                        }
+                    } label: {
+                        Label("Mit Ticket Foto erstellen", systemImage: "document.viewfinder")
+                            .frame(maxWidth: .infinity)
+                            .font(.cjTitle2)
+                            .padding(4)
+                    }
+                    .buttonStyle(.glass)
+                    .padding()
+                    
+                    Spacer()
+                }
+                .padding(.top)
+                .presentationDetents([.medium])
             }
             .navigationTitle("Concerts")
             .navigationDestination(for: NavigationRoute.self) { route in
@@ -254,7 +295,7 @@ struct ConcertsView: View {
         HStack {
             Spacer()
                 Button {
-                    navigationManager.push(.createConcert)
+                    chooseCreateFlowPresenting = true
                 } label: {
                     Image(systemName: "plus.circle.fill")
                         .resizable()
@@ -273,7 +314,15 @@ struct ConcertsView: View {
         case .createConcert:
             CreateConcertVisitView()
                 .toolbarVisibility(.hidden, for: .tabBar)
+            
+        case .ticketScan:
+            TicketScannerView()
+                .toolbarVisibility(.hidden, for: .tabBar)
 
+        case .createConcertFromTicket(let ticketInfo):
+            CreateConcertVisitView(ticketInfo: ticketInfo)
+                .toolbarVisibility(.hidden, for: .tabBar)
+            
         case .createConcertFromImport(let importedConcert):
             CreateConcertVisitView(importedConcert: importedConcert)
                 .toolbarVisibility(.hidden, for: .tabBar)

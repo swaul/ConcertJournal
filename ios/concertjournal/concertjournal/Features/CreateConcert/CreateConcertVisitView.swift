@@ -34,6 +34,21 @@ struct NewConcertVisit: Identifiable, Equatable {
         self.venue = importeConcert.venue
         self.setlistItems = []
     }
+    
+    init(ticketInfo: TicketInfo) {
+        self.date = ticketInfo.date ?? .now
+        self.entranceTime = .now
+        self.artistName = ticketInfo.artistName
+        self.venueName = ticketInfo.venueName ?? ""
+        self.title = ""
+        self.notes = ""
+        self.rating = 0
+
+        self.ticket = nil
+        self.travel = nil
+        self.venue = nil
+        self.setlistItems = []
+    }
 
     init() {
         self.date = .now
@@ -92,15 +107,17 @@ struct CreateConcertVisitView: View {
 
     let possibleArtist: Artist?
 
-    init(importedConcert: ImportedConcert? = nil) {
-        guard let importedConcert else {
+    init(importedConcert: ImportedConcert? = nil, ticketInfo: TicketInfo? = nil) {
+        if let importedConcert {
+            possibleArtist = importedConcert.artist
+            draft = NewConcertVisit(importeConcert: importedConcert)
+        } else if let ticketInfo {
+            possibleArtist = ticketInfo.artist
+            draft = NewConcertVisit(ticketInfo: ticketInfo)
+        } else {
             draft = NewConcertVisit()
             possibleArtist = nil
-            return
         }
-
-        possibleArtist = importedConcert.artist
-        draft = NewConcertVisit(importeConcert: importedConcert)
     }
 
     var body: some View {

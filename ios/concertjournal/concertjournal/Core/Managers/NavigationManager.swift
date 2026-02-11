@@ -17,6 +17,8 @@ enum NavigationRoute: Hashable {
     // Concert Related
     case concertDetail(FullConcertVisit)
     case createConcert
+    case createConcertFromTicket(TicketInfo?)
+    case ticketScan
     case createConcertFromImport(ImportedConcert)
     case editConcert(FullConcertVisit)
 
@@ -73,7 +75,12 @@ class NavigationManager {
     func push(_ route: NavigationRoute) {
         path.append(route)
     }
-
+    
+    /// Push eine neue View auf den Stack
+    func pushAndRemoveLatest(_ route: NavigationRoute) {
+        path.append(route)
+    }
+    
     /// Pop zurück zur vorherigen View
     func pop() {
         if !path.isEmpty {
@@ -179,6 +186,8 @@ extension NavigationRoute: Identifiable {
         case .profile: return "profile"
         case .concertDetail(let concert): return "concert-\(concert.id)"
         case .createConcert: return "create-concert"
+        case .ticketScan: return "ticket-scan"
+        case .createConcertFromTicket(let ticketInfos): return "create-oncert-from-ticket"
         case .createConcertFromImport(let imported): return "create-concert-from-\(imported)"
         case .editConcert(let concert): return "edit-\(concert.id)"
         case .selectArtist: return "select-artist"

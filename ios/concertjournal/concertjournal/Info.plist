@@ -31,5 +31,7 @@
 	<string>Concert Journal möchte Fotos in deiner Galerie speichern.</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>Concert Journal möchte deine App-Nutzung verfolgen, um dir eine bessere Erfahrung zu bieten und die App zu verbessern.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>ConcertJournal benötigt Zugriff auf die Kamera, um Tickets zu scannen.</string>
 </dict>
 </plist>
