@@ -12,7 +12,7 @@ struct ConcertsView: View {
     @Environment(\.navigationManager) private var navigationManager
 
     @State private var viewModel: ConcertsViewModel? = nil
-    
+
     @State private var chooseCreateFlowPresenting: Bool = false
 
     var body: some View {
@@ -161,7 +161,7 @@ struct ConcertsView: View {
                         .font(.cjTitle)
                         .padding(.vertical)
                 }
-                ForEach(viewModel.pastConcerts) { visit in
+                ForEach(viewModel.pastConcerts.enumerated(), id: \.element) { index, visit in
                     Section {
                         Button {
                             navigationManager.push(.concertDetail(visit))
@@ -171,6 +171,12 @@ struct ConcertsView: View {
                     } header: {
                         Text(visit.title ?? visit.artist.name)
                             .font(.cjCaption)
+                    }
+                    if index % 5 == 0 {
+                        NativeContentView()
+                            .onAppear {
+                                print(index)
+                            }
                     }
                 }
             }

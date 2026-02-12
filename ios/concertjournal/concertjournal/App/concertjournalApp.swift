@@ -25,6 +25,8 @@ struct ConcertJournalApp: App {
         UINavigationBar.appearance().standardAppearance = appearance
         UINavigationBar.appearance().scrollEdgeAppearance = appearance
         UINavigationBar.appearance().compactAppearance = appearance
+
+        AdMobManager.shared.initialize()
     }
     
     // MARK: - Dependency Container (erstellt alle Dependencies)

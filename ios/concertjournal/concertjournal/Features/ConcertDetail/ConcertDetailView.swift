@@ -73,222 +73,224 @@ struct ConcertDetailView: View {
             ZStack {
                 background(reader: reader, viewModel: viewModel)
 
-                ScrollView {
-                    VStack(alignment: .leading) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(viewModel.concert.date.dateOnlyString)
-                                .font(.cjTitle2)
-
-                            if let title = viewModel.concert.title {
-                                Text(title)
-                                    .bold()
-                                    .font(.cjLargeTitle)
-                            } else {
-                                Text(viewModel.artist.name)
-                                    .bold()
-                                    .font(.cjLargeTitle)
-                            }
-                        }
-                        .padding()
-                        .rectangleGlass()
-                        .padding(.horizontal)
-
-                        if let venue = viewModel.concert.venue {
-                            Text("Location")
-                                .font(.cjTitle)
-                                .padding(.horizontal)
-
-                            VStack(alignment: .leading) {
-                                Text(venue.name)
-                                    .bold()
-                                    .font(.cjBody)
-
-                                Text(venue.formattedAddress)
-                                    .font(.cjBody)
-
-                                if let latitude = venue.latitude, let longitude = venue.longitude {
-                                    VenueInlineMap(latitude: latitude, longitude: longitude, name: venue.name)
+                BannerAdContainer(position: .bottom) {
+                    ScrollView {
+                        VStack(alignment: .leading) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(viewModel.concert.date.dateOnlyString)
+                                    .font(.cjTitle2)
+                                
+                                if let title = viewModel.concert.title {
+                                    Text(title)
+                                        .bold()
+                                        .font(.cjLargeTitle)
+                                } else {
+                                    Text(viewModel.artist.name)
+                                        .bold()
+                                        .font(.cjLargeTitle)
                                 }
                             }
                             .padding()
                             .rectangleGlass()
                             .padding(.horizontal)
-                        }
-
-                        if let notes = viewModel.concert.notes {
-                            Text("Meine Experience")
-                                .font(.cjTitle)
-                                .padding(.horizontal)
-
-                            VStack(alignment: .leading) {
-                                HStack(alignment: .center) {
-                                    Image(systemName: "long.text.page.and.pencil")
-                                        .foregroundStyle(dependencies.colorThemeManager.appTint)
-                                        .font(.cjCaption)
-                                    Text("Journal Eintrag")
-                                        .foregroundStyle(dependencies.colorThemeManager.appTint)
-                                        .font(.cjCaption)
-                                    Spacer()
-                                }
-                                .padding(.top)
-                                .padding(.horizontal)
-
-                                Text(notes)
-                                    .lineLimit(nil)
-                                    .padding(.bottom)
+                            
+                            if let venue = viewModel.concert.venue {
+                                Text("Location")
+                                    .font(.cjTitle)
                                     .padding(.horizontal)
-                                    .font(.cjBody)
-                            }
-                            .rectangleGlass()
-                            .padding(.horizontal)
-                        }
-                        
-                        if let travel = viewModel.concert.travel {
-                            Text("Meine Reise")
-                                .font(.cjTitle)
-                                .padding(.horizontal)
-                            
-                            VStack(alignment: .leading, spacing: 8) {
                                 
-                                if let travelType = travel.travelType {
-                                    Text(travelType.infoText(color: dependencies.colorThemeManager.appTint))
-                                }
-                                if let travelDuration = travel.travelDuration {
-                                    let parsedDuration = DurationParser.format(travelDuration)
-
-                                    Text.highlighted(
-                                        "Die Reise hat \(parsedDuration) gedauert.",
-                                        highlight: parsedDuration,
-                                        baseFont: .cjBody,
-                                        highlightColor: dependencies.colorThemeManager.appTint
-                                    )
-                                }
-                                if let travelDistance = travel.travelDistance {
-                                    let parsedDistance = DistanceParser.format(travelDistance)
+                                VStack(alignment: .leading) {
+                                    Text(venue.name)
+                                        .bold()
+                                        .font(.cjBody)
                                     
-                                    Text.highlighted(
-                                        "Der Weg war \(parsedDistance) lang.",
-                                        highlight: parsedDistance,
-                                        baseFont: .cjBody,
-                                        highlightColor: dependencies.colorThemeManager.appTint
-                                    )
-                                }
-                                if let travelExpenses = travel.travelExpenses {
-                                    Text.highlighted(
-                                        "Die Anreise hat dich \(travelExpenses.formatted) gekostet.",
-                                        highlight: travelExpenses.formatted,
-                                        baseFont: .cjBody,
-                                        highlightColor: dependencies.colorThemeManager.appTint
-                                    )
-                                    .conditionalRedacted(localHidePrices)
-                                    .contentShape(Rectangle())
-                                    .contextMenu {
-                                        Toggle("Preise ausblenden", isOn: $localHidePrices)
+                                    Text(venue.formattedAddress)
+                                        .font(.cjBody)
+                                    
+                                    if let latitude = venue.latitude, let longitude = venue.longitude {
+                                        VenueInlineMap(latitude: latitude, longitude: longitude, name: venue.name)
                                     }
                                 }
-                                if let hotelExpenses = travel.hotelExpenses {
-                                    Text.highlighted(
-                                        "Für die Übernachtung hast du \(hotelExpenses.formatted) gezahlt.",
-                                        highlight: hotelExpenses.formatted,
-                                        baseFont: .cjBody,
-                                        highlightColor: dependencies.colorThemeManager.appTint
-                                    )
-                                    .conditionalRedacted(localHidePrices)
-                                    .contentShape(Rectangle())
-                                    .contextMenu {
-                                        Toggle("Preise ausblenden", isOn: $localHidePrices)
-                                    }
-                                }
+                                .padding()
+                                .rectangleGlass()
+                                .padding(.horizontal)
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding()
-                            .glassEffect(in: RoundedRectangle(cornerRadius: 20, style: .circular))
-                            .padding(.horizontal)
-                        }
-
-                        if let ticket = viewModel.concert.ticket {
-                            Text("Mein Ticket")
-                                .font(.cjTitle)
-                                .padding(.horizontal)
-
-                            ticketSection(ticket: ticket)
-                                .padding(.horizontal)
-                        }
-
-                        if let setlistItems = viewModel.setlistItems, !setlistItems.isEmpty {
-                            Text("Setlist")
-                                .font(.cjTitle)
-                                .padding(.horizontal)
                             
-                            VStack {
-                                ForEach(setlistItems, id: \.spotifyTrackId) { item in
-                                    makeSetlistItemView(with: item)
-                                }
+                            if let notes = viewModel.concert.notes {
+                                Text("Meine Experience")
+                                    .font(.cjTitle)
+                                    .padding(.horizontal)
                                 
-                                
-                                if dependencies.userSessionManager.user?.identities?.contains(where: { $0.provider == "spotify" }) == true {
-                                    CreatePlaylistButton(viewModel: viewModel)
+                                VStack(alignment: .leading) {
+                                    HStack(alignment: .center) {
+                                        Image(systemName: "long.text.page.and.pencil")
+                                            .foregroundStyle(dependencies.colorThemeManager.appTint)
+                                            .font(.cjCaption)
+                                        Text("Journal Eintrag")
+                                            .foregroundStyle(dependencies.colorThemeManager.appTint)
+                                            .font(.cjCaption)
+                                        Spacer()
+                                    }
+                                    .padding(.top)
+                                    .padding(.horizontal)
+                                    
+                                    Text(notes)
+                                        .lineLimit(nil)
+                                        .padding(.bottom)
                                         .padding(.horizontal)
+                                        .font(.cjBody)
                                 }
-                            }
-                            .padding()
-                            .rectangleGlass()
-                            .padding(.horizontal)
-                        } else if loadingSetlist {
-                            VStack {
-                                ProgressView()
-                                    .tint(dependencies.colorThemeManager.appTint)
-                            }
-                            .frame(height: 60)
-                            .frame(maxWidth: .infinity)
-                        }
-
-                        if !viewModel.imageUrls.isEmpty {
-                            Text("Meine Bilder")
-                                .font(.cjTitle)
+                                .rectangleGlass()
                                 .padding(.horizontal)
-
-                            ScrollView(.horizontal) {
-                                LazyHStack(spacing: 16) {
-                                    ForEach(Array(viewModel.imageUrls), id: \.id) { image in
-                                        Button {
-                                            selectedImage = image
-                                        } label: {
-                                            AsyncImage(url: image.url) { image in
-                                                image
-                                                    .resizable()
-                                                    .aspectRatio(contentMode: .fill)
-                                                    .frame(width: 200, height: 300)
-                                                    .clipped()
-                                                    .cornerRadius(20)
-                                            } placeholder: {
-                                                ZStack {
-                                                    RoundedRectangle(cornerRadius: 20)
-                                                        .fill(Color.gray.opacity(0.3))
-                                                    ProgressView()
-                                                }
-                                                .frame(width: 200, height: 300)
-                                            }
+                            }
+                            
+                            if let travel = viewModel.concert.travel {
+                                Text("Meine Reise")
+                                    .font(.cjTitle)
+                                    .padding(.horizontal)
+                                
+                                VStack(alignment: .leading, spacing: 8) {
+                                    
+                                    if let travelType = travel.travelType {
+                                        Text(travelType.infoText(color: dependencies.colorThemeManager.appTint))
+                                    }
+                                    if let travelDuration = travel.travelDuration {
+                                        let parsedDuration = DurationParser.format(travelDuration)
+                                        
+                                        Text.highlighted(
+                                            "Die Reise hat \(parsedDuration) gedauert.",
+                                            highlight: parsedDuration,
+                                            baseFont: .cjBody,
+                                            highlightColor: dependencies.colorThemeManager.appTint
+                                        )
+                                    }
+                                    if let travelDistance = travel.travelDistance {
+                                        let parsedDistance = DistanceParser.format(travelDistance)
+                                        
+                                        Text.highlighted(
+                                            "Der Weg war \(parsedDistance) lang.",
+                                            highlight: parsedDistance,
+                                            baseFont: .cjBody,
+                                            highlightColor: dependencies.colorThemeManager.appTint
+                                        )
+                                    }
+                                    if let travelExpenses = travel.travelExpenses {
+                                        Text.highlighted(
+                                            "Die Anreise hat dich \(travelExpenses.formatted) gekostet.",
+                                            highlight: travelExpenses.formatted,
+                                            baseFont: .cjBody,
+                                            highlightColor: dependencies.colorThemeManager.appTint
+                                        )
+                                        .conditionalRedacted(localHidePrices)
+                                        .contentShape(Rectangle())
+                                        .contextMenu {
+                                            Toggle("Preise ausblenden", isOn: $localHidePrices)
                                         }
-                                        .buttonStyle(.plain)
-                                        .frame(width: 200, height: 300)
-                                        .scrollTargetLayout()
+                                    }
+                                    if let hotelExpenses = travel.hotelExpenses {
+                                        Text.highlighted(
+                                            "Für die Übernachtung hast du \(hotelExpenses.formatted) gezahlt.",
+                                            highlight: hotelExpenses.formatted,
+                                            baseFont: .cjBody,
+                                            highlightColor: dependencies.colorThemeManager.appTint
+                                        )
+                                        .conditionalRedacted(localHidePrices)
+                                        .contentShape(Rectangle())
+                                        .contextMenu {
+                                            Toggle("Preise ausblenden", isOn: $localHidePrices)
+                                        }
                                     }
                                 }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding()
+                                .glassEffect(in: RoundedRectangle(cornerRadius: 20, style: .circular))
+                                .padding(.horizontal)
                             }
-                            .padding(.horizontal)
-                            .scrollClipDisabled()
-                            .scrollTargetBehavior(.viewAligned)
-                            .scrollIndicators(.hidden)
+                            
+                            if let ticket = viewModel.concert.ticket {
+                                Text("Mein Ticket")
+                                    .font(.cjTitle)
+                                    .padding(.horizontal)
+                                
+                                ticketSection(ticket: ticket)
+                                    .padding(.horizontal)
+                            }
+                            
+                            if let setlistItems = viewModel.setlistItems, !setlistItems.isEmpty {
+                                Text("Setlist")
+                                    .font(.cjTitle)
+                                    .padding(.horizontal)
+                                
+                                VStack {
+                                    ForEach(setlistItems, id: \.spotifyTrackId) { item in
+                                        makeSetlistItemView(with: item)
+                                    }
+                                    
+                                    
+                                    if dependencies.userSessionManager.user?.identities?.contains(where: { $0.provider == "spotify" }) == true {
+                                        CreatePlaylistButton(viewModel: viewModel)
+                                            .padding(.horizontal)
+                                    }
+                                }
+                                .padding()
+                                .rectangleGlass()
+                                .padding(.horizontal)
+                            } else if loadingSetlist {
+                                VStack {
+                                    ProgressView()
+                                        .tint(dependencies.colorThemeManager.appTint)
+                                }
+                                .frame(height: 60)
+                                .frame(maxWidth: .infinity)
+                            }
+                            
+                            if !viewModel.imageUrls.isEmpty {
+                                Text("Meine Bilder")
+                                    .font(.cjTitle)
+                                    .padding(.horizontal)
+                                
+                                ScrollView(.horizontal) {
+                                    LazyHStack(spacing: 16) {
+                                        ForEach(Array(viewModel.imageUrls), id: \.id) { image in
+                                            Button {
+                                                selectedImage = image
+                                            } label: {
+                                                AsyncImage(url: image.url) { image in
+                                                    image
+                                                        .resizable()
+                                                        .aspectRatio(contentMode: .fill)
+                                                        .frame(width: 200, height: 300)
+                                                        .clipped()
+                                                        .cornerRadius(20)
+                                                } placeholder: {
+                                                    ZStack {
+                                                        RoundedRectangle(cornerRadius: 20)
+                                                            .fill(Color.gray.opacity(0.3))
+                                                        ProgressView()
+                                                    }
+                                                    .frame(width: 200, height: 300)
+                                                }
+                                            }
+                                            .buttonStyle(.plain)
+                                            .frame(width: 200, height: 300)
+                                            .scrollTargetLayout()
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal)
+                                .scrollClipDisabled()
+                                .scrollTargetBehavior(.viewAligned)
+                                .scrollIndicators(.hidden)
+                            }
                         }
                     }
-                }
-                .scrollIndicators(.hidden)
-                .frame(width: reader.size.width)
-                .safeAreaInset(edge: .top) {
-                    Rectangle()
-                        .fill(.clear)
-                        .frame(height: 200)
+                    .scrollIndicators(.hidden)
+                    .frame(width: reader.size.width)
+                    .safeAreaInset(edge: .top) {
+                        Rectangle()
+                            .fill(.clear)
+                            .frame(height: 200)
+                    }
                 }
             }
             .frame(width: reader.size.width)
