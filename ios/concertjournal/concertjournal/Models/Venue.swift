@@ -7,7 +7,7 @@
 
 import Supabase
 
-public struct Venue: Decodable, Equatable, Hashable {
+public struct Venue: Codable, Equatable, Hashable {
     var id: String
     var name: String
     var city: String?
