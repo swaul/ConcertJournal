@@ -65,7 +65,7 @@ class ConcertsViewModel {
         futureConcerts.removeAll()
 
         do {
-            let concerts = try await concertRepository.reloadConcerts()
+            let concerts = try await concertRepository.fetchConcerts(reload: true)
             filterConcerts(concerts)
         } catch let error as NetworkError {
             errorMessage = error.localizedDescription
@@ -83,7 +83,6 @@ class ConcertsViewModel {
             // Update local state
             pastConcerts.removeAll { $0.id == concert.id }
             futureConcerts.removeAll { $0.id == concert.id }
-
         } catch let error as NetworkError {
             errorMessage = error.localizedDescription
         } catch {

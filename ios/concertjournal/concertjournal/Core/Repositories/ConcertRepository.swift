@@ -15,7 +15,7 @@ protocol ConcertRepositoryProtocol {
     
     func fetchConcerts(reload: Bool) async throws -> [FullConcertVisit]
     func getConcert(id: String) async throws -> FullConcertVisit
-    func reloadConcerts() async throws -> [FullConcertVisit]
+    func reloadConcerts() async throws
     func createConcert(_ concert: NewConcertDTO) async throws -> ConcertVisit
     func updateConcert(id: String, concert: ConcertVisitUpdateDTO) async throws
     func deleteConcert(id: String) async throws
@@ -39,13 +39,9 @@ class BFFConcertRepository: ConcertRepositoryProtocol {
         self.client = client
     }
     
-    func reloadConcerts() async throws -> [FullConcertVisit] {
+    func reloadConcerts() async throws {
         logInfo("Reloading concerts", category: .repository)
-        let concerts: [FullConcertVisit] = try await client.get("/concerts")
-        logSuccess("Loaded \(concerts.count) concerts", category: .repository)
-        concertsSubject.send(concerts)
-        self.cachedConcerts = concerts
-        return concerts
+        _ = try await fetchConcerts(reload: true)
     }
     
     func fetchConcerts(reload: Bool = false) async throws -> [FullConcertVisit] {
@@ -53,7 +49,7 @@ class BFFConcertRepository: ConcertRepositoryProtocol {
             logSuccess("Returning \(cachedConcerts.count) cached concerts", category: .repository)
             return cachedConcerts
         }
-        logInfo("Reloading concerts", category: .repository)
+        logInfo("Loading concerts", category: .repository)
 
         let concerts: [FullConcertVisit] = try await client.get("/concerts")
         logSuccess("Loaded \(concerts.count) concerts", category: .repository)

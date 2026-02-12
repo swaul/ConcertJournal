@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import GoogleMobileAds
 
 // MARK: - Banner Ad Container (with safe area handling)
 

@@ -14,6 +14,7 @@ struct ConcertsView: View {
     @State private var viewModel: ConcertsViewModel? = nil
 
     @State private var chooseCreateFlowPresenting: Bool = false
+    @State private var showDeleteDialog = false
 
     var body: some View {
         @Bindable var navigationManager = navigationManager
@@ -148,6 +149,30 @@ struct ConcertsView: View {
                                     } label: {
                                         futureConcert(concert: visit)
                                     }
+                                    .contextMenu {
+                                        Button("Detail Seite für \(visit.title ?? "Konzert")") {
+                                            navigationManager.push(.concertDetail(visit))
+                                        }
+                                        .font(.cjBody)
+                                        Button("\(visit.title ?? "Konzert") löschen", role: .destructive) {
+                                            showDeleteDialog = true
+                                        }
+                                        .font(.cjBody)
+                                    }
+                                    .confirmationDialog("\(visit.title ?? "Konzert") wirklich löschen?", isPresented: $showDeleteDialog, titleVisibility: .visible) {
+                                        Button(role: .destructive) {
+                                            Task {
+                                                await viewModel.deleteConcert(visit)
+                                            }
+                                        } label: {
+                                            Text("Konzert löschen")
+                                        }
+                                        Button(role: .cancel) {
+                                            showDeleteDialog = false
+                                        } label: {
+                                            Text("Abbrechen")
+                                        }
+                                    }
                                 }
                                 .scrollTargetLayout()
                             }
@@ -167,6 +192,30 @@ struct ConcertsView: View {
                             navigationManager.push(.concertDetail(visit))
                         } label: {
                             visitItem(visit: visit)
+                        }
+                        .contextMenu {
+                            Button("Detail Seite für \(visit.title ?? "Konzert")") {
+                                navigationManager.push(.concertDetail(visit))
+                            }
+                            .font(.cjBody)
+                            Button("\(visit.title ?? "Konzert") löschen", role: .destructive) {
+                                showDeleteDialog = true
+                            }
+                            .font(.cjBody)
+                        }
+                        .confirmationDialog("\(visit.title ?? "Konzert") wirklich löschen?", isPresented: $showDeleteDialog, titleVisibility: .visible) {
+                            Button(role: .destructive) {
+                                Task {
+                                    await viewModel.deleteConcert(visit)
+                                }
+                            } label: {
+                                Text("Konzert löschen")
+                            }
+                            Button(role: .cancel) {
+                                showDeleteDialog = false
+                            } label: {
+                                Text("Abbrechen")
+                            }
                         }
                     } header: {
                         Text(visit.title ?? visit.artist.name)
@@ -349,6 +398,9 @@ struct ConcertsView: View {
             ProfileView()
                 .toolbarVisibility(.hidden, for: .tabBar)
 
+        case .artistDetail(let artist):
+            ArtistDetailView(artist: artist)
+                .toolbarVisibility(.hidden, for: .tabBar)
         default:
             Text("Not implemented: \(String(describing: route))")
         }

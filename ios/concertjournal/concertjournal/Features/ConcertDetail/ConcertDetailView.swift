@@ -76,51 +76,45 @@ struct ConcertDetailView: View {
                 BannerAdContainer(position: .bottom) {
                     ScrollView {
                         VStack(alignment: .leading) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(viewModel.concert.date.dateOnlyString)
-                                    .font(.cjTitle2)
-                                
-                                if let title = viewModel.concert.title {
-                                    Text(title)
-                                        .bold()
-                                        .font(.cjLargeTitle)
-                                } else {
-                                    Text(viewModel.artist.name)
-                                        .bold()
-                                        .font(.cjLargeTitle)
-                                }
-                            }
-                            .padding()
-                            .rectangleGlass()
-                            .padding(.horizontal)
-                            
+                            header(viewModel: viewModel)
+
                             if let venue = viewModel.concert.venue {
                                 Text("Location")
                                     .font(.cjTitle)
                                     .padding(.horizontal)
-                                
+
                                 VStack(alignment: .leading) {
                                     Text(venue.name)
                                         .bold()
                                         .font(.cjBody)
-                                    
+
                                     Text(venue.formattedAddress)
                                         .font(.cjBody)
-                                    
+
                                     if let latitude = venue.latitude, let longitude = venue.longitude {
-                                        VenueInlineMap(latitude: latitude, longitude: longitude, name: venue.name)
+                                        VenueInlineMap(latitude: latitude, longitude: longitude, name: venue.name, formattedAddress: venue.formattedAddress)
+                                            .allowsTightening(true)
+                                                    .contextMenu {
+                                                        Button {
+                                                            let mapItem = MKMapItem(location: CLLocation(latitude: latitude, longitude: longitude), address: MKAddress(fullAddress: "", shortAddress: venue.formattedAddress))
+                                                            mapItem.openInMaps()
+                                                        } label: {
+                                                            Text("In Apple Karten öffnen")
+                                                                .font(.cjBody)
+                                                        }
+                                                    }
                                     }
                                 }
                                 .padding()
                                 .rectangleGlass()
                                 .padding(.horizontal)
                             }
-                            
+
                             if let notes = viewModel.concert.notes {
                                 Text("Meine Experience")
                                     .font(.cjTitle)
                                     .padding(.horizontal)
-                                
+
                                 VStack(alignment: .leading) {
                                     HStack(alignment: .center) {
                                         Image(systemName: "long.text.page.and.pencil")
@@ -133,7 +127,7 @@ struct ConcertDetailView: View {
                                     }
                                     .padding(.top)
                                     .padding(.horizontal)
-                                    
+
                                     Text(notes)
                                         .lineLimit(nil)
                                         .padding(.bottom)
@@ -143,20 +137,20 @@ struct ConcertDetailView: View {
                                 .rectangleGlass()
                                 .padding(.horizontal)
                             }
-                            
+
                             if let travel = viewModel.concert.travel {
                                 Text("Meine Reise")
                                     .font(.cjTitle)
                                     .padding(.horizontal)
-                                
+
                                 VStack(alignment: .leading, spacing: 8) {
-                                    
+
                                     if let travelType = travel.travelType {
                                         Text(travelType.infoText(color: dependencies.colorThemeManager.appTint))
                                     }
                                     if let travelDuration = travel.travelDuration {
                                         let parsedDuration = DurationParser.format(travelDuration)
-                                        
+
                                         Text.highlighted(
                                             "Die Reise hat \(parsedDuration) gedauert.",
                                             highlight: parsedDuration,
@@ -166,7 +160,7 @@ struct ConcertDetailView: View {
                                     }
                                     if let travelDistance = travel.travelDistance {
                                         let parsedDistance = DistanceParser.format(travelDistance)
-                                        
+
                                         Text.highlighted(
                                             "Der Weg war \(parsedDistance) lang.",
                                             highlight: parsedDistance,
@@ -206,27 +200,27 @@ struct ConcertDetailView: View {
                                 .glassEffect(in: RoundedRectangle(cornerRadius: 20, style: .circular))
                                 .padding(.horizontal)
                             }
-                            
+
                             if let ticket = viewModel.concert.ticket {
                                 Text("Mein Ticket")
                                     .font(.cjTitle)
                                     .padding(.horizontal)
-                                
+
                                 ticketSection(ticket: ticket)
                                     .padding(.horizontal)
                             }
-                            
+
                             if let setlistItems = viewModel.setlistItems, !setlistItems.isEmpty {
                                 Text("Setlist")
                                     .font(.cjTitle)
                                     .padding(.horizontal)
-                                
+
                                 VStack {
                                     ForEach(setlistItems, id: \.spotifyTrackId) { item in
                                         makeSetlistItemView(with: item)
                                     }
-                                    
-                                    
+
+
                                     if dependencies.userSessionManager.user?.identities?.contains(where: { $0.provider == "spotify" }) == true {
                                         CreatePlaylistButton(viewModel: viewModel)
                                             .padding(.horizontal)
@@ -243,12 +237,12 @@ struct ConcertDetailView: View {
                                 .frame(height: 60)
                                 .frame(maxWidth: .infinity)
                             }
-                            
+
                             if !viewModel.imageUrls.isEmpty {
                                 Text("Meine Bilder")
                                     .font(.cjTitle)
                                     .padding(.horizontal)
-                                
+
                                 ScrollView(.horizontal) {
                                     LazyHStack(spacing: 16) {
                                         ForEach(Array(viewModel.imageUrls), id: \.id) { image in
@@ -408,6 +402,45 @@ struct ConcertDetailView: View {
     }
 
     @ViewBuilder
+    func header(viewModel: ConcertDetailViewModel) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(viewModel.concert.date.dateOnlyString)
+                .font(.cjTitle2)
+
+            if let title = viewModel.concert.title {
+                Text(title)
+                    .bold()
+                    .font(.cjLargeTitle)
+
+                Button {
+                    navigationManager.push(.artistDetail(viewModel.artist))
+                } label: {
+                    Text(viewModel.artist.name)
+                        .bold()
+                        .font(.cjTitleF)
+                }
+                .contextMenu {
+                    Button("Detail Seite für \(viewModel.artist.name)") {
+                        navigationManager.push(.artistDetail(viewModel.artist))
+                    }
+                    .font(.cjBody)
+                }
+            } else {
+                Button {
+                    navigationManager.push(.artistDetail(viewModel.artist))
+                } label: {
+                    Text(viewModel.artist.name)
+                        .bold()
+                        .font(.cjLargeTitle)
+                }
+            }
+        }
+        .padding()
+        .rectangleGlass()
+        .padding(.horizontal)
+    }
+
+    @ViewBuilder
     func makeSetlistItemView(with item: SetlistItem) -> some View {
         Button {
             guard let spotifyTrackId = item.spotifyTrackId, !spotifyTrackId.isEmpty else { return }
@@ -470,6 +503,14 @@ struct ConcertDetailView: View {
                 }
             }
             .buttonStyle(.plain)
+        }
+        .contextMenu {
+            Button("\(item.title) in Spotify abspielen") {
+                guard let spotifyTrackId = item.spotifyTrackId, !spotifyTrackId.isEmpty else { return }
+                let url = "https://open.spotify.com/track/\(spotifyTrackId)"
+                UIApplication.shared.open(URL(string: url)!)
+            }
+            .font(.cjBody)
         }
     }
 
@@ -600,14 +641,16 @@ struct VenueInlineMap: View {
     let latitude: Double
     let longitude: Double
     let name: String
-    
+    let formattedAddress: String
+
     @State private var position: MapCameraPosition
     
-    init(latitude: Double, longitude: Double, name: String) {
+    init(latitude: Double, longitude: Double, name: String, formattedAddress: String) {
         self.latitude = latitude
         self.longitude = longitude
         self.name = name
-        
+        self.formattedAddress = formattedAddress
+
         let coordinate = CLLocationCoordinate2D(
             latitude: latitude,
             longitude: longitude
@@ -633,7 +676,7 @@ struct VenueInlineMap: View {
         .mapStyle(.imagery)
         .frame(height: 180)
         .clipShape(RoundedRectangle(cornerRadius: 16))
-        .allowsHitTesting(false) // ⛔️ keine Interaktion
+        .allowsHitTesting(false)
     }
 }
 
