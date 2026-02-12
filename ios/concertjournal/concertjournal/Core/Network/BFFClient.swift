@@ -12,7 +12,7 @@ enum HTTPMethod: String {
     case put = "PUT"
     case patch = "PATCH"
     case post = "POST"
-    case delete = "DELTE"
+    case delete = "DELETE"
 }
 
 enum Endpoint {
