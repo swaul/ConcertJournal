@@ -63,9 +63,7 @@
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "65"
-            endingLineNumber = "65"
-            landmarkName = "createArtist(_:)"
-            landmarkType = "7">
+            endingLineNumber = "65">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -161,6 +159,344 @@
             startingLineNumber = "73"
             endingLineNumber = "73"
             landmarkName = "refreshConcerts()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "C574C628-912E-48B1-B349-2E7E517A2480 - a131f6ac13ff8198"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(4) suspend resume partial function for concertjournal.ConcertsViewModel.refreshConcerts() async -&gt; ()"
+                  moduleName = "concertjournal.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/pkuhnel/Projects/Testable/ConcertJournal/ios/concertjournal/concertjournal/Features/Concert/ConcertsViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "73"
+                  endingLineNumber = "73">
+               </Location>
+               <Location
+                  uuid = "C574C628-912E-48B1-B349-2E7E517A2480 - a131f6ac13ff8198"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(4) suspend resume partial function for concertjournal.ConcertsViewModel.refreshConcerts() async -&gt; ()"
+                  moduleName = "concertjournal.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/pkuhnel/Projects/Testable/ConcertJournal/ios/concertjournal/concertjournal/Features/Concert/ConcertsViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "73"
+                  endingLineNumber = "73">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "34DF18AC-AD37-4620-B9BD-B0CD5AF7D1F1"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "concertjournal/Features/CreateConcert/Import/TicketScannerView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "318"
+            endingLineNumber = "318"
+            landmarkName = "findOrCreateVenue(venueName:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "9E091EDA-BA13-4448-92AA-22F910A09C08"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "concertjournal/Features/CreateConcert/Import/TicketScannerView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "426"
+            endingLineNumber = "426"
+            landmarkName = "scanWithVisionOCR(image:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "9E091EDA-BA13-4448-92AA-22F910A09C08 - b7d55508e3e854fb"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(1) suspend resume partial function for function signature specialization &lt;Arg[4] = Value Promoted from Box&gt; of closure #3 () async -&gt; () in closure #1 (__C.VNRequest, Swift.Optional&lt;Swift.Error&gt;) -&gt; () in closure #1 (Swift.CheckedContinuation&lt;concertjournal.TicketInfo, Swift.Error&gt;) -&gt; () in concertjournal.TicketScannerView.scanWithVisionOCR(image: __C.UIImage) async throws -&gt; concertjournal.TicketInfo"
+                  moduleName = "concertjournal.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/pkuhnel/Projects/Testable/ConcertJournal/ios/concertjournal/concertjournal/Features/CreateConcert/Import/TicketScannerView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "427"
+                  endingLineNumber = "427">
+               </Location>
+               <Location
+                  uuid = "9E091EDA-BA13-4448-92AA-22F910A09C08 - d75d5a140d86beed"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(2) await resume partial function for function signature specialization &lt;Arg[4] = Value Promoted from Box&gt; of closure #3 () async -&gt; () in closure #1 (__C.VNRequest, Swift.Optional&lt;Swift.Error&gt;) -&gt; () in closure #1 (Swift.CheckedContinuation&lt;concertjournal.TicketInfo, Swift.Error&gt;) -&gt; () in concertjournal.TicketScannerView.scanWithVisionOCR(image: __C.UIImage) async throws -&gt; concertjournal.TicketInfo"
+                  moduleName = "concertjournal.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/pkuhnel/Projects/Testable/ConcertJournal/ios/concertjournal/concertjournal/Features/CreateConcert/Import/TicketScannerView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "427"
+                  endingLineNumber = "427">
+               </Location>
+               <Location
+                  uuid = "9E091EDA-BA13-4448-92AA-22F910A09C08 - fe6682cd7bee4ef6"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(4) suspend resume partial function for function signature specialization &lt;Arg[4] = Value Promoted from Box&gt; of closure #3 () async -&gt; () in closure #1 (__C.VNRequest, Swift.Optional&lt;Swift.Error&gt;) -&gt; () in closure #1 (Swift.CheckedContinuation&lt;concertjournal.TicketInfo, Swift.Error&gt;) -&gt; () in concertjournal.TicketScannerView.scanWithVisionOCR(image: __C.UIImage) async throws -&gt; concertjournal.TicketInfo"
+                  moduleName = "concertjournal.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/pkuhnel/Projects/Testable/ConcertJournal/ios/concertjournal/concertjournal/Features/CreateConcert/Import/TicketScannerView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "427"
+                  endingLineNumber = "427">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "5A6C82C9-2405-4B37-B614-2F4A0BF6A182"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "concertjournal/Features/CreateConcert/Import/TicketScannerView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "429"
+            endingLineNumber = "429"
+            landmarkName = "scanWithVisionOCR(image:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "5A6C82C9-2405-4B37-B614-2F4A0BF6A182 - 46f6cffa0692a93b"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(3) suspend resume partial function for function signature specialization &lt;Arg[4] = Value Promoted from Box&gt; of closure #3 () async -&gt; () in closure #1 (__C.VNRequest, Swift.Optional&lt;Swift.Error&gt;) -&gt; () in closure #1 (Swift.CheckedContinuation&lt;concertjournal.TicketInfo, Swift.Error&gt;) -&gt; () in concertjournal.TicketScannerView.scanWithVisionOCR(image: __C.UIImage) async throws -&gt; concertjournal.TicketInfo"
+                  moduleName = "concertjournal.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/pkuhnel/Projects/Testable/ConcertJournal/ios/concertjournal/concertjournal/Features/CreateConcert/Import/TicketScannerView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "429"
+                  endingLineNumber = "429">
+               </Location>
+               <Location
+                  uuid = "5A6C82C9-2405-4B37-B614-2F4A0BF6A182 - fe6682cd7bee4f34"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(4) suspend resume partial function for function signature specialization &lt;Arg[4] = Value Promoted from Box&gt; of closure #3 () async -&gt; () in closure #1 (__C.VNRequest, Swift.Optional&lt;Swift.Error&gt;) -&gt; () in closure #1 (Swift.CheckedContinuation&lt;concertjournal.TicketInfo, Swift.Error&gt;) -&gt; () in concertjournal.TicketScannerView.scanWithVisionOCR(image: __C.UIImage) async throws -&gt; concertjournal.TicketInfo"
+                  moduleName = "concertjournal.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/pkuhnel/Projects/Testable/ConcertJournal/ios/concertjournal/concertjournal/Features/CreateConcert/Import/TicketScannerView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "429"
+                  endingLineNumber = "429">
+               </Location>
+               <Location
+                  uuid = "5A6C82C9-2405-4B37-B614-2F4A0BF6A182 - fe6682cd7bee4f34"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(4) suspend resume partial function for function signature specialization &lt;Arg[4] = Value Promoted from Box&gt; of closure #3 () async -&gt; () in closure #1 (__C.VNRequest, Swift.Optional&lt;Swift.Error&gt;) -&gt; () in closure #1 (Swift.CheckedContinuation&lt;concertjournal.TicketInfo, Swift.Error&gt;) -&gt; () in concertjournal.TicketScannerView.scanWithVisionOCR(image: __C.UIImage) async throws -&gt; concertjournal.TicketInfo"
+                  moduleName = "concertjournal.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/pkuhnel/Projects/Testable/ConcertJournal/ios/concertjournal/concertjournal/Features/CreateConcert/Import/TicketScannerView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "429"
+                  endingLineNumber = "429">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "271F78CC-7546-4D2C-9893-8671E99E2233"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "concertjournal/Features/CreateConcert/Import/TicketScannerView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "431"
+            endingLineNumber = "431"
+            landmarkName = "scanWithVisionOCR(image:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "271F78CC-7546-4D2C-9893-8671E99E2233 - 46f6cffa0692a994"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(3) suspend resume partial function for function signature specialization &lt;Arg[4] = Value Promoted from Box&gt; of closure #3 () async -&gt; () in closure #1 (__C.VNRequest, Swift.Optional&lt;Swift.Error&gt;) -&gt; () in closure #1 (Swift.CheckedContinuation&lt;concertjournal.TicketInfo, Swift.Error&gt;) -&gt; () in concertjournal.TicketScannerView.scanWithVisionOCR(image: __C.UIImage) async throws -&gt; concertjournal.TicketInfo"
+                  moduleName = "concertjournal.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/pkuhnel/Projects/Testable/ConcertJournal/ios/concertjournal/concertjournal/Features/CreateConcert/Import/TicketScannerView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "432"
+                  endingLineNumber = "432">
+               </Location>
+               <Location
+                  uuid = "271F78CC-7546-4D2C-9893-8671E99E2233 - fe6682cd7bee4f9b"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(4) suspend resume partial function for function signature specialization &lt;Arg[4] = Value Promoted from Box&gt; of closure #3 () async -&gt; () in closure #1 (__C.VNRequest, Swift.Optional&lt;Swift.Error&gt;) -&gt; () in closure #1 (Swift.CheckedContinuation&lt;concertjournal.TicketInfo, Swift.Error&gt;) -&gt; () in concertjournal.TicketScannerView.scanWithVisionOCR(image: __C.UIImage) async throws -&gt; concertjournal.TicketInfo"
+                  moduleName = "concertjournal.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/pkuhnel/Projects/Testable/ConcertJournal/ios/concertjournal/concertjournal/Features/CreateConcert/Import/TicketScannerView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "432"
+                  endingLineNumber = "432">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "9EB5F77A-B00D-4338-B1A1-D499035C7917"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "concertjournal/Features/CreateConcert/Import/TicketScannerView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "428"
+            endingLineNumber = "428"
+            landmarkName = "scanWithVisionOCR(image:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "35C23DA3-6719-49F6-B932-300D7D1622FB"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "concertjournal/Features/CreateConcert/Import/TicketScannerView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "424"
+            endingLineNumber = "424"
+            landmarkName = "scanWithVisionOCR(image:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "DD0181EC-8059-484F-9141-D44FC9F33F5E"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "concertjournal/Features/CreateConcert/Import/TicketScannerView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "429"
+            endingLineNumber = "429"
+            landmarkName = "scanWithVisionOCR(image:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "BE78EE99-0E98-4C32-85B2-1D3E9AB05CB3"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "concertjournal/Features/CreateConcert/Import/TicketScannerView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "427"
+            endingLineNumber = "427"
+            landmarkName = "scanWithVisionOCR(image:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "8514A88D-C173-4349-912E-756B7C1D8032"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "concertjournal/Features/CreateConcert/Import/TicketScannerView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "419"
+            endingLineNumber = "419"
+            landmarkName = "scanWithVisionOCR(image:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "8514A88D-C173-4349-912E-756B7C1D8032 - abde0841f5911940"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (__C.VNRequest, Swift.Optional&lt;Swift.Error&gt;) -&gt; () in closure #1 (Swift.CheckedContinuation&lt;concertjournal.TicketInfo, Swift.Error&gt;) -&gt; () in concertjournal.TicketScannerView.scanWithVisionOCR(image: __C.UIImage) async throws -&gt; concertjournal.TicketInfo"
+                  moduleName = "concertjournal.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/pkuhnel/Projects/Testable/ConcertJournal/ios/concertjournal/concertjournal/Features/CreateConcert/Import/TicketScannerView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "420"
+                  endingLineNumber = "420">
+               </Location>
+               <Location
+                  uuid = "8514A88D-C173-4349-912E-756B7C1D8032 - 4d51421c3849b09b"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 ((key: Swift.String, value: __C.CGRect)) -&gt; concertjournal.MatchBox in closure #1 (__C.VNRequest, Swift.Optional&lt;Swift.Error&gt;) -&gt; () in closure #1 (Swift.CheckedContinuation&lt;concertjournal.TicketInfo, Swift.Error&gt;) -&gt; () in concertjournal.TicketScannerView.scanWithVisionOCR(image: __C.UIImage) async throws -&gt; concertjournal.TicketInfo"
+                  moduleName = "concertjournal.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/pkuhnel/Projects/Testable/ConcertJournal/ios/concertjournal/concertjournal/Features/CreateConcert/Import/TicketScannerView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "420"
+                  endingLineNumber = "420">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "6B616EF0-273C-4043-8567-CDFFB914E509"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "concertjournal/Features/CreateConcert/Import/TicketScannerView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "488"
+            endingLineNumber = "488"
+            landmarkName = "init(ticketInfo:artist:venue:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

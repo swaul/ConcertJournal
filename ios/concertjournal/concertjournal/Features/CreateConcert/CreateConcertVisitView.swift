@@ -35,7 +35,7 @@ struct NewConcertVisit: Identifiable, Equatable {
         self.setlistItems = []
     }
     
-    init(ticketInfo: TicketInfo) {
+    init(ticketInfo: ExtendedTicketInfo) {
         self.date = ticketInfo.date ?? .now
         self.entranceTime = .now
         self.artistName = ticketInfo.artistName
@@ -107,7 +107,7 @@ struct CreateConcertVisitView: View {
 
     let possibleArtist: Artist?
 
-    init(importedConcert: ImportedConcert? = nil, ticketInfo: TicketInfo? = nil) {
+    init(importedConcert: ImportedConcert? = nil, ticketInfo: ExtendedTicketInfo? = nil) {
         if let importedConcert {
             possibleArtist = importedConcert.artist
             draft = NewConcertVisit(importeConcert: importedConcert)

@@ -25,76 +25,62 @@ struct TicketScannerView: View {
     @State private var showCamera = false
     @State private var isScanning = false
     @State private var extractedInfo: TicketInfo?
+
     @State private var errorMessage: String?
-    
-    //    var onConcertExtracted: (TicketInfo) -> Void
-    
+    @State private var extractedText: String?
+    @State private var boundingBoxes: [MatchBox] = []
+
     var body: some View {
-        VStack(spacing: 20) {
-            if cameraManager.permissionGranted {
-                if let image = selectedImage {
-                    // Image Preview
-                    Image(uiImage: image)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxHeight: 300)
-                        .cornerRadius(12)
-                        .shadow(radius: 5)
-                    
-                    if isScanning {
-                        // Scanning State
-                        VStack(spacing: 16) {
-                            ProgressView()
-                                .scaleEffect(1.5)
-                            Text("Scanne Ticket...")
-                                .font(.cjBody)
-                                .foregroundColor(.secondary)
-                        }
-                        .padding()
-                    } else if let info = extractedInfo {
-                        // Extracted Info Preview
-                        ExtractedTicketInfoCard(info: info)
-                        
-                        Button {
-                            expotToConcertCreation(info: info)
-                        } label: {
-                            Text("Konzert erstellen")
-                                .font(.cjHeadline)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.accentColor)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                        }
-                        .padding(.horizontal)
-                        
-                    } else if let error = errorMessage {
-                        // Error State
-                        VStack(spacing: 12) {
-                            Image(systemName: "exclamationmark.triangle")
-                                .font(.system(size: 40))
-                                .foregroundColor(.orange)
-                            Text(error)
-                                .font(.cjBody)
-                                .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
-                            
-                            Button("Nochmal versuchen") {
-                                selectedImage = nil
-                                errorMessage = nil
+        ScrollView {
+            VStack(spacing: 20) {
+                if cameraManager.permissionGranted {
+                    if let image = selectedImage {
+                        // Image Preview
+                        imageSection(image: image)
+
+                        if isScanning {
+                            // Scanning State
+                            VStack(spacing: 16) {
+                                ProgressView()
+                                    .scaleEffect(1.5)
+                                Text("Scanne Ticket...")
+                                    .font(.cjBody)
+                                    .foregroundColor(.secondary)
                             }
-                            .buttonStyle(.bordered)
+                            .padding()
+                        } else if let info = extractedInfo {
+                            // Extracted Info Preview
+                            ExtractedTicketInfoCard(info: info, extractedText: extractedText ?? "") { ticketInfo in
+                                expotToConcertCreation(info: ticketInfo)
+                            }
+                        } else if let error = errorMessage {
+                            // Error State
+                            VStack(spacing: 12) {
+                                Image(systemName: "exclamationmark.triangle")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.orange)
+                                Text(error)
+                                    .font(.cjBody)
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+
+                                Button("Nochmal versuchen") {
+                                    selectedImage = nil
+                                    errorMessage = nil
+                                }
+                                .buttonStyle(.bordered)
+                            }
+                            .padding()
                         }
-                        .padding()
+
+                    } else {
+                        emptyState
                     }
-                    
-                } else {
-                    emptyState
                 }
+                Spacer()
             }
-            Spacer()
+            .padding(.vertical)
         }
-        .padding(.vertical)
         .navigationTitle("Ticket scannen")
         .navigationBarTitleDisplayMode(.inline)
         .task {
@@ -159,7 +145,85 @@ struct TicketScannerView: View {
         
         isScanning = false
     }
-    
+
+    @ViewBuilder
+    func imageSection(image: UIImage) -> some View {
+        GeometryReader { geo in
+            Image(uiImage: image)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: geo.size.width,
+                       height: geo.size.height)
+                .overlay {
+                    ForEach(boundingBoxes, id: \.text) { box in
+
+                        let rect = convertBoundingBox(
+                            box.boundingBox,
+                            imageSize: image.size,
+                            containerSize: geo.size
+                        )
+
+                        Rectangle()
+                            .stroke(Color.red, lineWidth: 2)
+                            .frame(width: rect.width,
+                                   height: rect.height)
+                            .position(
+                                x: rect.midX,
+                                y: rect.midY
+                            )
+                    }
+
+                }
+        }
+        .frame(height: 300)
+    }
+
+    func convertBoundingBox(
+        _ boundingBox: CGRect,
+        imageSize: CGSize,
+        containerSize: CGSize
+    ) -> CGRect {
+
+        let fittedSize = aspectFitSize(
+            imageSize: imageSize,
+            containerSize: containerSize
+        )
+
+        // Offset durch aspectFit (Letterboxing)
+        let xOffset = (containerSize.width - fittedSize.width) / 2
+        let yOffset = (containerSize.height - fittedSize.height) / 2
+
+        // Vision → Pixel im tatsächlichen Bild
+        let width = boundingBox.width * fittedSize.width
+        let height = boundingBox.height * fittedSize.height
+
+        let x = boundingBox.origin.x * fittedSize.width
+        let y = (1 - boundingBox.origin.y - boundingBox.height) * fittedSize.height
+
+        return CGRect(
+            x: x + xOffset,
+            y: y + yOffset,
+            width: width,
+            height: height
+        )
+    }
+
+    func aspectFitSize(
+        imageSize: CGSize,
+        containerSize: CGSize
+    ) -> CGSize {
+
+        let scale = min(
+            containerSize.width / imageSize.width,
+            containerSize.height / imageSize.height
+        )
+
+        return CGSize(
+            width: imageSize.width * scale,
+            height: imageSize.height * scale
+        )
+    }
+
     // Empty State
     @ViewBuilder
     var emptyState: some View {
@@ -209,12 +273,14 @@ struct TicketScannerView: View {
     private func expotToConcertCreation(info: TicketInfo) {
         Task {
             do {
-                var info = info
-                
-                info.artist = try await searchForExtractedArtist(artistName: info.artistName)
-                info.venue = try await findOrCreateVenue(venueName: info.venueName)
-                
-                navigationManager.push(.createConcertFromTicket(info))
+                let artist = try await searchForExtractedArtist(artistName: info.artistName)
+                let venue = try await findOrCreateVenue(venueName: info.venueName)
+
+                let extendedTicketInfo = ExtendedTicketInfo(ticketInfo: info,
+                                                            artist: artist,
+                                                            venue: venue)
+
+                navigationManager.push(.createConcertFromTicket(extendedTicketInfo))
             } catch {
                 logError("Error with import", error: error, category: .import)
             }
@@ -237,7 +303,7 @@ struct TicketScannerView: View {
         
         return importedArtsit
     }
-    
+
     private func findOrCreateVenue(venueName: String?) async throws -> Venue? {
         guard let venueName, !venueName.isEmpty else { return nil }
         let request = MKLocalSearch.Request()
@@ -276,14 +342,10 @@ struct TicketScannerView: View {
 extension TicketScannerView {
     
     private func scanWithAppleIntelligence(image: UIImage) async throws -> TicketInfo? {
-        // Apple Intelligence API (hypothetisch, da noch nicht final)
-        // Dieser Code zeigt wie es funktionieren könnte
-        
         guard let cgImage = image.cgImage else {
             throw TicketScanError.invalidImage
         }
-        
-        // Create request for Apple Intelligence
+
         let request = VNRecognizeTextRequest()
         request.recognitionLevel = .accurate
         request.usesLanguageCorrection = true
@@ -296,22 +358,29 @@ extension TicketScannerView {
         guard let observations = request.results else {
             return nil
         }
-        
+
+        var boundingBoxes = [String: CGRect]()
         // Extract all text
         var allText = ""
         for observation in observations {
             guard let candidate = observation.topCandidates(1).first else { continue }
             allText += candidate.string + "\n"
+            boundingBoxes[candidate.string] = observation.boundingBox
         }
-        
+
+        self.boundingBoxes = boundingBoxes.map { MatchBox(text: $0.key, boundingBox: $0.value) }
+        extractedText = allText
+
+        let biggestText = boundingBoxes.max(by: { $0.value.size.comparableSize > $1.value.size.comparableSize })?.key
+
         // Use NLP to extract structured data
-        return try await extractStructuredData(from: allText, image: image)
+        return try await extractStructuredData(from: allText, image: image, biggestText: biggestText)
     }
     
-    private func extractStructuredData(from text: String, image: UIImage) async throws -> TicketInfo {
+    private func extractStructuredData(from text: String, image: UIImage, biggestText: String?) async throws -> TicketInfo {
         // Use Natural Language Processing
-        let parser = TicketTextParser()
-        return try parser.parse(text: text)
+        let parser = TicketTextParser(venueRepository: dependencies.venueRepository, biggestText: biggestText)
+        return try await parser.parse(text: text)
     }
 }
 
@@ -336,21 +405,31 @@ extension TicketScannerView {
                     continuation.resume(throwing: TicketScanError.noTextFound)
                     return
                 }
-                
+
+                var boundingBoxes = [String: CGRect]()
+
                 // Extract text from observations
                 var extractedText = ""
                 for observation in observations {
                     guard let candidate = observation.topCandidates(1).first else { continue }
                     extractedText += candidate.string + "\n"
+                    boundingBoxes[extractedText] = observation.boundingBox
                 }
-                
+
+                self.extractedText = extractedText
+
+                self.boundingBoxes = boundingBoxes.map { MatchBox(text: $0.key, boundingBox: $0.value) }
+                let biggestText = boundingBoxes.max(by: { $0.value.size.comparableSize > $1.value.size.comparableSize })?.key
+
                 // Parse text
-                let parser = TicketTextParser()
-                do {
-                    let info = try parser.parse(text: extractedText)
-                    continuation.resume(returning: info)
-                } catch {
-                    continuation.resume(throwing: error)
+                Task {
+                    let parser = TicketTextParser(venueRepository: dependencies.venueRepository, biggestText: biggestText)
+                    do {
+                        let info = try await parser.parse(text: extractedText)
+                        continuation.resume(returning: info)
+                    } catch {
+                        continuation.resume(throwing: error)
+                    }
                 }
             }
             
@@ -372,7 +451,17 @@ extension TicketScannerView {
 
 // MARK: - Models
 
-struct TicketInfo: Equatable, Hashable {
+struct TicketInfo: Codable, Equatable, Hashable {
+    init(artistName: String = "", venueName: String? = nil, city: String? = nil, date: Date? = nil, price: String? = nil, seatInfo: String? = nil, ticketProvider: String? = nil) {
+        self.artistName = artistName
+        self.venueName = venueName
+        self.city = city
+        self.date = date
+        self.price = price
+        self.seatInfo = seatInfo
+        self.ticketProvider = ticketProvider
+    }
+
     var artistName: String = ""
     var venueName: String?
     var city: String?
@@ -380,9 +469,33 @@ struct TicketInfo: Equatable, Hashable {
     var price: String?
     var seatInfo: String?
     var ticketProvider: String?
-    
-    var artist: Artist?
-    var venue: Venue?
+
+    init() {}
+}
+
+struct ExtendedTicketInfo: Codable, Equatable, Hashable {
+    let artistName: String
+    let venueName: String?
+    let city: String?
+    let date: Date?
+    let price: String?
+    let seatInfo: String?
+    let ticketProvider: String?
+    let venue: Venue?
+    let artist: Artist?
+
+    init(ticketInfo: TicketInfo, artist: Artist?, venue: Venue?) {
+        self.artistName = ticketInfo.artistName
+        self.venueName = ticketInfo.venueName
+        self.city = ticketInfo.city
+        self.date = ticketInfo.date
+        self.price = ticketInfo.price
+        self.seatInfo = ticketInfo.seatInfo
+        self.ticketProvider = ticketInfo.ticketProvider
+
+        self.artist = artist
+        self.venue = venue
+    }
 }
 
 enum TicketScanError: Error, LocalizedError {
@@ -422,4 +535,15 @@ class CameraManager {
             }
         })
     }
+}
+
+extension CGSize {
+    var comparableSize: CGFloat {
+        self.width + self.height
+    }
+}
+
+struct MatchBox {
+    let text: String
+    let boundingBox: CGRect
 }

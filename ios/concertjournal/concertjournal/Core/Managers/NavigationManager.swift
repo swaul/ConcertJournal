@@ -17,7 +17,7 @@ enum NavigationRoute: Hashable {
     // Concert Related
     case concertDetail(FullConcertVisit)
     case createConcert
-    case createConcertFromTicket(TicketInfo?)
+    case createConcertFromTicket(ExtendedTicketInfo?)
     case ticketScan
     case createConcertFromImport(ImportedConcert)
     case editConcert(FullConcertVisit)

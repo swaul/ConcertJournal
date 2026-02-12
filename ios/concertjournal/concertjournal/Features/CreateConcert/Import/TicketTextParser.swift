@@ -6,10 +6,19 @@
 //
 
 import UIKit
+import MapKit
 
 class TicketTextParser {
-    
-    func parse(text: String) throws -> TicketInfo {
+
+    let venueRepository: VenueRepositoryProtocol
+    let biggestText: String?
+
+    init(venueRepository: VenueRepositoryProtocol, biggestText: String?) {
+        self.venueRepository = venueRepository
+        self.biggestText = biggestText
+    }
+
+    func parse(text: String) async throws -> TicketInfo {
         logInfo("Parsing ticket text...", category: .import)
         logDebug("Text:\n\(text)", category: .import)
         
@@ -19,8 +28,8 @@ class TicketTextParser {
         info.artistName = extractArtistName(from: text)
         
         // Parse venue
-        info.venueName = extractVenueName(from: text)
-        
+        info.venueName = try await extractVenueName(from: text)
+
         // Parse city
         info.city = extractCity(from: text)
         
@@ -52,7 +61,7 @@ class TicketTextParser {
         let lines = text.components(separatedBy: .newlines)
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
-        
+
         // Common ticket patterns
         let skipKeywords = [
             "ticket", "einlass", "eintrittskarte", "konzert", "show",
@@ -79,16 +88,20 @@ class TicketTextParser {
             if line.count < 3 || line.allSatisfy({ $0.isNumber }) {
                 continue
             }
-            
+
+            if line.isMostlyNumbers {
+                continue
+            }
+
             // This is likely the artist name
             return line
         }
         
         // Fallback: return first non-empty line
-        return lines.first ?? ""
+        return biggestText ?? ""
     }
     
-    private func extractVenueName(from text: String) -> String? {
+    private func extractVenueName(from text: String) async throws -> String? {
         // Look for venue indicators
         let venueKeywords = ["venue:", "location:", "ort:", "halle:", "arena:", "club:"]
         
@@ -114,14 +127,60 @@ class TicketTextParser {
                 }
             }
         }
-        
+
+        let lines = text.components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+
+        if let addressRegex = try? Regex(
+            #"^[A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß\s\.\-]+?\s\d+[a-zA-Z]?,\s\d{4,5}\s[A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß\s\-]+$"#
+        ) {
+            for line in lines {
+                if let match = try? addressRegex.wholeMatch(in: line) {
+                    return try await findOrCreateVenue(address: line)?.name
+                }
+            }
+        }
+
         return nil
     }
-    
+
+    private func findOrCreateVenue(address: String) async throws -> Venue? {
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = address
+        request.resultTypes = .pointOfInterest
+        request.pointOfInterestFilter = MKPointOfInterestFilter(excluding: [.atm, .automotiveRepair, .beauty, .evCharger, .mailbox])
+
+        let result = try await MKLocalSearch(request: request).start()
+        let bestMatch = result.mapItems.first
+
+        if let bestMatch, let name = bestMatch.name {
+            let venue = CreateVenueDTO(name: name,
+                                       city: bestMatch.addressRepresentations?.cityName,
+                                       formattedAddress: bestMatch.addressRepresentations?.fullAddress(includingRegion: false, singleLine: true) ?? "",
+                                       latitude: bestMatch.location.coordinate.latitude,
+                                       longitude: bestMatch.location.coordinate.longitude,
+                                       appleMapsId: bestMatch.identifier?.rawValue)
+
+            let createdVenueId = try await venueRepository.createVenue(venue)
+
+            return Venue(id: createdVenueId,
+                         name: name,
+                         city: venue.city,
+                         formattedAddress: venue.formattedAddress,
+                         latitude: venue.latitude,
+                         longitude: venue.longitude,
+                         appleMapsId: venue.appleMapsId)
+        } else {
+            return nil
+        }
+    }
+
+
     private func extractCity(from text: String) -> String? {
         // German cities
         let cities = [
-            "Berlin", "Hamburg", "München", "Köln", "Frankfurt",
+            "Berlin", "Hamburg", "München", "Köln", "Frankfurt am Main",
             "Stuttgart", "Düsseldorf", "Dortmund", "Essen", "Leipzig",
             "Bremen", "Dresden", "Hannover", "Nürnberg", "Duisburg"
         ]
@@ -131,7 +190,22 @@ class TicketTextParser {
                 return city
             }
         }
-        
+
+        let lines = text.components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+
+        if let addressRegex = try? Regex(
+            #"^(?<street>[A-Za-zÄÖÜäöüß\s\.\-]+?)\s(?<houseNumber>\d+[a-zA-Z]?),\s(?<postalCode>\d{4,5})\s(?<city>[A-Za-zÄÖÜäöüß\s\-]+)$"#
+        ) {
+            for line in lines {
+                if let match = try? addressRegex.wholeMatch(in: line) {
+                    let result = match.output.extractValues(as: [String].self)
+                    return result?.last
+                }
+            }
+        }
+
         return nil
     }
     
@@ -241,5 +315,12 @@ class TicketTextParser {
         }
         
         return false
+    }
+}
+
+extension String {
+    var isMostlyNumbers: Bool {
+        let numberCount = self.filter { $0.isNumber }
+        return numberCount.count > Int(Double(self.count) * 0.75)
     }
 }
