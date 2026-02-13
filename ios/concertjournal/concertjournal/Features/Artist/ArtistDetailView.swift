@@ -126,6 +126,16 @@ struct ArtistDetailView: View {
                                 .frame(alignment: .trailing)
                         }
                     }
+                    if let waitedFor = artistInfo.waitedFor {
+                        HStack {
+                            Text("Wartezeit:")
+                                .font(.cjBody)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Text(DurationParser.format(waitedFor))
+                                .font(.cjTitle)
+                                .frame(alignment: .trailing)
+                        }
+                    }
                 }
                 if artistInfo.hasAnyTicketInfos {
                     HStack {

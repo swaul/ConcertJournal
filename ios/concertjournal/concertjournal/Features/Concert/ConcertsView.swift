@@ -291,6 +291,12 @@ struct ConcertsView: View {
 
     func secondsToHoursMinutesSeconds(_ seconds: Int) -> String {
         let (h, m, s) = secondsToHoursMinutesSeconds(seconds)
+        if h == 0, m == 0 {
+            return "noch \(s) Sekunden!"
+        } else if h == 0 {
+            return "\(m):\(s)"
+        }
+
         return "\(h):\(m):\(s)"
     }
 

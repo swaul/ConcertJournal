@@ -69,6 +69,7 @@ class ArtistDetailViewModel {
         let hotelExpensesValue = concerts.reduce(into: 0.0) { partialResult, detail in
             partialResult += detail.hotelExpenses?.value ?? 0.0
         }
+
         let travelExpensesValue = concerts.reduce(into: 0.0) { partialResult, detail in
             partialResult += detail.travelExpenses?.value ?? 0.0
         }
@@ -96,6 +97,20 @@ class ArtistDetailViewModel {
         if traveledDuration != 0 {
             artistInfo.travelDuration = traveledDuration
         }
+
+        let waitingTime = concerts.reduce(into: 0.0) { partialResult, detail in
+            partialResult += getWaitingTime(for: detail) ?? 0.0
+        }
+
+        if waitingTime != 0 {
+            artistInfo.waitedFor = waitingTime
+        }
+    }
+
+    func getWaitingTime(for concert: ConcertDetails) -> Double? {
+        guard let openingTime = concert.openingTime, let arrivedAt = concert.arrivedAt else { return nil }
+        let waitingTime = openingTime.timeIntervalSince(arrivedAt)
+        return waitingTime
     }
 
     func getTicketInfos(artistInfo: inout ArtistInfo, concerts: [ConcertDetails], currency: String) {
@@ -132,6 +147,7 @@ struct ArtistInfo {
     var moneySpentOnTravel: Price?
     var travelDistance: Double?
     var travelDuration: Double?
+    var waitedFor: Double?
 
     // Ticket
     var moneySpentOnTickets: Price?

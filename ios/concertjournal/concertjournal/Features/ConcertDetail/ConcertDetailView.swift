@@ -644,8 +644,8 @@ extension Date {
     var timeOnlyString: String {
         self.formatted(
             Date.FormatStyle()
-                .hour()
-                .minute()
+                .hour(.twoDigits(amPM: .abbreviated))
+                .minute(.twoDigits)
                 .locale(Locale(identifier: "de_DE"))
         )
     }

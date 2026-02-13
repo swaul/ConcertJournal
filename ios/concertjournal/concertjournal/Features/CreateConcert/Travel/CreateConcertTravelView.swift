@@ -27,6 +27,11 @@ public struct CreateConcertTravelView: View {
         } else {
             distanceText = ""
         }
+        if let arrivalTime = travel?.arrivedAt {
+            arrivedAt = arrivalTime
+        } else {
+            arrivedAt = .now
+        }
         if let travelExpenses = travel?.travelExpenses {
             expensesText = travelExpenses.formatted
         } else {
@@ -51,9 +56,12 @@ public struct CreateConcertTravelView: View {
     @State var durationText: String
     @State var distanceText: String
     @State var expensesText: String
+    @State var arrivedAt: Date
     @State var hotelExpensesText: String
     @State var spentTheNight: Bool
     @State var animatedSpentTheNight: Bool
+
+    @State var arrivedAtSetByUser: Date? = nil
 
     public var body: some View {
         NavigationStack {
@@ -108,6 +116,14 @@ public struct CreateConcertTravelView: View {
                         .padding(.top)
                     DistanceValidatedTextField("z.B.: 346,5km", text: $distanceText)
 
+                    Text("Wann bist du angekommen?")
+                        .font(.cjBody)
+                        .padding(.top)
+                    DatePicker("", selection: $arrivedAt)
+                        .onChange(of: arrivedAt) { oldValue, newValue in
+                            arrivedAtSetByUser = newValue
+                        }
+
                     Text("Wie teuer war die Reise?")
                         .font(.cjBody)
                         .padding(.top)
@@ -154,6 +170,8 @@ public struct CreateConcertTravelView: View {
         // Parse distance
         let travelDistance: Double? = DistanceParser.parse(distanceText)
 
+        let arrivedAt: Date? = arrivedAtSetByUser
+
         // Parse travel expenses
         let travelExpenses = ExpensesParser.parse(expensesText)
 
@@ -165,6 +183,7 @@ public struct CreateConcertTravelView: View {
             travelType: selectedTravelType,
             travelDuration: travelDuration,
             travelDistance: travelDistance,
+            arrivedAt: arrivedAt,
             travelExpenses: travelExpenses,
             hotelExpenses: hotelExpenses
         )

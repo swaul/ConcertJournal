@@ -268,6 +268,9 @@ struct ConcertEditView: View {
                 let parsedDistance = DistanceParser.format(travelDistance)
                 Text("Der Weg war \(parsedDistance) lang.")
             }
+            if let arrivedAt = travel?.arrivedAt {
+                Text("Du bist um \(arrivedAt.timeOnlyString) angekommen")
+            }
             if let travelExpenses = travel?.travelExpenses {
                 Text("Die Anreise hat dich \(travelExpenses.formatted) gekostet.")
             }

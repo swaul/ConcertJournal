@@ -9,15 +9,16 @@ import Foundation
 import SwiftUI
 
 struct Travel: Identifiable, Equatable, Codable {
-    init?(id: String = UUID().uuidString, travelType: TravelType? = nil, travelDuration: TimeInterval? = nil, travelDistance: Double? = nil, travelExpenses: Price? = nil, hotelExpenses: Price? = nil) {
+    init?(id: String = UUID().uuidString, travelType: TravelType? = nil, travelDuration: TimeInterval? = nil, travelDistance: Double? = nil, arrivedAt: Date? = nil, travelExpenses: Price? = nil, hotelExpenses: Price? = nil) {
         self.id = id
         self.travelType = travelType
         self.travelDuration = travelDuration
         self.travelDistance = travelDistance
+        self.arrivedAt = arrivedAt
         self.travelExpenses = travelExpenses
         self.hotelExpenses = hotelExpenses
         
-        guard travelType != nil || travelDuration != nil || travelDistance != nil || travelExpenses != nil || hotelExpenses != nil else {
+        guard travelType != nil || travelDuration != nil || travelDistance != nil || travelExpenses != nil || hotelExpenses != nil || arrivedAt != nil else {
             return nil
         }
     }
@@ -27,6 +28,7 @@ struct Travel: Identifiable, Equatable, Codable {
     let travelType: TravelType?
     let travelDuration: TimeInterval?
     let travelDistance: Double?
+    let arrivedAt: Date?
     let travelExpenses: Price?
     let hotelExpenses: Price?
 
@@ -47,6 +49,7 @@ struct Travel: Identifiable, Equatable, Codable {
         case travelType = "travel_type"
         case travelDuration = "travel_duration_seconds"
         case travelDistance = "travel_distance_meters"
+        case arrivedAt = "arrived_at"
         case travelExpenses = "travel_expenses"
         case hotelExpenses = "hotel_expenses"
     }

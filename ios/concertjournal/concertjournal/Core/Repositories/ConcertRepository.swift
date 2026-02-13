@@ -17,7 +17,7 @@ protocol ConcertRepositoryProtocol {
     func fetchConcertsWithArtist(artistId: String) async throws -> [ConcertDetails]
     func getConcert(id: String) async throws -> FullConcertVisit
     func reloadConcerts() async throws
-    func createConcert(_ concert: NewConcertDTO) async throws -> ConcertVisit
+    func createConcert(_ concert: NewConcertDTO) async throws -> FullConcertVisit
     func updateConcert(id: String, concert: ConcertVisitUpdateDTO) async throws
     func deleteConcert(id: String) async throws
 
@@ -69,7 +69,7 @@ class BFFConcertRepository: ConcertRepositoryProtocol {
         return try await client.get("/concerts/\(id)")
     }
     
-    func createConcert(_ concert: NewConcertDTO) async throws -> ConcertVisit {
+    func createConcert(_ concert: NewConcertDTO) async throws -> FullConcertVisit {
         logInfo("Creating concert with title: \(concert.title)", category: .repository)
         return try await client.post("/concerts", body: concert)
     }
@@ -90,50 +90,6 @@ class BFFConcertRepository: ConcertRepositoryProtocol {
         cachedConcerts.removeAll()
     }
 }
-
-// MARK: - Mock Repository für Testing/Previews
-
-//class MockConcertRepository: ConcertRepositoryProtocol {
-//
-//    var mockConcerts: [FullConcertVisit] = []
-//
-//    var concertsDidUpdate: AnyPublisher<[FullConcertVisit], Never> {
-//        Just(concerts).eraseToAnyPublisher()
-//    }
-//
-//    var concerts: [FullConcertVisit]
-//
-//    init(mockConcerts: [FullConcertVisit], concerts: [FullConcertVisit]) {
-//        self.mockConcerts = mockConcerts
-//        self.concerts = concerts
-//    }
-//
-//    func getConcerts(reload: Bool) async throws -> [FullConcertVisit] {
-//        if reload {
-//            try await fetchConcerts()
-//            return concerts
-//        } else {
-//            return concerts
-//        }
-//    }
-//
-//    func fetchConcerts() async throws {
-//        // Mock implementation
-//    }
-//
-//    func createConcert(_ concert: NewConcertDTO) async throws -> ConcertVisit {
-//        // Mock implementation
-//        return
-//    }
-//
-//    func updateConcert(id: String, concert: ConcertVisitUpdateDTO) async throws {
-//        // Mock implementation
-//    }
-//
-//    func deleteConcert(id: String) async throws {
-//        // Mock implementation
-//    }
-//}
 
 struct ConcertChanges {
     var hasBasicChanges: Bool = false
@@ -160,6 +116,7 @@ struct ConcertVisitUpdateDTO: Codable {
     var travelType: TravelType?
     var travelDuration: TimeInterval?
     var travelDistance: Double?
+    var arrivedAt: String?
     var travelExpenses: Price?
     var hotelExpenses: Price?
 
@@ -187,6 +144,7 @@ struct ConcertVisitUpdateDTO: Codable {
         if let travelType = travelType { dict["travelType"] = travelType }
         if let travelDuration = travelDuration { dict["travelDuration"] = travelDuration }
         if let travelDistance = travelDistance { dict["travelDistance"] = travelDistance }
+        if let arrivedAt = arrivedAt { dict["arrivedAt"] = arrivedAt }
         if let travelExpenses = travelExpenses { dict["travelExpenses"] = travelExpenses }
         if let hotelExpenses = hotelExpenses { dict["hotelExpenses"] = hotelExpenses }
 
@@ -219,6 +177,7 @@ struct ConcertVisitUpdateDTO: Codable {
         case travelType = "travel_type"
         case travelDuration = "travel_duration"
         case travelDistance = "travel_distance"
+        case arrivedAt = "arrived_at"
         case travelExpenses = "travel_expenses"
         case hotelExpenses = "hotel_expenses"
 
@@ -301,6 +260,12 @@ extension FullConcertVisit {
             if self.travel?.travelDistance != updateTravel.travelDistance {
                 dto.travelDistance = updateTravel.travelDistance
                 changes.changedFields.append("travelDistance")
+                travelChanged = true
+            }
+
+            if self.travel?.arrivedAt != updateTravel.arrivedAt {
+                dto.arrivedAt = updateTravel.arrivedAt?.supabseDateString
+                changes.changedFields.append("arrivedAt")
                 travelChanged = true
             }
 
