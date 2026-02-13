@@ -15,9 +15,10 @@ class ConcertsViewModel {
 
     // MARK: - Published State
 
-    var pastConcerts: [FullConcertVisit] = []
-    var futureConcerts: [FullConcertVisit] = []
-    var isLoading: Bool = false
+    var concertToday: PartialConcertVisit? = nil
+    var pastConcerts: [PartialConcertVisit] = []
+    var futureConcerts: [PartialConcertVisit] = []
+    var isLoading: Bool = true
     var errorMessage: String?
 
     // MARK: - Dependencies (Dependency Injection statt Singleton!)
@@ -40,6 +41,10 @@ class ConcertsViewModel {
                 self?.filterConcerts(concerts)
             }
             .store(in: &cancellabels)
+
+        Task {
+            await loadConcerts()
+        }
     }
 
     // MARK: - Public Methods
@@ -61,8 +66,11 @@ class ConcertsViewModel {
     }
 
     func refreshConcerts() async {
-        pastConcerts.removeAll()
-        futureConcerts.removeAll()
+        withAnimation {
+            pastConcerts.removeAll()
+            futureConcerts.removeAll()
+            errorMessage = nil
+        }
 
         do {
             let concerts = try await concertRepository.fetchConcerts(reload: true)
@@ -76,13 +84,17 @@ class ConcertsViewModel {
         }
     }
 
-    func deleteConcert(_ concert: FullConcertVisit) async {
+    func deleteConcert(_ concert: PartialConcertVisit) async {
+        errorMessage = nil
+
         do {
             try await concertRepository.deleteConcert(id: concert.id)
 
             // Update local state
-            pastConcerts.removeAll { $0.id == concert.id }
-            futureConcerts.removeAll { $0.id == concert.id }
+            withAnimation {
+                pastConcerts.removeAll { $0.id == concert.id }
+                futureConcerts.removeAll { $0.id == concert.id }
+            }
         } catch let error as NetworkError {
             errorMessage = error.localizedDescription
         } catch {
@@ -92,13 +104,20 @@ class ConcertsViewModel {
 
     // MARK: - Private Helpers
 
-    private func filterConcerts(_ concerts: [FullConcertVisit]) {
+    private func filterConcerts(_ concerts: [PartialConcertVisit]) {
         let now = Date.now
-        let futureConcerts = concerts.filter { $0.date > now }
-        let pastConcerts = concerts.filter { $0.date <= now }
-        
-        self.futureConcerts = futureConcerts.sorted(by: { $0.date < $1.date })
-        self.pastConcerts = pastConcerts
+
+        let calendar = Calendar.current
+        concertToday = concerts.first(where: { calendar.isDateInToday($0.date) })
+        let concertsWithoutToday = concerts.filter { $0.id != (concertToday?.id ?? "") }
+
+        let futureConcerts = concertsWithoutToday.filter { $0.date > now }
+        let pastConcerts = concertsWithoutToday.filter { $0.date <= now }
+
+        withAnimation {
+            self.futureConcerts = futureConcerts.sorted(by: { $0.date < $1.date })
+            self.pastConcerts = pastConcerts
+        }
     }
 }
 

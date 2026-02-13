@@ -33,11 +33,11 @@ class MapViewModel {
         }
     }
 
-    func loadConcerts() async throws -> [FullConcertVisit] {
+    func loadConcerts() async throws -> [PartialConcertVisit] {
         try await concertRepository.fetchConcerts(reload: false)
     }
 
-    static func groupConcertsByLocation(_ concerts: [FullConcertVisit]) -> [ConcertMapItem] {
+    static func groupConcertsByLocation(_ concerts: [PartialConcertVisit]) -> [ConcertMapItem] {
         let concertsWithVenue = concerts.filter { concert in
             guard
                 let venue = concert.venue,

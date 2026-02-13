@@ -237,7 +237,7 @@ struct ConcertMapItem: Identifiable, Equatable {
     let id = UUID()
     let venueName: String
     let coordinates: CLLocationCoordinate2D
-    let concerts: [FullConcertVisit]
+    let concerts: [PartialConcertVisit]
 
     var title: String {
         concerts.count == 1 ? concerts.first!.title ?? concerts.first!.artist.name : "\(concerts.count) Konzerte"

@@ -182,7 +182,6 @@ class ConcertDetailViewModel {
     }
     func deleteConcert() async throws {
         try await concertRepository.deleteConcert(id: concert.id)
-        try await concertRepository.reloadConcerts()
     }
 
     @MainActor

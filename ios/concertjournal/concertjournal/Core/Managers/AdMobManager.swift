@@ -65,7 +65,7 @@ class AdMobManager {
             logInfo("AdMob initialized", category: .ads)
 
             // Preload ads
-            self.loadInterstitialAd()
+            await loadInterstitialAd()
 //            self.loadRewardedAd()
 
             // Request ATT Permission (App Tracking Transparency)
@@ -101,30 +101,22 @@ class AdMobManager {
 
     // MARK: - Interstitial Ads
 
-    func loadInterstitialAd() {
+    func loadInterstitialAd() async {
         guard shouldShowAds, !isLoadingInterstitial else { return }
 
         isLoadingInterstitial = true
 
-        let request = Request()
-
-        InterstitialAd.load(
-            with: interstitialAdUnitID,
-            request: request
-        ) { [weak self] ad, error in
-            self?.isLoadingInterstitial = false
-
-            if let error = error {
-                logError("Failed to load interstitial ad", error: error, category: .ads)
-                return
-            }
-
-            self?.interstitialAd = ad
+        do {
+            interstitialAd = try await InterstitialAd.load(with: interstitialAdUnitID, request: Request())
             logInfo("Interstitial ad loaded", category: .ads)
+            isLoadingInterstitial = false
+        } catch {
+            logError("Failed to load interstitial ad", error: error, category: .ads)
+            isLoadingInterstitial = false
         }
     }
 
-    func showInterstitialAd(from viewController: UIViewController?) {
+    func showInterstitialAd(from viewController: UIViewController?) async {
         guard shouldShowAds else { return }
 
         // Frequency control
@@ -133,11 +125,12 @@ class AdMobManager {
 
         guard let ad = interstitialAd else {
             logInfo("Interstitial ad not ready", category: .ads)
-            loadInterstitialAd() // Preload next
+            await loadInterstitialAd() // Preload next
             return
         }
 
         guard let vc = viewController ?? UIApplication.shared.keyWindow?.rootViewController else {
+            logInfo("Was not able to get rootViewController", category: .ads)
             return
         }
 
@@ -146,7 +139,7 @@ class AdMobManager {
 
         // Preload next ad
         interstitialAd = nil
-        loadInterstitialAd()
+        await loadInterstitialAd()
     }
 
     // MARK: - Inline Ad
@@ -213,8 +206,9 @@ extension View {
     /// Shows interstitial ad after action
     func showInterstitialAfterAction() -> some View {
         self.onDisappear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                AdMobManager.shared.showInterstitialAd(from: nil)
+            logInfo("Attempting to show Interstitial Ad after action", category: .ads)
+            Task {
+                await AdMobManager.shared.showInterstitialAd(from: nil)
             }
         }
     }

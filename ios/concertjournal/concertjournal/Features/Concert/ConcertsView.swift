@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 struct ConcertsView: View {
     @Environment(\.dependencies) private var dependencies
@@ -14,7 +15,8 @@ struct ConcertsView: View {
     @State private var viewModel: ConcertsViewModel? = nil
 
     @State private var chooseCreateFlowPresenting: Bool = false
-    @State private var showDeleteDialog = false
+    @State private var concertToDelete: PartialConcertVisit? = nil
+    @State private var confirmationText: ConfirmationMessage? = nil
 
     var body: some View {
         @Bindable var navigationManager = navigationManager
@@ -35,6 +37,7 @@ struct ConcertsView: View {
                             }
                             .buttonStyle(.glassProminent)
                         }
+                        .padding()
                     } else if viewModel.futureConcerts.isEmpty && viewModel.pastConcerts.isEmpty {
                         Button {
                             navigationManager.push(.createConcert)
@@ -56,55 +59,57 @@ struct ConcertsView: View {
                         return
                     }
 
-                    // ViewModel wird mit Dependencies aus Container erstellt
                     viewModel = ConcertsViewModel(
                         concertRepository: dependencies.concertRepository,
                         userManager: dependencies.userSessionManager,
                         userId: userId
                     )
-
-                    // Daten laden
-                    await viewModel?.loadConcerts()
                 }
             }
-            .sheet(isPresented: $chooseCreateFlowPresenting) {
-                VStack {
+            .adaptiveSheet(isPresent: $chooseCreateFlowPresenting) {
+                VStack(spacing: 16) {
                     Text("Wie möchtest du dein Konzert erstellen?")
                         .font(.cjTitle)
                         .padding()
-                    
-                    Spacer()
-                    
+                        .padding(.bottom)
+
                     Button {
                         chooseCreateFlowPresenting = false
                         navigationManager.push(.createConcert)
                     } label: {
                         Label("Manuell erstellen", systemImage: "long.text.page.and.pencil")
                             .frame(maxWidth: .infinity)
-                            .font(.cjTitle2)
+                            .font(.cjHeadline)
                             .padding(4)
                     }
-                    .buttonStyle(.glass)
-                    .padding()
-                    
-                    Button {
-                        chooseCreateFlowPresenting = false
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                            navigationManager.push(.ticketScan)
+                    .buttonStyle(.glassProminent)
+                    .padding(.horizontal)
+
+                    ZStack(alignment: .topTrailing) {
+                        Button {
+                            chooseCreateFlowPresenting = false
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                                navigationManager.push(.ticketScan)
+                            }
+                        } label: {
+                            Label("Mit Ticket Foto erstellen", systemImage: "document.viewfinder")
+                                .frame(maxWidth: .infinity)
+                                .font(.cjHeadline)
+                                .padding(4)
                         }
-                    } label: {
-                        Label("Mit Ticket Foto erstellen", systemImage: "document.viewfinder")
-                            .frame(maxWidth: .infinity)
-                            .font(.cjTitle2)
+                        .buttonStyle(.glass)
+
+                        Text("BETA")
+                            .font(.cjCaption)
+                            .foregroundStyle(dependencies.colorThemeManager.appTint)
                             .padding(4)
+                            .background { dependencies.colorThemeManager.appTint.opacity(0.2) }
+                            .clipShape(Capsule())
+                            .offset(y: -10)
                     }
-                    .buttonStyle(.glass)
-                    .padding()
-                    
-                    Spacer()
+                    .padding(.horizontal)
                 }
                 .padding(.top)
-                .presentationDetents([.medium])
             }
             .navigationTitle("Concerts")
             .navigationDestination(for: NavigationRoute.self) { route in
@@ -131,6 +136,25 @@ struct ConcertsView: View {
     func viewWithViewModel(viewModel: ConcertsViewModel) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
+                if let concertToday = viewModel.concertToday {
+                    Button {
+                        navigationManager.push(.concertDetail(concertToday))
+                    } label: {
+                        makeConcertTodayView(concert: concertToday)
+                    }
+                    .buttonStyle(.plain)
+                    .contextMenu {
+                        Button("Detail Seite für \(concertToday.title ?? "Konzert")") {
+                            navigationManager.push(.concertDetail(concertToday))
+                        }
+                        .font(.cjBody)
+                        Button("\(concertToday.title ?? "Konzert") löschen", role: .destructive) {
+                            concertToDelete = concertToday
+                        }
+                        .font(.cjBody)
+                    }
+                }
+
                 if !viewModel.futureConcerts.isEmpty {
                     Text("Deine nächsten Konzerte")
                         .font(.cjTitle)
@@ -155,23 +179,9 @@ struct ConcertsView: View {
                                         }
                                         .font(.cjBody)
                                         Button("\(visit.title ?? "Konzert") löschen", role: .destructive) {
-                                            showDeleteDialog = true
+                                            concertToDelete = visit
                                         }
                                         .font(.cjBody)
-                                    }
-                                    .confirmationDialog("\(visit.title ?? "Konzert") wirklich löschen?", isPresented: $showDeleteDialog, titleVisibility: .visible) {
-                                        Button(role: .destructive) {
-                                            Task {
-                                                await viewModel.deleteConcert(visit)
-                                            }
-                                        } label: {
-                                            Text("Konzert löschen")
-                                        }
-                                        Button(role: .cancel) {
-                                            showDeleteDialog = false
-                                        } label: {
-                                            Text("Abbrechen")
-                                        }
                                     }
                                 }
                                 .scrollTargetLayout()
@@ -199,34 +209,21 @@ struct ConcertsView: View {
                             }
                             .font(.cjBody)
                             Button("\(visit.title ?? "Konzert") löschen", role: .destructive) {
-                                showDeleteDialog = true
+                                concertToDelete = visit
                             }
                             .font(.cjBody)
-                        }
-                        .confirmationDialog("\(visit.title ?? "Konzert") wirklich löschen?", isPresented: $showDeleteDialog, titleVisibility: .visible) {
-                            Button(role: .destructive) {
-                                Task {
-                                    await viewModel.deleteConcert(visit)
-                                }
-                            } label: {
-                                Text("Konzert löschen")
-                            }
-                            Button(role: .cancel) {
-                                showDeleteDialog = false
-                            } label: {
-                                Text("Abbrechen")
-                            }
                         }
                     } header: {
                         Text(visit.title ?? visit.artist.name)
                             .font(.cjCaption)
                     }
-                    if index % 5 == 0 {
-                        NativeContentView()
-                            .onAppear {
-                                print(index)
-                            }
+                    if index != 0, index % 5 == 0 {
+                        AdaptiveBannerAdView()
                     }
+                }
+
+                if viewModel.pastConcerts.count < 5 {
+                    AdaptiveBannerAdView()
                 }
             }
             .padding()
@@ -238,10 +235,146 @@ struct ConcertsView: View {
         .refreshable {
             await viewModel.refreshConcerts()
         }
+        .adaptiveSheet(item: $concertToDelete) { item in
+            @State var loading: Bool = false
+
+            VStack(spacing: 16) {
+                Text("Konzert löschen?")
+                    .font(.cjTitle)
+                    .padding(.top)
+
+                let concertText = item.title == nil ? "das Konzert" : "\"\(item.title!)\""
+                Text("Möchtest du \(concertText) wirklich löschen? Das kann nicht Rückgängig gemacht werden.")
+                    .font(.cjBody)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(nil)
+                    .padding(.vertical)
+
+                Button(role: .destructive) {
+                    Task {
+                        loading = true
+                        await viewModel.deleteConcert(item)
+                        concertToDelete = nil
+                        loading = false
+                    }
+                } label: {
+                    Text("Löschen")
+                        .font(.cjHeadline)
+                        .frame(maxWidth: .infinity)
+                        .padding(4)
+                }
+                .buttonStyle(.glassProminent)
+
+                Button {
+                    concertToDelete = nil
+                } label: {
+                    Text("Abbrechen")
+                        .font(.cjHeadline)
+                        .frame(maxWidth: .infinity)
+                        .padding(4)
+                }
+                .buttonStyle(.glass)
+            }
+            .padding()
+        }
+        .sheet(item: $confirmationText) { item in
+            ConfirmationView(message: item)
+        }
+    }
+
+    @State private var timeRemaining: Int? = nil
+    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
+    func secondsToHoursMinutesSeconds(_ seconds: Int) -> (Int, Int, Int) {
+        return (seconds / 3600, (seconds % 3600) / 60, (seconds % 3600) % 60)
+    }
+
+    func secondsToHoursMinutesSeconds(_ seconds: Int) -> String {
+        let (h, m, s) = secondsToHoursMinutesSeconds(seconds)
+        return "\(h):\(m):\(s)"
     }
 
     @ViewBuilder
-    func visitItem(visit: FullConcertVisit) -> some View {
+    func makeConcertTodayView(concert: PartialConcertVisit) -> some View {
+        VStack {
+            HStack {
+                Text("Heutiges Konzert:")
+                    .font(.cjTitleF)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                if let timeRemaining {
+                    Text(secondsToHoursMinutesSeconds(timeRemaining))
+                        .font(.cjTitle)
+                        .monospacedDigit()
+                        .contentTransition(.numericText(countsDown: true))
+                }
+            }
+            HStack {
+                Group {
+                    AsyncImage(url: URL(string: concert.artist.imageUrl ?? "")) { result in
+                        switch result {
+                        case .empty:
+                            Color.gray
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        case .failure:
+                            dependencies.colorThemeManager.appTint
+                        @unknown default:
+                            Color.blue
+                        }
+                    }
+                }
+                .frame(width: 80, height: 80)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+
+                VStack(alignment: .leading) {
+                    Text(concert.title ?? concert.artist.name)
+                        .foregroundStyle(.white)
+                        .font(.cjTitle2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    if let venue = concert.venue {
+                        Text(venue.name)
+                            .font(.cjBody)
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                            .padding(.horizontal, 12)
+                    }
+                    if let city = concert.city {
+                        Text(city)
+                            .font(.cjBody)
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                            .padding(.horizontal, 12)
+                    }
+                }
+            }
+            .padding()
+            .compositingGroup()
+            .background {
+                dependencies.colorThemeManager.appTint.opacity(0.4)
+            }
+            .cornerRadius(20)
+            .frame(maxWidth: .infinity, minHeight: 80, maxHeight: 100)
+            .onReceive(timer) { time in
+                guard let timeRemaining else { return }
+                if timeRemaining > 0 {
+                    withAnimation {
+                        self.timeRemaining! -= 1
+                    }
+                }
+            }
+        }
+        .onAppear {
+            guard let openingTime = concert.openingTime else { return }
+            timeRemaining = Int(openingTime.timeIntervalSince(.now))
+        }
+    }
+
+    @ViewBuilder
+    func visitItem(visit: PartialConcertVisit) -> some View {
         HStack(spacing: 0) {
             Group {
                 AsyncImage(url: URL(string: visit.artist.imageUrl ?? "")) { result in
@@ -296,7 +429,7 @@ struct ConcertsView: View {
     }
 
     @ViewBuilder
-    func futureConcert(concert: FullConcertVisit) -> some View {
+    func futureConcert(concert: PartialConcertVisit) -> some View {
         HStack {
             Group {
                 AsyncImage(url: URL(string: concert.artist.imageUrl ?? "")) { result in

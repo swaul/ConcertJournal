@@ -26,20 +26,21 @@ struct ConcertDetailView: View {
 
     @State var viewModel: ConcertDetailViewModel?
 
-    let concert: FullConcertVisit
-    
+    let concert: PartialConcertVisit
+
     @State private var showCalendarSheet = false
     @State private var calendarEvent: EKEvent?
     @State private var confirmationText: ConfirmationMessage? = nil
     @State private var showEditSheet = false
     @State private var showDeleteDialog = false
     @State private var selectedImage: ConcertImage?
- 
+
     @State private var savingConcertPresenting = false
     
     @State private var loadingSetlist = false
-
     @State private var localHidePrices = false
+
+    @State private var errorMessage: String? = nil
 
     let eventStore = EKEventStore()
     
@@ -52,17 +53,25 @@ struct ConcertDetailView: View {
                             loadingSetlist = newValue
                         }
                     }
+            } else if let errorMessage = errorMessage {
+
             } else {
                 LoadingView()
             }
         }
         .task {
             guard viewModel == nil else { return }
-            viewModel = ConcertDetailViewModel(concert: concert,
-                                               bffClient: dependencies.bffClient,
-                                               concertRepository: dependencies.concertRepository,
-                                               setlistRepository: dependencies.setlistRepository,
-                                               photoRepository: dependencies.photoRepository)
+            do {
+                let concert = try await dependencies.concertRepository.getConcert(id: concert.id)
+
+                viewModel = ConcertDetailViewModel(concert: concert,
+                                                   bffClient: dependencies.bffClient,
+                                                   concertRepository: dependencies.concertRepository,
+                                                   setlistRepository: dependencies.setlistRepository,
+                                                   photoRepository: dependencies.photoRepository)
+            } catch {
+                errorMessage = "Da ist etwas schief gelaufen"
+            }
         }
 
     }
@@ -415,9 +424,13 @@ struct ConcertDetailView: View {
                 Button {
                     navigationManager.push(.artistDetail(viewModel.artist))
                 } label: {
-                    Text(viewModel.artist.name)
-                        .bold()
-                        .font(.cjTitleF)
+                    HStack(alignment: .lastTextBaseline) {
+                        Text(viewModel.artist.name)
+                            .bold()
+                            .font(.cjTitleF)
+
+                        Image(systemName: "arrow.right.circle.fill")
+                    }
                 }
                 .contextMenu {
                     Button("Detail Seite für \(viewModel.artist.name)") {
@@ -433,6 +446,11 @@ struct ConcertDetailView: View {
                         .bold()
                         .font(.cjLargeTitle)
                 }
+            }
+
+            if let openingTime = viewModel.concert.openingTime {
+                Text("Einlass \(openingTime.timeOnlyString)")
+                    .font(.cjHeadline)
             }
         }
         .padding()
@@ -573,7 +591,7 @@ struct ConcertDetailView: View {
                 }
             }
 
-            if let ticketPrice = concert.ticketPrice {
+            if let ticketPrice = ticket.ticketPrice {
                 HStack {
                     Text("Ticketpreis:")
                         .font(.cjHeadline)
@@ -622,7 +640,16 @@ extension Date {
                 .locale(Locale(identifier: "de_DE"))
         )
     }
-    
+
+    var timeOnlyString: String {
+        self.formatted(
+            Date.FormatStyle()
+                .hour()
+                .minute()
+                .locale(Locale(identifier: "de_DE"))
+        )
+    }
+
     var shortDateOnlyString: String {
         self.formatted(
             Date.FormatStyle()

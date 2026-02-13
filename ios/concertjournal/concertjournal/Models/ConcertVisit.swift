@@ -81,6 +81,7 @@ public struct FullConcertVisit: Decodable, Identifiable, Equatable, Hashable {
     public let createdAtString: String
     public let updatedAtString: String
     public let dateString: String
+    public let openingTimeString: String?
     public let venue: Venue?
     public let city: String?
     public let rating: Int?
@@ -100,6 +101,10 @@ public struct FullConcertVisit: Decodable, Identifiable, Equatable, Hashable {
     
     var date: Date {
         dateString.supabaseStringDate ?? Date.now
+    }
+
+    var openingTime: Date? {
+        openingTimeString?.supabaseStringDate
     }
 
     // Travel
@@ -137,6 +142,7 @@ public struct FullConcertVisit: Decodable, Identifiable, Equatable, Hashable {
         case createdAtString = "created_at"
         case updatedAtString = "updated_at"
         case dateString = "date"
+        case openingTimeString = "opening_time"
         case venue = "venues"
         case city
         case rating
@@ -158,5 +164,77 @@ public struct FullConcertVisit: Decodable, Identifiable, Equatable, Hashable {
         case seatNumber = "seat_number"
         case standingPosition = "standing_position"
         case ticketNotes = "ticket_notes"
+    }
+}
+
+public struct PartialConcertVisit: Decodable, Identifiable, Equatable, Hashable {
+
+    public let id: String
+    public let dateString: String
+    public let openingTimeString: String?
+    public let venue: Venue?
+    public let artist: Artist
+    public let city: String?
+    public let title: String?
+    public let rating: Int?
+
+    var date: Date {
+        dateString.supabaseStringDate ?? Date.now
+    }
+
+    var openingTime: Date? {
+        openingTimeString?.supabaseStringDate
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case dateString = "date"
+        case openingTimeString = "opening_time"
+        case venue = "venue"
+        case city
+        case title
+        case artist = "artist"
+        case rating
+    }
+}
+
+public struct ConcertDetails: Decodable {
+    let id: String
+    let dateString: String
+    let openingTimeString: String?
+
+    var date: Date {
+        dateString.supabaseStringDate ?? Date.now
+    }
+
+    var openingTime: Date? {
+        openingTimeString?.supabaseStringDate
+    }
+
+    // Travel
+    let travelType: TravelType?
+    let travelDuration: TimeInterval?
+    let travelDistance: Double?
+    let travelExpenses: Price?
+    let hotelExpenses: Price?
+
+    let ticketType: TicketType?
+    let ticketCategory: TicketCategory?
+    let ticketPrice: Price?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case dateString = "date"
+        case openingTimeString = "opening_time"
+
+        case travelType = "travel_type"
+        case travelDuration = "travel_duration"
+        case travelDistance = "travel_distance"
+        case travelExpenses = "travel_expenses"
+        case hotelExpenses = "hotel_expenses"
+
+        case ticketType = "ticket_type"
+        case ticketCategory = "ticket_category"
+        case ticketPrice = "ticket_price"
     }
 }

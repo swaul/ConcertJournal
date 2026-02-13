@@ -16,6 +16,7 @@ struct ConcertEditView: View {
     
     @State private var title: String
     @State private var date: Date
+    @State private var openingTime: Date
     @State private var notes: String
     @State private var rating: Int
     @State private var venueName: String
@@ -37,6 +38,7 @@ struct ConcertEditView: View {
     init(concert: FullConcertVisit, onSave: @escaping (ConcertUpdate) -> Void) {
         _title = State(initialValue: concert.title ?? "")
         _date = State(initialValue: concert.date)
+        _openingTime = State(initialValue: concert.openingTime ?? .now)
         _notes = State(initialValue: concert.notes ?? "")
         _rating = State(initialValue: concert.rating ?? 0)
         _venueName = State(initialValue: concert.venue?.name ?? "")
@@ -60,6 +62,7 @@ struct ConcertEditView: View {
                 Section {
                     TextField("Titel", text: $title)
                     DatePicker("Datum", selection: $date, displayedComponents: .date)
+                    DatePicker("Einlass", selection: $openingTime, displayedComponents: .hourAndMinute)
                 } header: {
                     Text("Konzert")
                         .font(.cjBody)
@@ -182,6 +185,7 @@ struct ConcertEditView: View {
                                 id: concert.id,
                                 title: title,
                                 date: date.supabseDateString,
+                                openingTime: openingTime.supabseDateString,
                                 notes: notes,
                                 venue: venue,
                                 city: venue?.city,
@@ -410,6 +414,7 @@ struct ConcertUpdate {
     let id: String
     let title: String
     let date: String
+    let openingTime: String?
     let notes: String
     let venue: Venue?
     let city: String?

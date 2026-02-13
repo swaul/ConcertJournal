@@ -10,10 +10,11 @@ import Foundation
 import Supabase
 
 protocol ConcertRepositoryProtocol {
-    var concertsDidUpdate: AnyPublisher<[FullConcertVisit], Never> { get }
-    var cachedConcerts: [FullConcertVisit] { get }
-    
-    func fetchConcerts(reload: Bool) async throws -> [FullConcertVisit]
+    var concertsDidUpdate: AnyPublisher<[PartialConcertVisit], Never> { get }
+    var cachedConcerts: [PartialConcertVisit] { get }
+
+    func fetchConcerts(reload: Bool) async throws -> [PartialConcertVisit]
+    func fetchConcertsWithArtist(artistId: String) async throws -> [ConcertDetails]
     func getConcert(id: String) async throws -> FullConcertVisit
     func reloadConcerts() async throws
     func createConcert(_ concert: NewConcertDTO) async throws -> ConcertVisit
@@ -25,14 +26,14 @@ protocol ConcertRepositoryProtocol {
 
 class BFFConcertRepository: ConcertRepositoryProtocol {
     
-    var concertsDidUpdate: AnyPublisher<[FullConcertVisit], Never> {
+    var concertsDidUpdate: AnyPublisher<[PartialConcertVisit], Never> {
         concertsSubject.eraseToAnyPublisher()
     }
 
-    let concertsSubject = PassthroughSubject<[FullConcertVisit], Never>()
-    
-    var cachedConcerts = [FullConcertVisit]()
-    
+    let concertsSubject = PassthroughSubject<[PartialConcertVisit], Never>()
+
+    var cachedConcerts = [PartialConcertVisit]()
+
     private let client: BFFClient
     
     init(client: BFFClient) {
@@ -44,20 +45,25 @@ class BFFConcertRepository: ConcertRepositoryProtocol {
         _ = try await fetchConcerts(reload: true)
     }
     
-    func fetchConcerts(reload: Bool = false) async throws -> [FullConcertVisit] {
+    func fetchConcerts(reload: Bool = false) async throws -> [PartialConcertVisit] {
         guard cachedConcerts.isEmpty || reload else {
             logSuccess("Returning \(cachedConcerts.count) cached concerts", category: .repository)
             return cachedConcerts
         }
         logInfo("Loading concerts", category: .repository)
 
-        let concerts: [FullConcertVisit] = try await client.get("/concerts")
+        let concerts: [PartialConcertVisit] = try await client.get("/concerts")
         logSuccess("Loaded \(concerts.count) concerts", category: .repository)
         self.cachedConcerts = concerts
         concertsSubject.send(concerts)
         return concerts
     }
-    
+
+    func fetchConcertsWithArtist(artistId: String) async throws -> [ConcertDetails] {
+        logInfo("Getting concert details with artistid: \(artistId)", category: .repository)
+        return try await client.get("/concerts/withArtist/\(artistId)")
+    }
+
     func getConcert(id: String) async throws -> FullConcertVisit {
         logInfo("Getting details for concert with id: \(id)", category: .repository)
         return try await client.get("/concerts/\(id)")
@@ -76,6 +82,8 @@ class BFFConcertRepository: ConcertRepositoryProtocol {
     func deleteConcert(id: String) async throws {
         logInfo("Deleting concert with id: \(id)", category: .repository)
         try await client.delete("/concerts/\(id)")
+        cachedConcerts.removeAll(where: { $0.id == id })
+        concertsSubject.send(cachedConcerts)
     }
 
     func reset() {
@@ -143,6 +151,7 @@ struct ConcertChanges {
 struct ConcertVisitUpdateDTO: Codable {
     var title: String?
     var date: String?
+    var openingTime: String?
     var notes: String?
     var venueId: String?
     var city: String?
@@ -169,6 +178,7 @@ struct ConcertVisitUpdateDTO: Codable {
 
         if let title = title { dict["title"] = title }
         if let date = date { dict["date"] = date }
+        if let date = openingTime { dict["openingTime"] = date }
         if let notes = notes { dict["notes"] = notes }
         if let venueId = venueId { dict["venueId"] = venueId }
         if let city = city { dict["city"] = city }
@@ -200,6 +210,7 @@ struct ConcertVisitUpdateDTO: Codable {
     enum CodingKeys: String, CodingKey {
         case title
         case date
+        case openingTime = "opening_time"
         case notes
         case venueId = "venue_id"
         case city
@@ -238,6 +249,12 @@ extension FullConcertVisit {
         if self.date.supabseDateString != update.date {
             dto.date = update.date
             changes.changedFields.append("date")
+            changes.hasBasicChanges = true
+        }
+
+        if self.openingTime?.supabseDateString != update.openingTime {
+            dto.openingTime = update.openingTime
+            changes.changedFields.append("openingTime")
             changes.hasBasicChanges = true
         }
 
