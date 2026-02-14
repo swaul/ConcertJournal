@@ -81,7 +81,7 @@ struct CreateConcertTicket: View {
                                 .padding(.horizontal)
                         }
 
-                        Picker("", selection: $ticketType) {
+                        HapticPicker(selection: $ticketType) {
                             ForEach(TicketType.allCases, id: \.self) { item in
                                 Text(item.label)
                                     .font(.cjHeadline)
@@ -185,6 +185,10 @@ struct CreateConcertTicket: View {
             .tabViewStyle(.page(indexDisplayMode: .never))
             .frame(height: 100)
             .frame(maxWidth: .infinity)
+            .onChange(of: ticketCategory) { oldValue, newValue in
+                guard newValue != oldValue else { return }
+                HapticManager.shared.pickerSelection()
+            }
         }
     }
 

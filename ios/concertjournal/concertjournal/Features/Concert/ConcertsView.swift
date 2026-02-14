@@ -138,6 +138,7 @@ struct ConcertsView: View {
             VStack(alignment: .leading, spacing: 10) {
                 if let concertToday = viewModel.concertToday {
                     Button {
+                        HapticManager.shared.buttonTap()
                         navigationManager.push(.concertDetail(concertToday))
                     } label: {
                         makeConcertTodayView(concert: concertToday)
@@ -169,6 +170,7 @@ struct ConcertsView: View {
                                         .padding(2)
                                         .glassEffect()
                                     Button {
+                                        HapticManager.shared.buttonTap()
                                         navigationManager.push(.concertDetail(visit))
                                     } label: {
                                         futureConcert(concert: visit)
@@ -199,6 +201,7 @@ struct ConcertsView: View {
                 ForEach(viewModel.pastConcerts.enumerated(), id: \.element) { index, visit in
                     Section {
                         Button {
+                            HapticManager.shared.buttonTap()
                             navigationManager.push(.concertDetail(visit))
                         } label: {
                             visitItem(visit: visit)
@@ -308,7 +311,7 @@ struct ConcertsView: View {
                     .font(.cjTitleF)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                if let timeRemaining {
+                if let timeRemaining, timeRemaining > 0 {
                     Text(secondsToHoursMinutesSeconds(timeRemaining))
                         .font(.cjTitle)
                         .monospacedDigit()
