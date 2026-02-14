@@ -277,7 +277,7 @@ struct FilterChip: Identifiable {
 extension ConcertFilters {
 
     /// Applies all filters to a list of concerts
-    func apply(to concerts: [FullConcertVisit]) -> [FullConcertVisit] {
+    func apply(to concerts: [PartialConcertVisit]) -> [PartialConcertVisit] {
         var filtered = concerts
 
         // Apply date filter
@@ -317,7 +317,7 @@ extension ConcertFilters {
     }
 
     /// Sorts concerts based on current sort option
-    private func sort(concerts: [FullConcertVisit]) -> [FullConcertVisit] {
+    private func sort(concerts: [PartialConcertVisit]) -> [PartialConcertVisit] {
         switch sortOption {
         case .dateNewest:
             return concerts.sorted { $0.date > $1.date }

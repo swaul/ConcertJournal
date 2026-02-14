@@ -22,7 +22,7 @@ struct NewConcertVisit: Identifiable, Equatable {
 
     init(importeConcert: ImportedConcert) {
         self.date = importeConcert.date ?? .now
-        self.entranceTime = .now
+        self.entranceTime = importeConcert.date ?? .now
         self.artistName = importeConcert.artistName ?? ""
         self.venueName = importeConcert.venueName ?? ""
         self.title = importeConcert.title ?? ""
@@ -37,7 +37,7 @@ struct NewConcertVisit: Identifiable, Equatable {
     
     init(ticketInfo: ExtendedTicketInfo) {
         self.date = ticketInfo.date ?? .now
-        self.entranceTime = .now
+        self.entranceTime = ticketInfo.date ?? .now
         self.artistName = ticketInfo.artistName
         self.venueName = ticketInfo.venueName ?? ""
         self.title = ""
@@ -233,6 +233,7 @@ struct CreateConcertVisitView: View {
                     .font(.cjBody)
             }
         }
+        .showInterstitialAfterAction()
     }
     
     private func save() {

@@ -26,20 +26,21 @@ struct ConcertDetailView: View {
 
     @State var viewModel: ConcertDetailViewModel?
 
-    let concert: FullConcertVisit
-    
+    let concert: PartialConcertVisit
+
     @State private var showCalendarSheet = false
     @State private var calendarEvent: EKEvent?
     @State private var confirmationText: ConfirmationMessage? = nil
     @State private var showEditSheet = false
     @State private var showDeleteDialog = false
     @State private var selectedImage: ConcertImage?
- 
+
     @State private var savingConcertPresenting = false
     
     @State private var loadingSetlist = false
-
     @State private var localHidePrices = false
+
+    @State private var errorMessage: String? = nil
 
     let eventStore = EKEventStore()
     
@@ -52,17 +53,25 @@ struct ConcertDetailView: View {
                             loadingSetlist = newValue
                         }
                     }
+            } else if let errorMessage = errorMessage {
+
             } else {
                 LoadingView()
             }
         }
         .task {
             guard viewModel == nil else { return }
-            viewModel = ConcertDetailViewModel(concert: concert,
-                                               bffClient: dependencies.bffClient,
-                                               concertRepository: dependencies.concertRepository,
-                                               setlistRepository: dependencies.setlistRepository,
-                                               photoRepository: dependencies.photoRepository)
+            do {
+                let concert = try await dependencies.concertRepository.getConcert(id: concert.id)
+
+                viewModel = ConcertDetailViewModel(concert: concert,
+                                                   bffClient: dependencies.bffClient,
+                                                   concertRepository: dependencies.concertRepository,
+                                                   setlistRepository: dependencies.setlistRepository,
+                                                   photoRepository: dependencies.photoRepository)
+            } catch {
+                errorMessage = "Da ist etwas schief gelaufen"
+            }
         }
 
     }
@@ -73,222 +82,218 @@ struct ConcertDetailView: View {
             ZStack {
                 background(reader: reader, viewModel: viewModel)
 
-                ScrollView {
-                    VStack(alignment: .leading) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(viewModel.concert.date.dateOnlyString)
-                                .font(.cjTitle2)
+                BannerAdContainer(position: .bottom) {
+                    ScrollView {
+                        VStack(alignment: .leading) {
+                            header(viewModel: viewModel)
 
-                            if let title = viewModel.concert.title {
-                                Text(title)
-                                    .bold()
-                                    .font(.cjLargeTitle)
-                            } else {
-                                Text(viewModel.artist.name)
-                                    .bold()
-                                    .font(.cjLargeTitle)
-                            }
-                        }
-                        .padding()
-                        .rectangleGlass()
-                        .padding(.horizontal)
-
-                        if let venue = viewModel.concert.venue {
-                            Text("Location")
-                                .font(.cjTitle)
-                                .padding(.horizontal)
-
-                            VStack(alignment: .leading) {
-                                Text(venue.name)
-                                    .bold()
-                                    .font(.cjBody)
-
-                                Text(venue.formattedAddress)
-                                    .font(.cjBody)
-
-                                if let latitude = venue.latitude, let longitude = venue.longitude {
-                                    VenueInlineMap(latitude: latitude, longitude: longitude, name: venue.name)
-                                }
-                            }
-                            .padding()
-                            .rectangleGlass()
-                            .padding(.horizontal)
-                        }
-
-                        if let notes = viewModel.concert.notes {
-                            Text("Meine Experience")
-                                .font(.cjTitle)
-                                .padding(.horizontal)
-
-                            VStack(alignment: .leading) {
-                                HStack(alignment: .center) {
-                                    Image(systemName: "long.text.page.and.pencil")
-                                        .foregroundStyle(dependencies.colorThemeManager.appTint)
-                                        .font(.cjCaption)
-                                    Text("Journal Eintrag")
-                                        .foregroundStyle(dependencies.colorThemeManager.appTint)
-                                        .font(.cjCaption)
-                                    Spacer()
-                                }
-                                .padding(.top)
-                                .padding(.horizontal)
-
-                                Text(notes)
-                                    .lineLimit(nil)
-                                    .padding(.bottom)
+                            if let venue = viewModel.concert.venue {
+                                Text("Location")
+                                    .font(.cjTitle)
                                     .padding(.horizontal)
-                                    .font(.cjBody)
-                            }
-                            .rectangleGlass()
-                            .padding(.horizontal)
-                        }
-                        
-                        if let travel = viewModel.concert.travel {
-                            Text("Meine Reise")
-                                .font(.cjTitle)
-                                .padding(.horizontal)
-                            
-                            VStack(alignment: .leading, spacing: 8) {
-                                
-                                if let travelType = travel.travelType {
-                                    Text(travelType.infoText(color: dependencies.colorThemeManager.appTint))
-                                }
-                                if let travelDuration = travel.travelDuration {
-                                    let parsedDuration = DurationParser.format(travelDuration)
 
-                                    Text.highlighted(
-                                        "Die Reise hat \(parsedDuration) gedauert.",
-                                        highlight: parsedDuration,
-                                        baseFont: .cjBody,
-                                        highlightColor: dependencies.colorThemeManager.appTint
-                                    )
-                                }
-                                if let travelDistance = travel.travelDistance {
-                                    let parsedDistance = DistanceParser.format(travelDistance)
-                                    
-                                    Text.highlighted(
-                                        "Der Weg war \(parsedDistance) lang.",
-                                        highlight: parsedDistance,
-                                        baseFont: .cjBody,
-                                        highlightColor: dependencies.colorThemeManager.appTint
-                                    )
-                                }
-                                if let travelExpenses = travel.travelExpenses {
-                                    Text.highlighted(
-                                        "Die Anreise hat dich \(travelExpenses.formatted) gekostet.",
-                                        highlight: travelExpenses.formatted,
-                                        baseFont: .cjBody,
-                                        highlightColor: dependencies.colorThemeManager.appTint
-                                    )
-                                    .conditionalRedacted(localHidePrices)
-                                    .contentShape(Rectangle())
-                                    .contextMenu {
-                                        Toggle("Preise ausblenden", isOn: $localHidePrices)
+                                VStack(alignment: .leading) {
+                                    Text(venue.name)
+                                        .bold()
+                                        .font(.cjBody)
+
+                                    Text(venue.formattedAddress)
+                                        .font(.cjBody)
+
+                                    if let latitude = venue.latitude, let longitude = venue.longitude {
+                                        VenueInlineMap(latitude: latitude, longitude: longitude, name: venue.name, formattedAddress: venue.formattedAddress)
+                                            .allowsTightening(true)
+                                                    .contextMenu {
+                                                        Button {
+                                                            let mapItem = MKMapItem(location: CLLocation(latitude: latitude, longitude: longitude), address: MKAddress(fullAddress: "", shortAddress: venue.formattedAddress))
+                                                            mapItem.openInMaps()
+                                                        } label: {
+                                                            Text("In Apple Karten öffnen")
+                                                                .font(.cjBody)
+                                                        }
+                                                    }
                                     }
                                 }
-                                if let hotelExpenses = travel.hotelExpenses {
-                                    Text.highlighted(
-                                        "Für die Übernachtung hast du \(hotelExpenses.formatted) gezahlt.",
-                                        highlight: hotelExpenses.formatted,
-                                        baseFont: .cjBody,
-                                        highlightColor: dependencies.colorThemeManager.appTint
-                                    )
-                                    .conditionalRedacted(localHidePrices)
-                                    .contentShape(Rectangle())
-                                    .contextMenu {
-                                        Toggle("Preise ausblenden", isOn: $localHidePrices)
-                                    }
-                                }
+                                .padding()
+                                .rectangleGlass()
+                                .padding(.horizontal)
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding()
-                            .glassEffect(in: RoundedRectangle(cornerRadius: 20, style: .circular))
-                            .padding(.horizontal)
-                        }
 
-                        if let ticket = viewModel.concert.ticket {
-                            Text("Mein Ticket")
-                                .font(.cjTitle)
-                                .padding(.horizontal)
+                            if let notes = viewModel.concert.notes {
+                                Text("Meine Experience")
+                                    .font(.cjTitle)
+                                    .padding(.horizontal)
 
-                            ticketSection(ticket: ticket)
-                                .padding(.horizontal)
-                        }
+                                VStack(alignment: .leading) {
+                                    HStack(alignment: .center) {
+                                        Image(systemName: "long.text.page.and.pencil")
+                                            .foregroundStyle(dependencies.colorThemeManager.appTint)
+                                            .font(.cjCaption)
+                                        Text("Journal Eintrag")
+                                            .foregroundStyle(dependencies.colorThemeManager.appTint)
+                                            .font(.cjCaption)
+                                        Spacer()
+                                    }
+                                    .padding(.top)
+                                    .padding(.horizontal)
 
-                        if let setlistItems = viewModel.setlistItems, !setlistItems.isEmpty {
-                            Text("Setlist")
-                                .font(.cjTitle)
-                                .padding(.horizontal)
-                            
-                            VStack {
-                                ForEach(setlistItems, id: \.spotifyTrackId) { item in
-                                    makeSetlistItemView(with: item)
-                                }
-                                
-                                
-                                if dependencies.userSessionManager.user?.identities?.contains(where: { $0.provider == "spotify" }) == true {
-                                    CreatePlaylistButton(viewModel: viewModel)
+                                    Text(notes)
+                                        .lineLimit(nil)
+                                        .padding(.bottom)
                                         .padding(.horizontal)
+                                        .font(.cjBody)
                                 }
-                            }
-                            .padding()
-                            .rectangleGlass()
-                            .padding(.horizontal)
-                        } else if loadingSetlist {
-                            VStack {
-                                ProgressView()
-                                    .tint(dependencies.colorThemeManager.appTint)
-                            }
-                            .frame(height: 60)
-                            .frame(maxWidth: .infinity)
-                        }
-
-                        if !viewModel.imageUrls.isEmpty {
-                            Text("Meine Bilder")
-                                .font(.cjTitle)
+                                .rectangleGlass()
                                 .padding(.horizontal)
+                            }
 
-                            ScrollView(.horizontal) {
-                                LazyHStack(spacing: 16) {
-                                    ForEach(Array(viewModel.imageUrls), id: \.id) { image in
-                                        Button {
-                                            selectedImage = image
-                                        } label: {
-                                            AsyncImage(url: image.url) { image in
-                                                image
-                                                    .resizable()
-                                                    .aspectRatio(contentMode: .fill)
-                                                    .frame(width: 200, height: 300)
-                                                    .clipped()
-                                                    .cornerRadius(20)
-                                            } placeholder: {
-                                                ZStack {
-                                                    RoundedRectangle(cornerRadius: 20)
-                                                        .fill(Color.gray.opacity(0.3))
-                                                    ProgressView()
-                                                }
-                                                .frame(width: 200, height: 300)
-                                            }
+                            if let travel = viewModel.concert.travel {
+                                Text("Meine Reise")
+                                    .font(.cjTitle)
+                                    .padding(.horizontal)
+
+                                VStack(alignment: .leading, spacing: 8) {
+
+                                    if let travelType = travel.travelType {
+                                        Text(travelType.infoText(color: dependencies.colorThemeManager.appTint))
+                                    }
+                                    if let travelDuration = travel.travelDuration {
+                                        let parsedDuration = DurationParser.format(travelDuration)
+
+                                        Text.highlighted(
+                                            "Die Reise hat \(parsedDuration) gedauert.",
+                                            highlight: parsedDuration,
+                                            baseFont: .cjBody,
+                                            highlightColor: dependencies.colorThemeManager.appTint
+                                        )
+                                    }
+                                    if let travelDistance = travel.travelDistance {
+                                        let parsedDistance = DistanceParser.format(travelDistance)
+
+                                        Text.highlighted(
+                                            "Der Weg war \(parsedDistance) lang.",
+                                            highlight: parsedDistance,
+                                            baseFont: .cjBody,
+                                            highlightColor: dependencies.colorThemeManager.appTint
+                                        )
+                                    }
+                                    if let travelExpenses = travel.travelExpenses {
+                                        Text.highlighted(
+                                            "Die Anreise hat dich \(travelExpenses.formatted) gekostet.",
+                                            highlight: travelExpenses.formatted,
+                                            baseFont: .cjBody,
+                                            highlightColor: dependencies.colorThemeManager.appTint
+                                        )
+                                        .conditionalRedacted(localHidePrices)
+                                        .contentShape(Rectangle())
+                                        .contextMenu {
+                                            Toggle("Preise ausblenden", isOn: $localHidePrices)
                                         }
-                                        .buttonStyle(.plain)
-                                        .frame(width: 200, height: 300)
-                                        .scrollTargetLayout()
+                                    }
+                                    if let hotelExpenses = travel.hotelExpenses {
+                                        Text.highlighted(
+                                            "Für die Übernachtung hast du \(hotelExpenses.formatted) gezahlt.",
+                                            highlight: hotelExpenses.formatted,
+                                            baseFont: .cjBody,
+                                            highlightColor: dependencies.colorThemeManager.appTint
+                                        )
+                                        .conditionalRedacted(localHidePrices)
+                                        .contentShape(Rectangle())
+                                        .contextMenu {
+                                            Toggle("Preise ausblenden", isOn: $localHidePrices)
+                                        }
                                     }
                                 }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding()
+                                .glassEffect(in: RoundedRectangle(cornerRadius: 20, style: .circular))
+                                .padding(.horizontal)
                             }
-                            .padding(.horizontal)
-                            .scrollClipDisabled()
-                            .scrollTargetBehavior(.viewAligned)
-                            .scrollIndicators(.hidden)
+
+                            if let ticket = viewModel.concert.ticket {
+                                Text("Mein Ticket")
+                                    .font(.cjTitle)
+                                    .padding(.horizontal)
+
+                                ticketSection(ticket: ticket)
+                                    .padding(.horizontal)
+                            }
+
+                            if let setlistItems = viewModel.setlistItems, !setlistItems.isEmpty {
+                                Text("Setlist")
+                                    .font(.cjTitle)
+                                    .padding(.horizontal)
+
+                                VStack {
+                                    ForEach(setlistItems, id: \.spotifyTrackId) { item in
+                                        makeSetlistItemView(with: item)
+                                    }
+
+
+                                    if dependencies.userSessionManager.user?.identities?.contains(where: { $0.provider == "spotify" }) == true {
+                                        CreatePlaylistButton(viewModel: viewModel)
+                                            .padding(.horizontal)
+                                    }
+                                }
+                                .padding()
+                                .rectangleGlass()
+                                .padding(.horizontal)
+                            } else if loadingSetlist {
+                                VStack {
+                                    ProgressView()
+                                        .tint(dependencies.colorThemeManager.appTint)
+                                }
+                                .frame(height: 60)
+                                .frame(maxWidth: .infinity)
+                            }
+
+                            if !viewModel.imageUrls.isEmpty {
+                                Text("Meine Bilder")
+                                    .font(.cjTitle)
+                                    .padding(.horizontal)
+
+                                ScrollView(.horizontal) {
+                                    LazyHStack(spacing: 16) {
+                                        ForEach(Array(viewModel.imageUrls), id: \.id) { image in
+                                            Button {
+                                                selectedImage = image
+                                            } label: {
+                                                AsyncImage(url: image.url) { image in
+                                                    image
+                                                        .resizable()
+                                                        .aspectRatio(contentMode: .fill)
+                                                        .frame(width: 200, height: 300)
+                                                        .clipped()
+                                                        .cornerRadius(20)
+                                                } placeholder: {
+                                                    ZStack {
+                                                        RoundedRectangle(cornerRadius: 20)
+                                                            .fill(Color.gray.opacity(0.3))
+                                                        ProgressView()
+                                                    }
+                                                    .frame(width: 200, height: 300)
+                                                }
+                                            }
+                                            .buttonStyle(.plain)
+                                            .frame(width: 200, height: 300)
+                                            .scrollTargetLayout()
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal)
+                                .scrollClipDisabled()
+                                .scrollTargetBehavior(.viewAligned)
+                                .scrollIndicators(.hidden)
+                            }
                         }
                     }
-                }
-                .scrollIndicators(.hidden)
-                .frame(width: reader.size.width)
-                .safeAreaInset(edge: .top) {
-                    Rectangle()
-                        .fill(.clear)
-                        .frame(height: 200)
+                    .scrollIndicators(.hidden)
+                    .frame(width: reader.size.width)
+                    .safeAreaInset(edge: .top) {
+                        Rectangle()
+                            .fill(.clear)
+                            .frame(height: 200)
+                    }
                 }
             }
             .frame(width: reader.size.width)
@@ -406,6 +411,54 @@ struct ConcertDetailView: View {
     }
 
     @ViewBuilder
+    func header(viewModel: ConcertDetailViewModel) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(viewModel.concert.date.dateOnlyString)
+                .font(.cjTitle2)
+
+            if let title = viewModel.concert.title {
+                Text(title)
+                    .bold()
+                    .font(.cjLargeTitle)
+
+                Button {
+                    navigationManager.push(.artistDetail(viewModel.artist))
+                } label: {
+                    HStack(alignment: .lastTextBaseline) {
+                        Text(viewModel.artist.name)
+                            .bold()
+                            .font(.cjTitleF)
+
+                        Image(systemName: "arrow.right.circle.fill")
+                    }
+                }
+                .contextMenu {
+                    Button("Detail Seite für \(viewModel.artist.name)") {
+                        navigationManager.push(.artistDetail(viewModel.artist))
+                    }
+                    .font(.cjBody)
+                }
+            } else {
+                Button {
+                    navigationManager.push(.artistDetail(viewModel.artist))
+                } label: {
+                    Text(viewModel.artist.name)
+                        .bold()
+                        .font(.cjLargeTitle)
+                }
+            }
+
+            if let openingTime = viewModel.concert.openingTime {
+                Text("Einlass \(openingTime.timeOnlyString)")
+                    .font(.cjHeadline)
+            }
+        }
+        .padding()
+        .rectangleGlass()
+        .padding(.horizontal)
+    }
+
+    @ViewBuilder
     func makeSetlistItemView(with item: SetlistItem) -> some View {
         Button {
             guard let spotifyTrackId = item.spotifyTrackId, !spotifyTrackId.isEmpty else { return }
@@ -469,6 +522,14 @@ struct ConcertDetailView: View {
             }
             .buttonStyle(.plain)
         }
+        .contextMenu {
+            Button("\(item.title) in Spotify abspielen") {
+                guard let spotifyTrackId = item.spotifyTrackId, !spotifyTrackId.isEmpty else { return }
+                let url = "https://open.spotify.com/track/\(spotifyTrackId)"
+                UIApplication.shared.open(URL(string: url)!)
+            }
+            .font(.cjBody)
+        }
     }
 
     @ViewBuilder
@@ -530,7 +591,7 @@ struct ConcertDetailView: View {
                 }
             }
 
-            if let ticketPrice = concert.ticketPrice {
+            if let ticketPrice = ticket.ticketPrice {
                 HStack {
                     Text("Ticketpreis:")
                         .font(.cjHeadline)
@@ -579,7 +640,16 @@ extension Date {
                 .locale(Locale(identifier: "de_DE"))
         )
     }
-    
+
+    var timeOnlyString: String {
+        self.formatted(
+            Date.FormatStyle()
+                .hour(.twoDigits(amPM: .abbreviated))
+                .minute(.twoDigits)
+                .locale(Locale(identifier: "de_DE"))
+        )
+    }
+
     var shortDateOnlyString: String {
         self.formatted(
             Date.FormatStyle()
@@ -598,14 +668,16 @@ struct VenueInlineMap: View {
     let latitude: Double
     let longitude: Double
     let name: String
-    
+    let formattedAddress: String
+
     @State private var position: MapCameraPosition
     
-    init(latitude: Double, longitude: Double, name: String) {
+    init(latitude: Double, longitude: Double, name: String, formattedAddress: String) {
         self.latitude = latitude
         self.longitude = longitude
         self.name = name
-        
+        self.formattedAddress = formattedAddress
+
         let coordinate = CLLocationCoordinate2D(
             latitude: latitude,
             longitude: longitude
@@ -631,7 +703,7 @@ struct VenueInlineMap: View {
         .mapStyle(.imagery)
         .frame(height: 180)
         .clipShape(RoundedRectangle(cornerRadius: 16))
-        .allowsHitTesting(false) // ⛔️ keine Interaktion
+        .allowsHitTesting(false)
     }
 }
 

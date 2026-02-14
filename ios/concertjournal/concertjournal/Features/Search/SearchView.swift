@@ -75,7 +75,7 @@ struct SearchView: View {
     }
     
     @ViewBuilder
-    func visitItem(visit: FullConcertVisit) -> some View {
+    func visitItem(visit: PartialConcertVisit) -> some View {
         HStack(spacing: 0) {
             Group {
                 AsyncImage(url: URL(string: visit.artist.imageUrl ?? "")) { result in

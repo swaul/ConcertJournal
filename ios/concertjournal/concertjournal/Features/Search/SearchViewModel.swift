@@ -15,10 +15,10 @@ class SearchViewModel {
     var concertFilter = ConcertFilters()
 
     var errorMessage: String? = nil
-    var concerts: [FullConcertVisit] = []
+    var concerts: [PartialConcertVisit] = []
     var searchText: String = ""
 
-    var filteredConcerts: [FullConcertVisit] {
+    var filteredConcerts: [PartialConcertVisit] {
         concertFilter.apply(to: concerts)
     }
 
@@ -30,7 +30,7 @@ class SearchViewModel {
         Array(Set(concerts.compactMap { $0.city })).sorted()
     }
 
-    var concertsToDisaplay: [FullConcertVisit] {
+    var concertsToDisaplay: [PartialConcertVisit] {
         if searchText.isEmpty {
             return filteredConcerts
         } else {
@@ -47,7 +47,7 @@ class SearchViewModel {
     }
 }
 
-extension FullConcertVisit {
+extension PartialConcertVisit {
     func containsText(query: String) -> Bool {
         if title?.contains(query) == true {
             return true

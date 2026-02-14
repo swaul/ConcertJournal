@@ -27,7 +27,7 @@ struct MapView: View {
     var body: some View {
         NavigationStack {
             @Bindable var navigationManager = navigationManager
-            
+
             Group {
                 if let viewModel, !viewModel.isLoading {
                     map(viewModel: viewModel)
@@ -60,13 +60,11 @@ struct MapView: View {
                             if let currentRegion = position.region,
                                currentRegion.isApproximatelyEqual(to: targetRegion) {
 
-                                // Kamera bewegt sich nicht → direkt anzeigen
                                 withAnimation(.easeInOut(duration: 0.3)) {
                                     selectedItem = item
                                     pendingItem = nil
                                 }
                             } else {
-                                // Kamera bewegt sich → warten auf onMapCameraChange
                                 withAnimation(.easeInOut) {
                                     position = .region(targetRegion)
                                 }
@@ -239,7 +237,7 @@ struct ConcertMapItem: Identifiable, Equatable {
     let id = UUID()
     let venueName: String
     let coordinates: CLLocationCoordinate2D
-    let concerts: [FullConcertVisit]
+    let concerts: [PartialConcertVisit]
 
     var title: String {
         concerts.count == 1 ? concerts.first!.title ?? concerts.first!.artist.name : "\(concerts.count) Konzerte"

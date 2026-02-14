@@ -35,6 +35,7 @@ enum LogLevel: String {
 // MARK: - Logger Category
 
 enum LogCategory: String {
+    case ads = "Ads"
     case app = "App"
     case auth = "Auth"
     case concert = "Concert"
@@ -43,6 +44,7 @@ enum LogCategory: String {
     case network = "Network"
     case repository = "Repository"
     case viewModel = "ViewModel"
+    case premium = "Premium"
     case ui = "UI"
     case supabase = "Supabase"
     case bff = "BFF"

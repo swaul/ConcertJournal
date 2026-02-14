@@ -9,7 +9,7 @@ import SwiftUI
 
 // MARK: - Features Page
 
-enum Feature: CaseIterable {
+enum FeatureInfo: CaseIterable {
     case calendar
     case spotify
     case photo
@@ -59,7 +59,7 @@ struct FeaturesPage: View {
 
     @Bindable var navigationManager: NavigationManager
 
-    let features = Feature.allCases
+    let features = FeatureInfo.allCases
     @State private var visibleCount = 0
 
     var body: some View {
@@ -83,7 +83,7 @@ struct FeaturesPage: View {
                 VStack(spacing: 30) {
                     ForEach(features.enumerated(), id: \.element) { index, feature in
                         if index < visibleCount {
-                            FeatureRow(
+                            FeatureInfoRow(
                                 icon: feature.icon,
                                 title: feature.title,
                                 description: feature.description
@@ -108,7 +108,7 @@ struct FeaturesPage: View {
                 .padding(.bottom, 30)
             }
             .onAppear {
-                for index in Feature.allCases.indices {
+                for index in FeatureInfo.allCases.indices {
                     withAnimation(.easeInOut(duration: 0.75).delay(Double(index) * 0.5)) {
                         visibleCount = index + 1
                     }
@@ -118,7 +118,7 @@ struct FeaturesPage: View {
     }
 }
 
-struct FeatureRow: View {
+struct FeatureInfoRow: View {
     let icon: String
     let title: String
     let description: String

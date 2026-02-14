@@ -12,6 +12,7 @@ struct NewConcertDTO: Codable {
     let userId: String
     let artistId: String
     let date: String
+    let openingTime: String
     let venueId: String?
     let city: String?
     let notes: String
@@ -29,6 +30,7 @@ struct NewConcertDTO: Codable {
         case userId = "user_id"
         case artistId = "artist_id"
         case date
+        case openingTime = "opening_time"
         case venueId = "venue_id"
         case city
         case notes
@@ -50,6 +52,7 @@ struct NewConcertDTO: Codable {
         self.rating = new.rating
         self.title = new.title
         self.date = new.date.supabseDateString
+        self.openingTime = new.entranceTime.supabseDateString
         self.travelType = travel?.travelType
         self.travelDuration = travel?.travelDuration
         self.travelDistance = travel?.travelDistance

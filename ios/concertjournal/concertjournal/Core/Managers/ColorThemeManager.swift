@@ -83,7 +83,7 @@ final class ColorThemeManager {
         }
     }
 
-    init(defaultTint: Color = .accentColor) {
+    init(defaultTint: Color = .pink) {
         if let saved = ColorPersistence.loadAppTint() {
             self.appTint = saved
         } else {
@@ -94,7 +94,7 @@ final class ColorThemeManager {
 
 // MARK: - EnvironmentKey for convenience
 private struct AppTintColorKey: EnvironmentKey {
-    static let defaultValue: Color = .accentColor
+    static let defaultValue: Color = .pink
 }
 
 extension EnvironmentValues {

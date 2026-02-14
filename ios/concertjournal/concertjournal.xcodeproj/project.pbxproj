@@ -15,6 +15,7 @@
 		2FBC285C2EF56AE600BEF981 /* SpotifyiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 2FBC285B2EF56AE600BEF981 /* SpotifyiOS */; };
 		2FBC28632EF56C3D00BEF981 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 2FBC28622EF56C3D00BEF981 /* Supabase */; };
 		87D2DAAD2F3BA0EC0002C037 /* ConcertJournalShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 87D2DAA12F3BA0EC0002C037 /* ConcertJournalShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		87D2DAC22F3DB84C0002C037 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 87D2DAC12F3DB84C0002C037 /* GoogleMobileAds */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -117,6 +118,7 @@
 				2F49FD9F2F1C20B000B630EF /* Zoomable in Frameworks */,
 				2FBC28632EF56C3D00BEF981 /* Supabase in Frameworks */,
 				2FBC28592EF56A8500BEF981 /* Storage in Frameworks */,
+				87D2DAC22F3DB84C0002C037 /* GoogleMobileAds in Frameworks */,
 				2FBC28572EF56A8500BEF981 /* PostgREST in Frameworks */,
 				2FBC28552EF56A8500BEF981 /* Auth in Frameworks */,
 				2FBC285C2EF56AE600BEF981 /* SpotifyiOS in Frameworks */,
@@ -206,6 +208,7 @@
 				2FBC28622EF56C3D00BEF981 /* Supabase */,
 				2F68C7A62EF6374B000D9C1B /* Functions */,
 				2F49FD9E2F1C20B000B630EF /* Zoomable */,
+				87D2DAC12F3DB84C0002C037 /* GoogleMobileAds */,
 			);
 			productName = concertjournal;
 			productReference = 2FBC28292EF568CC00BEF981 /* concertjournal.app */;
@@ -318,6 +321,7 @@
 				2FBC28532EF56A8500BEF981 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				2FBC285A2EF56AE600BEF981 /* XCRemoteSwiftPackageReference "ios-sdk" */,
 				2F49FD9D2F1C20B000B630EF /* XCRemoteSwiftPackageReference "Zoomable" */,
+				87D2DAC02F3DB84C0002C037 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 2FBC282A2EF568CC00BEF981 /* Products */;
@@ -878,6 +882,14 @@
 				minimumVersion = 1.0.0;
 			};
 		};
+		87D2DAC02F3DB84C0002C037 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 13.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -915,6 +927,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 2FBC28532EF56A8500BEF981 /* XCRemoteSwiftPackageReference "supabase-swift" */;
 			productName = Supabase;
+		};
+		87D2DAC12F3DB84C0002C037 /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 87D2DAC02F3DB84C0002C037 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

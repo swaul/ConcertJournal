@@ -33,5 +33,22 @@
 	<string>Concert Journal möchte deine App-Nutzung verfolgen, um dir eine bessere Erfahrung zu bieten und die App zu verbessern.</string>
     <key>NSCameraUsageDescription</key>
     <string>ConcertJournal benötigt Zugriff auf die Kamera, um Tickets zu scannen.</string>
+
+    <key>GADApplicationIdentifier</key>
+    <string>ca-app-pub-7897142018085073~3599198457</string>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
+    <key>NSUserTrackingUsageDescription</key>
+    <string>Wir verwenden deine Daten, um dir personalisierte Werbung anzuzeigen und die App zu verbessern.</string>
+    <key>SKAdNetworkItems</key>
+    <array>
+        <dict>
+            <key>SKAdNetworkIdentifier</key>
+            <string>cstr6suwn9.skadnetwork</string>
+        </dict>
+    </array>
 </dict>
 </plist>

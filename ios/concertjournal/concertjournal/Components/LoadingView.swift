@@ -10,7 +10,7 @@ import SwiftUI
 struct LoadingView: View {
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 24) {
             ProgressView()
                 .progressViewStyle(.circular)
                 .scaleEffect(2.5)
