@@ -70,6 +70,7 @@ struct ConcertEditView: View {
 
                 Section {
                     Button {
+                        HapticManager.shared.buttonTap()
                         selectVenuePresenting = true
                     } label: {
                         if !venueName.isEmpty {
@@ -131,14 +132,16 @@ struct ConcertEditView: View {
                             }
                         }
                         Button {
+                            HapticManager.shared.buttonTap()
                             editSeltistPresenting = CreateSetlistViewModel(currentSelection: setlistItems, spotifyRepository: dependencies.spotifyRepository, setlistRepository: dependencies.setlistRepository)
 
                         } label: {
-                            Text("Setlist hinzufügen")
+                            Text("Setlist bearbeiten")
                                 .font(.cjBody)
                         }
                     } else {
                         Button {
+                            HapticManager.shared.buttonTap()
                             editSeltistPresenting = CreateSetlistViewModel(currentSelection: setlistItems, spotifyRepository: dependencies.spotifyRepository, setlistRepository: dependencies.setlistRepository)
                         } label: {
                             Text("Setlist hinzufügen")
@@ -171,6 +174,7 @@ struct ConcertEditView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button {
+                        HapticManager.shared.buttonTap()
                         dismiss()
                     } label: {
                         Text("Abbrechen")
@@ -180,12 +184,13 @@ struct ConcertEditView: View {
 
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
+                        HapticManager.shared.buttonTap()
                         onSave(
                             ConcertUpdate(
                                 id: concert.id,
                                 title: title,
                                 date: date.supabseDateString,
-                                openingTime: openingTime.supabseDateString,
+                                openingTime: correctedOpeningTime().supabseDateString,
                                 notes: notes,
                                 venue: venue,
                                 city: venue?.city,
@@ -410,6 +415,18 @@ struct ConcertEditView: View {
 
         let playlists = try await dependencies.spotifyRepository.getUserPlaylists(limit: 50)
         print(playlists)
+    }
+
+    func correctedOpeningTime() -> Date {
+        var openingTime = self.openingTime
+        var date = self.date
+
+        let calendar = Calendar.current
+        let openingHourAndMinute = calendar.dateComponents([.hour, .minute], from: openingTime)
+        guard let hour = openingHourAndMinute.hour,
+              let minute = openingHourAndMinute.minute else { return openingTime }
+
+        return Calendar.current.date(bySettingHour: hour, minute: minute, second: 0, of: date) ?? openingTime
     }
 }
 

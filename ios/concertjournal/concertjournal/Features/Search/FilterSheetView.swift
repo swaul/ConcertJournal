@@ -74,6 +74,7 @@ struct FilterSheetView: View {
                 Menu {
                     ForEach(ConcertSortOption.allCases) { option in
                         Button {
+                            HapticManager.shared.buttonTap()
                             filters.sortOption = option
                         } label: {
                             HStack {
@@ -121,6 +122,7 @@ struct FilterSheetView: View {
                     Menu {
                         ForEach(DateFilterOption.allCases) { option in
                             Button {
+                                HapticManager.shared.buttonTap()
                                 filters.dateFilter = option
                                 if option == .custom {
                                     showCustomDatePicker = true
@@ -192,6 +194,7 @@ struct FilterSheetView: View {
                 Menu {
                     ForEach(RatingFilterOption.allCases) { option in
                         Button {
+                            HapticManager.shared.buttonTap()
                             filters.ratingFilter = option
                         } label: {
                             HStack {
@@ -400,6 +403,7 @@ struct FilterChipsBar: View {
                     if chip.type == .sort {
                         // Sort chip is tappable to open filter sheet
                         Button {
+                            HapticManager.shared.buttonTap()
                             onTapSort()
                         } label: {
                             FilterChipView(chip: chip, onRemove: {})

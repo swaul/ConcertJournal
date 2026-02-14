@@ -87,6 +87,7 @@ struct PasswordResetView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
+                        HapticManager.shared.buttonTap()
                         dismiss()
                     } label: {
                         Text("Abbrechen")

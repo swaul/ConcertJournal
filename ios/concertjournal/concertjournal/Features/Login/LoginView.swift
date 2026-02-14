@@ -54,6 +54,7 @@ struct LoginView: View, KeyboardReadable {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                         Button {
+                            HapticManager.shared.buttonTap()
                             manager.resetOnboarding()
                         } label: {
                             Text("Onboarding neu starten")
@@ -183,6 +184,7 @@ struct LoginView: View, KeyboardReadable {
                     HStack {
                         Spacer()
                         Button {
+                            HapticManager.shared.buttonTap()
                             withAnimation {
                                 showPassword.toggle()
                             }
@@ -223,6 +225,7 @@ struct LoginView: View, KeyboardReadable {
                         HStack {
                             Spacer()
                             Button {
+                                HapticManager.shared.buttonTap()
                                 withAnimation {
                                     showPassword.toggle()
                                 }
@@ -239,6 +242,7 @@ struct LoginView: View, KeyboardReadable {
                 HStack {
                     Spacer()
                     Button {
+                        HapticManager.shared.buttonTap()
                         passwordResetPresenting = true
                     } label: {
                         Text("Passwort vergessen")

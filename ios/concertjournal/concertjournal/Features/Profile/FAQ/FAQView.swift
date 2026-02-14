@@ -53,6 +53,7 @@ struct FAQView: View {
                             .font(.cjBody)
                             .foregroundStyle(.secondary)
                         Button {
+                            HapticManager.shared.buttonTap()
                             viewModel.refresh()
                         } label: {
                             Text("Neu laden")

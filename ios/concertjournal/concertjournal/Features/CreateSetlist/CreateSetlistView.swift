@@ -46,6 +46,7 @@ struct CreateSetlistView: View {
                 if !viewModel.selectedSongs.isEmpty{
                     ToolbarItem(placement: .topBarTrailing) {
                         Button {
+                            HapticManager.shared.navigationTap()
                             path.append(NavigationRoute.orderSetlist(viewModel))
                         } label: {
                             Text("Sortieren")
@@ -154,6 +155,7 @@ struct CreateSetlistView: View {
 
                 if hasText {
                     Button {
+                        HapticManager.shared.buttonTap()
                         viewModel.searchSongs(with: songName)
                         textFieldFocused = false
                         withAnimation {
@@ -237,6 +239,7 @@ struct CreateSetlistView: View {
                             Text(song.name)
                             Spacer()
                             Button {
+                                HapticManager.shared.buttonTap()
                                 songToDelete = song.id
                                 deleteSongDialog = true
                             } label: {
@@ -254,6 +257,7 @@ struct CreateSetlistView: View {
                         .confirmationDialog("Diesen Song löschen", isPresented: $deleteSongDialog, titleVisibility: .visible) {
                             Button(role: .destructive) {
                                 guard let songToDelete else { return }
+                                HapticManager.shared.buttonTap()
                                 withAnimation {
                                     viewModel.selectedSongs.removeAll(where: { $0.id == songToDelete })
                                 }
@@ -263,6 +267,7 @@ struct CreateSetlistView: View {
                             }
 
                             Button {
+                                HapticManager.shared.buttonTap()
                                 songToDelete = nil
                             } label: {
                                 Text("Abbrechen")

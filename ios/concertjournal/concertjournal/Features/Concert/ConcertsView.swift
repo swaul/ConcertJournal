@@ -29,6 +29,7 @@ struct ConcertsView: View {
                             Text(errorMessage)
                             Button {
                                 Task {
+                                    HapticManager.shared.buttonTap()
                                     await viewModel.refreshConcerts()
                                 }
                             } label: {
@@ -40,6 +41,7 @@ struct ConcertsView: View {
                         .padding()
                     } else if viewModel.futureConcerts.isEmpty && viewModel.pastConcerts.isEmpty {
                         Button {
+                            HapticManager.shared.buttonTap()
                             navigationManager.push(.createConcert)
                         } label: {
                             Label("Neues Konzert hinzufügen", systemImage: "plus.circle.fill")
@@ -74,6 +76,7 @@ struct ConcertsView: View {
                         .padding(.bottom)
 
                     Button {
+                        HapticManager.shared.buttonTap()
                         chooseCreateFlowPresenting = false
                         navigationManager.push(.createConcert)
                     } label: {
@@ -88,6 +91,7 @@ struct ConcertsView: View {
                     ZStack(alignment: .topTrailing) {
                         Button {
                             chooseCreateFlowPresenting = false
+                            HapticManager.shared.buttonTap()
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                                 navigationManager.push(.ticketScan)
                             }
@@ -118,6 +122,7 @@ struct ConcertsView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
+                        HapticManager.shared.buttonTap()
                         navigationManager.push(.profile)
                     } label: {
                         Image(systemName: "person")
@@ -128,6 +133,7 @@ struct ConcertsView: View {
         .onReceive(dependencies.userSessionManager.userSessionChanged) { user in
             if user == nil {
                 navigationManager.popToRoot()
+                HapticManager.shared.error()
             }
         }
     }
@@ -146,6 +152,7 @@ struct ConcertsView: View {
                     .buttonStyle(.plain)
                     .contextMenu {
                         Button("Detail Seite für \(concertToday.title ?? "Konzert")") {
+                            HapticManager.shared.buttonTap()
                             navigationManager.push(.concertDetail(concertToday))
                         }
                         .font(.cjBody)
@@ -254,11 +261,13 @@ struct ConcertsView: View {
                     .padding(.vertical)
 
                 Button(role: .destructive) {
+                    HapticManager.shared.buttonTap()
                     Task {
                         loading = true
                         await viewModel.deleteConcert(item)
                         concertToDelete = nil
                         loading = false
+                        HapticManager.shared.success()
                     }
                 } label: {
                     Text("Löschen")
@@ -269,7 +278,9 @@ struct ConcertsView: View {
                 .buttonStyle(.glassProminent)
 
                 Button {
+                    HapticManager.shared.buttonTap()
                     concertToDelete = nil
+                    HapticManager.shared.success()
                 } label: {
                     Text("Abbrechen")
                         .font(.cjHeadline)
@@ -372,6 +383,7 @@ struct ConcertsView: View {
                 if timeRemaining > 0 {
                     withAnimation {
                         self.timeRemaining! -= 1
+                        HapticManager.shared.impact(.light)
                     }
                 }
             }
@@ -492,6 +504,7 @@ struct ConcertsView: View {
         HStack {
             Spacer()
                 Button {
+                    HapticManager.shared.navigationTap()
                     chooseCreateFlowPresenting = true
                 } label: {
                     Image(systemName: "plus.circle.fill")

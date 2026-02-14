@@ -135,6 +135,7 @@ struct CreateConcertTicket: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
+                        HapticManager.shared.buttonTap()
                         dismiss()
                     } label: {
                         Text("Abbrechen")
@@ -143,6 +144,7 @@ struct CreateConcertTicket: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
+                        HapticManager.shared.buttonTap()
                         saveTicketInfo()
                     } label: {
                         Text("Speichern")

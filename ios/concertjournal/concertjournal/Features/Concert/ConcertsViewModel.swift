@@ -57,8 +57,10 @@ class ConcertsViewModel {
             let concerts = try await concertRepository.fetchConcerts(reload: false)
             filterConcerts(concerts)
         } catch let error as NetworkError {
+            HapticManager.shared.error()
             errorMessage = error.localizedDescription
         } catch {
+            HapticManager.shared.error()
             errorMessage = "Ein unbekannter Fehler ist aufgetreten: \(error)"
         }
 
@@ -76,9 +78,11 @@ class ConcertsViewModel {
             let concerts = try await concertRepository.fetchConcerts(reload: true)
             filterConcerts(concerts)
         } catch let error as NetworkError {
+            HapticManager.shared.error()
             errorMessage = error.localizedDescription
             logError("Getting concerts failed", error: error, category: .repository)
         } catch {
+            HapticManager.shared.error()
             logError("Getting concerts failed", error: error, category: .repository)
             errorMessage = "Ein unbekannter Fehler ist aufgetreten"
         }
@@ -96,8 +100,10 @@ class ConcertsViewModel {
                 futureConcerts.removeAll { $0.id == concert.id }
             }
         } catch let error as NetworkError {
+            HapticManager.shared.error()
             errorMessage = error.localizedDescription
         } catch {
+            HapticManager.shared.error()
             errorMessage = "Löschen fehlgeschlagen"
         }
     }
@@ -114,6 +120,7 @@ class ConcertsViewModel {
         let futureConcerts = concertsWithoutToday.filter { $0.date > now }
         let pastConcerts = concertsWithoutToday.filter { $0.date <= now }
 
+        HapticManager.shared.success()
         withAnimation {
             self.futureConcerts = futureConcerts.sorted(by: { $0.date < $1.date })
             self.pastConcerts = pastConcerts

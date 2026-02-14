@@ -64,6 +64,7 @@ struct ConcertDetailView: View {
             do {
                 let concert = try await dependencies.concertRepository.getConcert(id: concert.id)
 
+                HapticManager.shared.success()
                 viewModel = ConcertDetailViewModel(concert: concert,
                                                    bffClient: dependencies.bffClient,
                                                    concertRepository: dependencies.concertRepository,
@@ -105,6 +106,7 @@ struct ConcertDetailView: View {
                                             .allowsTightening(true)
                                                     .contextMenu {
                                                         Button {
+                                                            HapticManager.shared.buttonTap()
                                                             let mapItem = MKMapItem(location: CLLocation(latitude: latitude, longitude: longitude), address: MKAddress(fullAddress: "", shortAddress: venue.formattedAddress))
                                                             mapItem.openInMaps()
                                                         } label: {
@@ -256,6 +258,7 @@ struct ConcertDetailView: View {
                                     LazyHStack(spacing: 16) {
                                         ForEach(Array(viewModel.imageUrls), id: \.id) { image in
                                             Button {
+                                                HapticManager.shared.success()
                                                 selectedImage = image
                                             } label: {
                                                 AsyncImage(url: image.url) { image in
@@ -302,6 +305,7 @@ struct ConcertDetailView: View {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 if viewModel.concert.date > Date.now {
                     Button {
+                        HapticManager.shared.success()
                         requestCalendarAccess()
                     } label: {
                         Image(systemName: "calendar.badge.plus")
@@ -310,6 +314,7 @@ struct ConcertDetailView: View {
 
                 Menu {
                     Button {
+                        HapticManager.shared.success()
                         showEditSheet = true
                     } label: {
                         HStack {
@@ -318,6 +323,7 @@ struct ConcertDetailView: View {
                         }
                     }
                     Button(role: .destructive) {
+                        HapticManager.shared.success()
                         showDeleteDialog = true
                     } label: {
                         HStack {
@@ -332,6 +338,7 @@ struct ConcertDetailView: View {
         }
         .confirmationDialog("Konzert löschen", isPresented: $showDeleteDialog, titleVisibility: .visible) {
             Button(role: .destructive) {
+                HapticManager.shared.success()
                 Task {
                     do {
                         try await viewModel.deleteConcert()
@@ -346,6 +353,7 @@ struct ConcertDetailView: View {
                 Text("Löschen")
             }
             Button {
+                HapticManager.shared.success()
 
             } label: {
                 Text("Abbrechen")

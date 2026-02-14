@@ -74,6 +74,7 @@ public struct CreateConcertTravelView: View {
                         Menu {
                             ForEach(TravelType.allCases) { type in
                                 Button {
+                                    HapticManager.shared.buttonTap()
                                     selectedTravelType = type
                                 } label: {
                                     Text(type.label)
@@ -153,6 +154,7 @@ public struct CreateConcertTravelView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
+                        HapticManager.shared.buttonTap()
                         saveValues()
                     } label: {
                         Text("Speichern")

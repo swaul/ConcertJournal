@@ -149,6 +149,7 @@ struct CreateConcertVisitView: View {
                     Spacer()
                     
                     Button {
+                        HapticManager.shared.buttonTap()
                         selectArtistPresenting = true
                     } label: {
                         Text("Wähle einen Künstler")
@@ -349,6 +350,7 @@ struct CreateConcertVisitView: View {
                                 .cornerRadius(12)
 
                             Button {
+                                HapticManager.shared.buttonTap()
                                 selectedPhotoItems.remove(at: index)
                                 removeImage(at: index)
                             } label: {
@@ -424,6 +426,7 @@ struct CreateConcertVisitView: View {
                     .glassEffect(in: RoundedRectangle(cornerRadius: 20, style: .circular))
 
                     Button {
+                        HapticManager.shared.buttonTap()
                         presentTravelSection = true
                     } label: {
                         Text("Reiseinfos ändern")
@@ -433,6 +436,7 @@ struct CreateConcertVisitView: View {
                     .glassEffect()
                 } else {
                     Button {
+                        HapticManager.shared.buttonTap()
                         presentTravelSection = true
                     } label: {
                         Text("Reiseinfos hinzufügen")
@@ -521,6 +525,7 @@ struct CreateConcertVisitView: View {
                     }
                     
                     Button {
+                        HapticManager.shared.buttonTap()
                         presentTicketEdit = true
                     } label: {
                         Text("Ticket infos hinzufügen")
@@ -532,6 +537,7 @@ struct CreateConcertVisitView: View {
                 }
             } else {
                 Button {
+                    HapticManager.shared.buttonTap()
                     presentTicketEdit = true
                 } label: {
                     Text("Ticket infos hinzufügen")
@@ -585,6 +591,7 @@ struct CreateConcertVisitView: View {
                     ToolbarItemGroup(placement: .keyboard) {
                         Spacer()
                         Button {
+                            HapticManager.shared.buttonTap()
                             noteEditorFocused = false
                         } label: {
                             Text("Fertig")
@@ -606,6 +613,7 @@ struct CreateConcertVisitView: View {
                         makeSetlistItemView(with: item)
                     }
                     Button {
+                        HapticManager.shared.buttonTap()
                         createSetlistPresenting = true
                     } label: {
                         Text("Setlist bearbeiten")
@@ -627,6 +635,7 @@ struct CreateConcertVisitView: View {
                 .padding(.horizontal)
                 if dependencies.userSessionManager.user?.identities?.contains(where: { $0.provider == "spotify" }) == true {
                     Button {
+                        HapticManager.shared.buttonTap()
                         playlistPickerPresenting = true
                     } label: {
                         HStack {

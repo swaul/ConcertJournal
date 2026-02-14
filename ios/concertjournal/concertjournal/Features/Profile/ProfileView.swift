@@ -44,6 +44,7 @@ struct ProfileView: View {
 
                                 Section {
                                     Button {
+                                        HapticManager.shared.navigationTap()
                                         navigationManager.push(.faq)
                                     } label: {
                                         HStack {
@@ -56,6 +57,7 @@ struct ProfileView: View {
                                     .accessibilityIdentifier("faqButton")
 
                                     Button {
+                                        HapticManager.shared.navigationTap()
                                         navigationManager.push(.colorPicker)
                                     } label: {
                                         HStack {
@@ -141,6 +143,7 @@ struct ProfileView: View {
                             }
                         if showSaveButton {
                             Button {
+                                HapticManager.shared.buttonTap()
                                 viewModel.saveDisplayName()
                                 withAnimation {
                                     showSaveButton = false

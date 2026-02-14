@@ -56,6 +56,7 @@ struct ForgotPasswordView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
+                        HapticManager.shared.navigationTap()
                         dismiss()
                     } label: {
                         Text("Abbrechen")

@@ -73,6 +73,7 @@ struct CreateConcertSelectVenueView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         guard let venue = selectedVenue else { return }
+                        HapticManager.shared.buttonTap()
                         Task {
                             do {
                                 let savedVenue = try await viewModel.saveVenue(venue: venue)

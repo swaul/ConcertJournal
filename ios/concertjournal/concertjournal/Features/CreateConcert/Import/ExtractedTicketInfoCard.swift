@@ -127,6 +127,7 @@ struct InfoRow: View {
                     HStack {
                         ForEach(extractedTextElements, id: \.self) { element in
                             Button {
+                                HapticManager.shared.buttonTap()
                                 value = element
                             } label: {
                                 Text(element)

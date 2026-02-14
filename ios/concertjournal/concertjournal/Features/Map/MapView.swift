@@ -81,6 +81,7 @@ struct MapView: View {
             if let defaultPosition {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
+                        HapticManager.shared.buttonTap()
                         withAnimation {
                             position = defaultPosition
                         }
@@ -155,6 +156,7 @@ struct MapView: View {
                 VStack(alignment: .leading) {
                     ForEach(item.concerts, id: \.self) { concert in
                         Button {
+                            HapticManager.shared.navigationTap()
                             navigationManager.selectedTab = .concerts
                             navigationManager.push(.concertDetail(concert))
                             selectedItem = nil

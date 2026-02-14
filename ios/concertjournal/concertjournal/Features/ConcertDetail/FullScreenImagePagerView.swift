@@ -50,6 +50,7 @@ struct FullscreenImagePagerView: View {
                     HStack {
                         Spacer()
                         Button {
+                            HapticManager.shared.navigationBack()
                             dismiss()
                         } label: {
                             Image(systemName: "xmark")

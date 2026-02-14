@@ -83,6 +83,7 @@ struct ColorSetView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
                         guard !isInvalidSelection else { return }
+                        HapticManager.shared.navigationTap()
                         withAnimation(.easeInOut) {
                             dependencies.colorThemeManager.appTint = tempColor
                         }

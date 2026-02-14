@@ -63,6 +63,7 @@ struct PhotoPermissionPage: View {
                 // Action Button
                 if manager.photoLibraryStatus == .notDetermined {
                     Button {
+                        HapticManager.shared.buttonTap()
                         Task {
                             withAnimation {
                                 isRequesting = true
@@ -92,6 +93,7 @@ struct PhotoPermissionPage: View {
                     .padding(.horizontal, 40)
                 } else if manager.photoLibraryStatus == .denied || manager.photoLibraryStatus == .restricted {
                     Button {
+                        HapticManager.shared.navigationTap()
                         if let url = URL(string: UIApplication.openSettingsURLString) {
                             UIApplication.shared.open(url)
                         }
@@ -107,6 +109,7 @@ struct PhotoPermissionPage: View {
                 VStack(spacing: 14) {
                     if manager.photoLibraryStatusNotDetermined {
                         Button {
+                            HapticManager.shared.navigationTap()
                             navigationManager.push(.trackingPermission)
                         } label: {
                             Text("Überspringen")
@@ -115,6 +118,7 @@ struct PhotoPermissionPage: View {
                         }
                     } else {
                         Button {
+                            HapticManager.shared.navigationTap()
                             navigationManager.push(.trackingPermission)
                         } label: {
                             Text("Nächster Schritt")

@@ -235,6 +235,7 @@ struct SpotifyPlaylistPicker: View {
                     } else {
                         List(viewModel.playlists) { playlist in
                             Button {
+                                HapticManager.shared.navigationTap()
                                 onSelect(playlist)
                                 dismiss()
                             } label: {
@@ -257,6 +258,7 @@ struct SpotifyPlaylistPicker: View {
 
                         Button {
                             Task {
+                                HapticManager.shared.buttonTap()
                                 await viewModel.searchPlaylists(
                                     query: searchText,
                                     spotifyRepository: dependencies.spotifyRepository

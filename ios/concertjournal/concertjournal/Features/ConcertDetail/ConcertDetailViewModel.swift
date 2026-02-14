@@ -46,6 +46,7 @@ class ConcertDetailViewModel {
                 try await loadSetlist()
                 loadingSetlist = false
             } catch {
+                HapticManager.shared.error()
                 print(error)
             }
         }
@@ -90,10 +91,8 @@ class ConcertDetailViewModel {
     func applyUpdate(_ update: ConcertUpdate) async {
         let startTime = Date()
 
-        // 1. Detect Changes
         let (changes, optimizedDTO) = concert.detectChanges(from: update)
 
-        // 2. Early Return wenn keine Changes
         guard changes.hasAnyChanges else {
             logInfo("No changes detected", category: .concert)
             return
@@ -101,14 +100,11 @@ class ConcertDetailViewModel {
 
         logInfo("Changes: \(changes.changedFields.joined(separator: ", "))", category: .concert)
 
-        // 3. Update Concert (nutzt die EINE updateConcert Methode)
         if changes.hasBasicChanges || changes.hasTravelChanges || changes.hasTicketChanges {
             do {
-                // ✅ Gleiche Methode, verschiedene DTOs möglich
                 if optimizedDTO.isEmpty {
                     logDebug("No concert fields to update", category: .concert)
                 } else {
-                    // Sende optimizedDTO (nur geänderte Felder)
                     try await concertRepository.updateConcert(
                         id: concert.id,
                         concert: optimizedDTO
@@ -117,11 +113,11 @@ class ConcertDetailViewModel {
                 }
             } catch {
                 logError("Update failed", error: error, category: .concert)
+                HapticManager.shared.error()
                 return
             }
         }
 
-        // 4. Update Setlist
         if changes.hasSetlistChanges, let items = update.setlistItems {
             do {
                 if let currentSetlistItems = setlistItems {
@@ -141,6 +137,7 @@ class ConcertDetailViewModel {
                 logSuccess("Setlist updated", category: .setlist)
             } catch {
                 logError("Setlist update failed", error: error, category: .setlist)
+                HapticManager.shared.error()
             }
         }
 
@@ -176,12 +173,15 @@ class ConcertDetailViewModel {
             self.concert = fetchedConcert
             self.concert.setlistItems = fetchedSetlist
             self.setlistItems = fetchedSetlist
+            HapticManager.shared.success()
         } catch {
+            HapticManager.shared.error()
             logError("Reload failed", error: error, category: .concert)
         }
     }
     func deleteConcert() async throws {
         try await concertRepository.deleteConcert(id: concert.id)
+        HapticManager.shared.success()
     }
 
     @MainActor
@@ -205,10 +205,13 @@ class ConcertDetailViewModel {
             createdPlaylistURL = response.url
             
             if let url = URL(string: response.url), UIApplication.shared.canOpenURL(url) {
+                HapticManager.shared.navigationTap()
                 await UIApplication.shared.open(url)
             }
-            
+
+            HapticManager.shared.success()
         } catch {
+            HapticManager.shared.error()
             logError("Failed to create playlist", error: error, category: .viewModel)
             handlePlaylistError(error)
         }
@@ -235,6 +238,7 @@ class ConcertDetailViewModel {
                 print("")
             }
         } else {
+            HapticManager.shared.error()
             errorMessage = "An error occurred: \(error.localizedDescription)"
         }
     }

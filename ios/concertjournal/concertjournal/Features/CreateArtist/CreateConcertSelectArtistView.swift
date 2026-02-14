@@ -52,6 +52,7 @@ struct CreateConcertSelectArtistView: View {
                 if !didSearch {
                     ForEach(viewModel.currentArtists) { artist in
                         Button {
+                            HapticManager.shared.buttonTap()
                             selectedArtist = artist.id
                         } label: {
                             makeKnownArtistView(artist: artist)
@@ -62,6 +63,7 @@ struct CreateConcertSelectArtistView: View {
                 } else {
                     ForEach(viewModel.artistsResponse) { artist in
                         Button {
+                            HapticManager.shared.buttonTap()
                             selectedArtist = artist.id
                         } label: {
                             makeArtistView(artist: artist)
@@ -77,6 +79,7 @@ struct CreateConcertSelectArtistView: View {
             if selectedArtist != nil {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
+                        HapticManager.shared.buttonTap()
                         if let artist = viewModel.artistsResponse.first(where: { $0.id == selectedArtist }) {
                             didSelectArtist(Artist(artist: artist))
                             isPresented = false
@@ -100,6 +103,7 @@ struct CreateConcertSelectArtistView: View {
                 .focused($textFieldFocused)
                 .submitLabel(.search)
                 .onSubmit {
+                    HapticManager.shared.navigationTap()
                     viewModel.searchArtists(with: artistName)
                     textFieldFocused = false
                 }
@@ -113,6 +117,7 @@ struct CreateConcertSelectArtistView: View {
 
                 if hasText {
                     Button {
+                        HapticManager.shared.buttonTap()
                         viewModel.searchArtists(with: artistName)
                         textFieldFocused = false
                         didSearch = true

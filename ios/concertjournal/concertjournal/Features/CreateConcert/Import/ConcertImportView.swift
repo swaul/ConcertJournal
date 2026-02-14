@@ -141,6 +141,7 @@ struct ConcertImportView: View {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         Task {
+                            HapticManager.shared.buttonTap()
                             await importConcert()
                         }
                     } label: {

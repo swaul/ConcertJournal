@@ -25,6 +25,7 @@ struct SearchView: View {
                 VStack {
                     ForEach(viewModel.concertsToDisaplay, id: \.id) { concert in
                         Button {
+                            HapticManager.shared.navigationTap()
                             navigationManager.push(.concertDetail(concert))
                         } label: {
                             visitItem(visit: concert)
@@ -38,6 +39,7 @@ struct SearchView: View {
                 HStack {
                     Spacer()
                     FilterButton(filterCount: viewModel.concertFilter.activeFilterCount) {
+                        HapticManager.shared.navigationTap()
                         filterPresented = true
                     }
                 }
@@ -47,6 +49,7 @@ struct SearchView: View {
                 FilterChipsBar(chips: viewModel.concertFilter.activeFilterChips) { chip in
                     viewModel.concertFilter.removeFilter(chip)
                 } onTapSort: {
+                    HapticManager.shared.navigationTap()
                     filterPresented = true
                 }
                 

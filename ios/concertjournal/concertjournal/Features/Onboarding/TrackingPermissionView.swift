@@ -79,6 +79,7 @@ struct TrackingPermissionPage: View {
                 // Action Button
                 if manager.trackingStatus == .notDetermined {
                     Button {
+                        HapticManager.shared.buttonTap()
                         Task {
                             withAnimation {
                                 isRequesting = true
@@ -108,6 +109,7 @@ struct TrackingPermissionPage: View {
                     .padding(.horizontal, 40)
                 } else if manager.trackingStatus == .denied || manager.trackingStatus == .restricted {
                     Button {
+                        HapticManager.shared.navigationTap()
                         if let url = URL(string: UIApplication.openSettingsURLString) {
                             UIApplication.shared.open(url)
                         }
@@ -123,6 +125,7 @@ struct TrackingPermissionPage: View {
                 VStack(spacing: 14) {
                     if manager.trackingStatusNotDetermined {
                         Button {
+                            HapticManager.shared.navigationTap()
                             navigationManager.push(.completion)
                         } label: {
                             Text("Überspringen")
@@ -131,6 +134,7 @@ struct TrackingPermissionPage: View {
                         }
                     } else {
                         Button {
+                            HapticManager.shared.navigationTap()
                             navigationManager.push(.completion)
                         } label: {
                             Text("Nächster Schritt!")
