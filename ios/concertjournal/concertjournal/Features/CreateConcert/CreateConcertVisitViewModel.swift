@@ -64,7 +64,7 @@ class CreateConcertVisitViewModel: Hashable, Equatable {
 
         return concert.id
     }
-    
+
     func uploadSelectedPhotos(selectedImages: [UIImage], visitId: String) async throws {
         guard let userId = userSessionManager.user?.id.uuidString else { return}
         for image in selectedImages {

@@ -37,6 +37,9 @@ struct CreateConcertSelectArtistView: View {
                     LoadingView()
                 }
             }
+            .background {
+                Color("backgroundColor")
+            }
             .navigationTitle("Select an Artist")
             .task {
                 guard viewModel == nil else { return }

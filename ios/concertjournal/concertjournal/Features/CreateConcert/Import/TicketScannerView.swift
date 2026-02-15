@@ -81,6 +81,9 @@ struct TicketScannerView: View {
             }
             .padding(.vertical)
         }
+        .background {
+            Color("backgroundColor")
+        }
         .navigationTitle("Ticket scannen")
         .navigationBarTitleDisplayMode(.inline)
         .task {

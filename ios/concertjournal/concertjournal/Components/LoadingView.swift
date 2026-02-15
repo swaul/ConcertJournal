@@ -18,6 +18,10 @@ struct LoadingView: View {
                 .font(.cjTitle2)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background {
+            Color("backgroundColor")
+        }
+        .ignoresSafeArea()
     }
 
 }

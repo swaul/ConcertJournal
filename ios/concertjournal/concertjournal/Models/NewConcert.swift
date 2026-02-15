@@ -52,11 +52,20 @@ struct NewConcertDTO: Codable {
         self.rating = new.rating
         self.title = new.title
         self.date = new.date.supabseDateString
-        self.openingTime = new.entranceTime.supabseDateString
+        self.openingTime = Self.correctedOpeningTime(openingTime: new.openingTime, date: new.date).supabseDateString
         self.travelType = travel?.travelType
         self.travelDuration = travel?.travelDuration
         self.travelDistance = travel?.travelDistance
         self.travelExpenses = travel?.travelExpenses
         self.hotelExpenses = travel?.hotelExpenses
+    }
+
+    static func correctedOpeningTime(openingTime: Date, date: Date) -> Date {
+        let calendar = Calendar.current
+        let openingHourAndMinute = calendar.dateComponents([.hour, .minute], from: openingTime)
+        guard let hour = openingHourAndMinute.hour,
+              let minute = openingHourAndMinute.minute else { return openingTime }
+
+        return Calendar.current.date(bySettingHour: hour, minute: minute, second: 0, of: date) ?? openingTime
     }
 }

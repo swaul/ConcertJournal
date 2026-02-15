@@ -8,7 +8,7 @@ import PhotosUI
 struct NewConcertVisit: Identifiable, Equatable {
     let id: UUID = UUID()
     var date: Date = .now
-    var entranceTime: Date = .now
+    var openingTime: Date = .now
     var artistName: String = ""
     var venueName: String = ""
     var title: String = ""
@@ -22,7 +22,7 @@ struct NewConcertVisit: Identifiable, Equatable {
 
     init(importeConcert: ImportedConcert) {
         self.date = importeConcert.date ?? .now
-        self.entranceTime = importeConcert.date ?? .now
+        self.openingTime = importeConcert.date ?? .now
         self.artistName = importeConcert.artistName ?? ""
         self.venueName = importeConcert.venueName ?? ""
         self.title = importeConcert.title ?? ""
@@ -37,7 +37,7 @@ struct NewConcertVisit: Identifiable, Equatable {
     
     init(ticketInfo: ExtendedTicketInfo) {
         self.date = ticketInfo.date ?? .now
-        self.entranceTime = ticketInfo.date ?? .now
+        self.openingTime = ticketInfo.date ?? .now
         self.artistName = ticketInfo.artistName
         self.venueName = ticketInfo.venueName ?? ""
         self.title = ""
@@ -52,7 +52,7 @@ struct NewConcertVisit: Identifiable, Equatable {
 
     init() {
         self.date = .now
-        self.entranceTime = .now
+        self.openingTime = .now
         self.artistName = ""
         self.venueName = ""
         self.title = ""
@@ -264,7 +264,7 @@ struct CreateConcertVisitView: View {
                 .padding(.horizontal)
                 .font(.cjBody)
 
-            DatePicker("Einlass", selection: $draft.entranceTime, displayedComponents: [.hourAndMinute])
+            DatePicker("Einlass", selection: $draft.openingTime, displayedComponents: [.hourAndMinute])
                 .padding(.horizontal)
                 .font(.cjBody)
 

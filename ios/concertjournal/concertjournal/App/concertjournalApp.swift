@@ -48,9 +48,7 @@ struct ConcertJournalApp: App {
         WindowGroup {
             Group {
                 if isLoading {
-                    ProgressView()
-                        .progressViewStyle(.circular)
-                        .scaleEffect(2.5)
+                    LoadingView()
                 } else if !hasCompletedOnboarding {
                     OnboardingView(manager: onboardingManager)
                         .transition(.move(edge: .leading).combined(with: .opacity))
@@ -65,6 +63,7 @@ struct ConcertJournalApp: App {
                     }
                 }
             }
+            .preferredColorScheme(.dark)
             .tint(dependencies.colorThemeManager.appTint)
             .environment(\.appTintColor, dependencies.colorThemeManager.appTint)
             .withDependencies(dependencies)

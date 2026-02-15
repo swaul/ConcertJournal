@@ -12,9 +12,9 @@ struct MainAppView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.navigationManager) private var navigationManager
 
-    #if DEBUG
-        @State private var showDebugLogs = false
-    #endif
+#if DEBUG
+    @State private var showDebugLogs = false
+#endif
 
     var body: some View {
         @Bindable var navigationManager = navigationManager
@@ -36,7 +36,7 @@ struct MainAppView: View {
         .onChange(of: navigationManager.selectedTab) { oldValue, newValue in
             print(newValue)
         }
-        #if DEBUG
+#if DEBUG
         .sheet(isPresented: $showDebugLogs) {
             DebugLogView()
         }
@@ -45,6 +45,6 @@ struct MainAppView: View {
                 showDebugLogs.toggle()
             }
         }
-        #endif
+#endif
     }
 }

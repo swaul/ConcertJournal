@@ -129,6 +129,9 @@ struct ConcertImportView: View {
                 }
                 .padding()
             }
+            .background {
+                Color("backgroundColor")
+            }
             .navigationTitle("Konzert importieren")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

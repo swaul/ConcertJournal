@@ -60,9 +60,12 @@ struct CreateConcertTicket: View {
     var body: some View {
         NavigationStack {
             ZStack {
+                Color("backgroundColor")
+                    .ignoresSafeArea()
+
                 ticketCategoryAnimated.color
                     .ignoresSafeArea()
-                Color(uiColor: .systemBackground)
+                Color("backgroundColor")
                     .clipShape(Capsule())
                     .ignoresSafeArea()
                     .padding(.vertical, 10)
