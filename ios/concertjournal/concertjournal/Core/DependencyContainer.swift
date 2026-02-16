@@ -17,7 +17,8 @@ class DependencyContainer {
     let supabaseClient: SupabaseClientManager
     let userSessionManager: UserSessionManagerProtocol
     let colorThemeManager: ColorThemeManager
-    
+    let storageService: StorageServiceProtocol
+
     // ✅ BFF Repositories
     let concertRepository: ConcertRepositoryProtocol
     let artistRepository: ArtistRepositoryProtocol
@@ -38,7 +39,8 @@ class DependencyContainer {
         self.supabaseClient = SupabaseClientManager()
         self.userSessionManager = UserSessionManager(client: supabaseClient.client)
         self.colorThemeManager = ColorThemeManager()
-        
+        self.storageService = StorageService(supabaseClient: supabaseClient)
+
         // ✅ BFF Client needs auth token
         self.bffClient.getAuthToken = { [weak supabaseClient] in
             guard let session = try? await supabaseClient?.client.auth.session else {
@@ -52,7 +54,7 @@ class DependencyContainer {
         self.artistRepository = BFFArtistRepository(client: bffClient)
         self.venueRepository = BFFVenueRepository(client: bffClient)
         self.setlistRepository = BFFSetlistRepository(client: bffClient)
-        self.photoRepository = BFFPhotoRepository(client: bffClient)
+        self.photoRepository = PhotoRepository(supabaseClient: supabaseClient, storageService: storageService)
         self.spotifyRepository = SpotifyRepository(userSessionManager: userSessionManager)
         
         // Local repositories (stay unchanged)

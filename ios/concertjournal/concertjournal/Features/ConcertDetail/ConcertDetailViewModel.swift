@@ -18,19 +18,20 @@ class ConcertDetailViewModel {
     let artist: Artist
     var imageUrls: [ConcertImage] = []
     var setlistItems: [SetlistItem]? = nil
+    var supportActs: [Artist]? = nil
     var errorMessage: String?
-    var loadingSetlist: Bool = false
     var successMessage: String? = nil
     var createdPlaylistURL: String? = nil
     
-    var isLoading: Bool = false
+    var isLoading: Bool = true
 
     private let client: BFFClient
     private let photoRepository: PhotoRepositoryProtocol
     private let concertRepository: ConcertRepositoryProtocol
     private let setlistRepository: SetlistRepositoryProtocol
+    private let artistRepository: ArtistRepositoryProtocol
 
-    init(concert: FullConcertVisit, bffClient: BFFClient, concertRepository: ConcertRepositoryProtocol, setlistRepository: SetlistRepositoryProtocol, photoRepository: PhotoRepositoryProtocol) {
+    init(concert: FullConcertVisit, bffClient: BFFClient, concertRepository: ConcertRepositoryProtocol, setlistRepository: SetlistRepositoryProtocol, photoRepository: PhotoRepositoryProtocol, artistRepository: ArtistRepositoryProtocol) {
         self.concert = concert
         self.artist = concert.artist
 
@@ -38,14 +39,18 @@ class ConcertDetailViewModel {
         self.photoRepository = photoRepository
         self.setlistRepository = setlistRepository
         self.concertRepository = concertRepository
+        self.artistRepository = artistRepository
 
         Task {
             try? await loadImages()
             do {
-                loadingSetlist = true
-                try await loadSetlist()
-                loadingSetlist = false
+                async let setlistTask: Void = loadSetlist()
+                async let supportActsTask: Void = loadSupportActs()
+
+                _ = try? await (supportActsTask, setlistTask)
+                isLoading = false
             } catch {
+                isLoading = false
                 HapticManager.shared.error()
                 print(error)
             }
@@ -67,6 +72,18 @@ class ConcertDetailViewModel {
 
         self.setlistItems = setlistItems
         self.concert.setlistItems = setlistItems
+    }
+
+    func loadSupportActs() async throws {
+        guard let supportActs = concert.supportActsIds else { return }
+        var loadedSupoprtActs: [Artist] = []
+        for id in supportActs {
+            let supportAct: Artist = try await artistRepository.getArtist(with: id)
+            loadedSupoprtActs.append(supportAct)
+        }
+
+        self.supportActs = loadedSupoprtActs
+        self.concert.supportActs = loadedSupoprtActs
     }
 
     func createCalendarEntry(store: EKEventStore) -> EKEvent {

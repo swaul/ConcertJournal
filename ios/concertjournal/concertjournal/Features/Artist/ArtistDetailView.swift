@@ -21,7 +21,7 @@ struct ArtistDetailView: View {
 
     var body: some View {
         ZStack {
-            Color("backgroundColor")
+            Color.background
                 .ignoresSafeArea()
 
             AsyncImage(url: URL(string: artist.imageUrl ?? "")) { result in

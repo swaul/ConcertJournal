@@ -26,7 +26,7 @@ struct BannerAdContainer<Content: View>: View {
     }
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 0) {
             if position == .top {
                 AdaptiveBannerAdView()
             }

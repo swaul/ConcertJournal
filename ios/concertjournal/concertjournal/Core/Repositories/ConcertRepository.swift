@@ -17,7 +17,7 @@ protocol ConcertRepositoryProtocol {
     func fetchConcertsWithArtist(artistId: String) async throws -> [ConcertDetails]
     func getConcert(id: String) async throws -> FullConcertVisit
     func reloadConcerts() async throws
-    func createConcert(_ concert: NewConcertDTO) async throws -> FullConcertVisit
+    func createConcert(_ concert: NewConcertDTO) async throws -> CreateConcertResponse
     func updateConcert(id: String, concert: ConcertVisitUpdateDTO) async throws
     func deleteConcert(id: String) async throws
 
@@ -69,7 +69,7 @@ class BFFConcertRepository: ConcertRepositoryProtocol {
         return try await client.get("/concerts/\(id)")
     }
     
-    func createConcert(_ concert: NewConcertDTO) async throws -> FullConcertVisit {
+    func createConcert(_ concert: NewConcertDTO) async throws -> CreateConcertResponse {
         logInfo("Creating concert with title: \(concert.title)", category: .repository)
         return try await client.post("/concerts", body: concert)
     }
@@ -89,6 +89,10 @@ class BFFConcertRepository: ConcertRepositoryProtocol {
     func reset() {
         cachedConcerts.removeAll()
     }
+}
+
+struct CreateConcertResponse: Codable {
+    let id: String
 }
 
 struct ConcertChanges {
@@ -112,6 +116,7 @@ struct ConcertVisitUpdateDTO: Codable {
     var venueId: String?
     var city: String?
     var rating: Int?
+    var supportActs: [Artist]?
 
     var travelType: TravelType?
     var travelDuration: TimeInterval?
@@ -140,6 +145,7 @@ struct ConcertVisitUpdateDTO: Codable {
         if let venueId = venueId { dict["venueId"] = venueId }
         if let city = city { dict["city"] = city }
         if let rating = rating { dict["rating"] = rating }
+        if let supportActs = supportActs { dict["supportActs"] = supportActs.map { $0.id } }
 
         if let travelType = travelType { dict["travelType"] = travelType }
         if let travelDuration = travelDuration { dict["travelDuration"] = travelDuration }
@@ -173,6 +179,7 @@ struct ConcertVisitUpdateDTO: Codable {
         case venueId = "venue_id"
         case city
         case rating
+        case supportActs = "support_acts_ids"
 
         case travelType = "travel_type"
         case travelDuration = "travel_duration"
@@ -238,6 +245,12 @@ extension FullConcertVisit {
         if self.rating != update.rating {
             dto.rating = update.rating
             changes.changedFields.append("rating")
+            changes.hasBasicChanges = true
+        }
+
+        if self.supportActs != update.supportActs {
+            dto.supportActs = update.supportActs
+            changes.changedFields.append("supportActs")
             changes.hasBasicChanges = true
         }
 

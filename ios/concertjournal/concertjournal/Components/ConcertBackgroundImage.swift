@@ -21,7 +21,7 @@ struct ConcertBackgroundImage: View {
         .frame(width: width)
         .overlay {
             LinearGradient(
-                colors: [Color.clear, Color.clear, Color("backgroundColor").opacity(0.15), Color("backgroundColor").opacity(0.35), Color("backgroundColor").opacity(0.6)],
+                colors: [Color.clear, Color.clear, Color.background.opacity(0.15), Color.background.opacity(0.35), Color.background.opacity(0.6)],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -29,9 +29,9 @@ struct ConcertBackgroundImage: View {
         .mask(
             LinearGradient(
                 gradient: Gradient(stops: [
-                    .init(color: Color("backgroundColor"), location: 0.0),
-                    .init(color: Color("backgroundColor"), location: 0.75),
-                    .init(color: Color("backgroundColor"), location: 1.0)
+                    .init(color: Color.background, location: 0.0),
+                    .init(color: Color.background, location: 0.75),
+                    .init(color: Color.background, location: 1.0)
                 ]),
                 startPoint: .top,
                 endPoint: .bottom

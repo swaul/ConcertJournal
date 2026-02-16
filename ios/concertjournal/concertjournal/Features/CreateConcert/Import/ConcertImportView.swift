@@ -130,7 +130,7 @@ struct ConcertImportView: View {
                 .padding()
             }
             .background {
-                Color("backgroundColor")
+                Color.background
             }
             .navigationTitle("Konzert importieren")
             .navigationBarTitleDisplayMode(.inline)

@@ -34,10 +34,7 @@ struct ConcertDetailView: View {
     @State private var showEditSheet = false
     @State private var showDeleteDialog = false
     @State private var selectedImage: ConcertImage?
-
     @State private var savingConcertPresenting = false
-
-    @State private var loadingSetlist = false
     @State private var localHidePrices = false
 
     @State private var errorMessage: String? = nil
@@ -46,16 +43,17 @@ struct ConcertDetailView: View {
 
     var body: some View {
         Group {
-            if let viewModel {
+            if let viewModel, !viewModel.isLoading {
                 viewWithViewModel(viewModel: viewModel)
-                    .onChange(of: viewModel.loadingSetlist) { _, newValue in
-                        withAnimation(.bouncy) {
-                            loadingSetlist = newValue
-                        }
-                    }
             } else if let errorMessage = errorMessage {
-                Text(errorMessage)
-                    .padding(.horizontal)
+                VStack(spacing: 20) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 60))
+                        .foregroundStyle(dependencies.colorThemeManager.appTint)
+                    Text(errorMessage)
+                        .font(.cjBody)
+                        .padding(.horizontal)
+                }
             } else {
                 LoadingView()
             }
@@ -69,7 +67,8 @@ struct ConcertDetailView: View {
                                                    bffClient: dependencies.bffClient,
                                                    concertRepository: dependencies.concertRepository,
                                                    setlistRepository: dependencies.setlistRepository,
-                                                   photoRepository: dependencies.photoRepository)
+                                                   photoRepository: dependencies.photoRepository,
+                                                   artistRepository: dependencies.artistRepository)
             } catch {
                 errorMessage = "Da ist etwas schief gelaufen"
             }
@@ -81,235 +80,91 @@ struct ConcertDetailView: View {
     func viewWithViewModel(viewModel: ConcertDetailViewModel) -> some View {
         BannerAdContainer(position: .bottom) {
             ScrollView {
-                    ParallaxHeader(
-                        coordinateSpace: CoordinateSpace.named("ScrollView"),
-                        defaultHeight: 400
-                    ) {
-                        AsyncImage(url: URL(string: viewModel.artist.imageUrl ?? "")) { result in
-                            result.image?
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                        }
-                        .frame(width: UIScreen.screenWidth)
+                ParallaxHeader(
+                    coordinateSpace: CoordinateSpace.named("ScrollView"),
+                    defaultHeight: 400
+                ) {
+                    AsyncImage(url: URL(string: viewModel.artist.imageUrl ?? "")) { result in
+                        result.image?
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    }
+                    .frame(height: 400)
+                    .frame(maxWidth: UIScreen.screenWidth)
+                }
+
+                VStack(alignment: .leading, spacing: 24) {
+                    header(viewModel: viewModel)
+                        .frame(maxWidth: .infinity)
+                        .zIndex(100)
+
+                    if let supportActs = viewModel.supportActs {
+                        supportActsSection(supportActs: supportActs)
                     }
 
-                VStack(alignment: .leading) {
-                    header(viewModel: viewModel)
-                        .padding(.top)
-
                     if let venue = viewModel.concert.venue {
-                        Text("Location")
-                            .font(.cjTitle)
-                            .padding()
-
-                        VStack(alignment: .leading) {
-                            Text(venue.name)
-                                .bold()
-                                .font(.cjBody)
-
-                            Text(venue.formattedAddress)
-                                .font(.cjBody)
-
-                            if let latitude = venue.latitude, let longitude = venue.longitude {
-                                VenueInlineMap(latitude: latitude, longitude: longitude, name: venue.name, formattedAddress: venue.formattedAddress)
-                                    .allowsTightening(true)
-                                    .contextMenu {
-                                        Button {
-                                            HapticManager.shared.buttonTap()
-                                            let mapItem = MKMapItem(location: CLLocation(latitude: latitude, longitude: longitude), address: MKAddress(fullAddress: "", shortAddress: venue.formattedAddress))
-                                            mapItem.openInMaps()
-                                        } label: {
-                                            Text("In Apple Karten öffnen")
-                                                .font(.cjBody)
-                                        }
-                                    }
-                            }
-                        }
-                        .padding(.horizontal)
+                        venueSection(venue: venue, viewModel: viewModel)
                     }
 
                     if let notes = viewModel.concert.notes, !notes.isEmpty {
-                        Text("Meine Experience")
-                            .font(.cjTitle)
-                            .padding()
-
-                        VStack(alignment: .leading) {
-                            HStack(alignment: .center) {
-                                Image(systemName: "long.text.page.and.pencil")
-                                    .foregroundStyle(dependencies.colorThemeManager.appTint)
-                                    .font(.cjCaption)
-                                Text("Journal Eintrag")
-                                    .foregroundStyle(dependencies.colorThemeManager.appTint)
-                                    .font(.cjCaption)
-                                Spacer()
-                            }
-                            .padding(.top)
-                            .padding(.horizontal)
-
-                            Text(notes)
-                                .lineLimit(nil)
-                                .padding(.bottom)
-                                .padding(.horizontal)
-                                .font(.cjBody)
-                        }
+                        notesSection(notes: notes)
                     }
 
                     if let travel = viewModel.concert.travel {
-                        Text("Meine Reise")
-                            .font(.cjTitle)
-                            .padding()
-
-                        VStack(alignment: .leading, spacing: 8) {
-
-                            if let travelType = travel.travelType {
-                                Text(travelType.infoText(color: dependencies.colorThemeManager.appTint))
-                            }
-                            if let travelDuration = travel.travelDuration {
-                                let parsedDuration = DurationParser.format(travelDuration)
-
-                                Text.highlighted(
-                                    "Die Reise hat \(parsedDuration) gedauert.",
-                                    highlight: parsedDuration,
-                                    baseFont: .cjBody,
-                                    highlightColor: dependencies.colorThemeManager.appTint
-                                )
-                            }
-                            if let travelDistance = travel.travelDistance {
-                                let parsedDistance = DistanceParser.format(travelDistance)
-
-                                Text.highlighted(
-                                    "Der Weg war \(parsedDistance) lang.",
-                                    highlight: parsedDistance,
-                                    baseFont: .cjBody,
-                                    highlightColor: dependencies.colorThemeManager.appTint
-                                )
-                            }
-                            if let travelExpenses = travel.travelExpenses {
-                                Text.highlighted(
-                                    "Die Anreise hat dich \(travelExpenses.formatted) gekostet.",
-                                    highlight: travelExpenses.formatted,
-                                    baseFont: .cjBody,
-                                    highlightColor: dependencies.colorThemeManager.appTint
-                                )
-                                .conditionalRedacted(localHidePrices)
-                                .contentShape(Rectangle())
-                                .contextMenu {
-                                    Toggle("Preise ausblenden", isOn: $localHidePrices)
-                                }
-                            }
-                            if let hotelExpenses = travel.hotelExpenses {
-                                Text.highlighted(
-                                    "Für die Übernachtung hast du \(hotelExpenses.formatted) gezahlt.",
-                                    highlight: hotelExpenses.formatted,
-                                    baseFont: .cjBody,
-                                    highlightColor: dependencies.colorThemeManager.appTint
-                                )
-                                .conditionalRedacted(localHidePrices)
-                                .contentShape(Rectangle())
-                                .contextMenu {
-                                    Toggle("Preise ausblenden", isOn: $localHidePrices)
-                                }
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal)
+                        travelSection(travel: travel)
                     }
 
                     if let ticket = viewModel.concert.ticket {
-                        Text("Mein Ticket")
-                            .font(.cjTitle)
-                            .padding()
-
-                        ticketSection(ticket: ticket)
-                            .padding(.horizontal)
+                        VStack(alignment: .leading, spacing: 12) {
+                            sectionHeader(title: "Mein Ticket", icon: "ticket.fill")
+                            ticketSection(ticket: ticket)
+                        }
+                        .padding(.horizontal, 20)
                     }
 
                     if let setlistItems = viewModel.setlistItems, !setlistItems.isEmpty {
-                        Text("Setlist")
-                            .font(.cjTitle)
-                            .padding()
+                        VStack(alignment: .leading, spacing: 12) {
+                            sectionHeader(title: "Setlist", icon: "music.note.list")
 
-                        VStack {
-                            ForEach(setlistItems, id: \.spotifyTrackId) { item in
-                                makeSetlistItemView(with: item)
-                            }
+                            VStack(spacing: 12) {
+                                ForEach(setlistItems, id: \.spotifyTrackId) { item in
+                                    makeSetlistItemView(with: item)
+                                }
 
-
-                            if dependencies.userSessionManager.user?.identities?.contains(where: { $0.provider == "spotify" }) == true {
-                                CreatePlaylistButton(viewModel: viewModel)
-                                    .padding(.horizontal)
-                            }
-                        }
-                        .padding(.horizontal)
-                    } else if loadingSetlist {
-                        VStack {
-                            ProgressView()
-                                .tint(dependencies.colorThemeManager.appTint)
-                        }
-                        .frame(height: 60)
-                        .frame(maxWidth: .infinity)
-                    }
-
-                    if !viewModel.imageUrls.isEmpty {
-                        Text("Meine Bilder")
-                            .font(.cjTitle)
-                            .padding()
-
-                        ScrollView(.horizontal) {
-                            LazyHStack(spacing: 16) {
-                                ForEach(Array(viewModel.imageUrls), id: \.id) { image in
-                                    Button {
-                                        HapticManager.shared.success()
-                                        selectedImage = image
-                                    } label: {
-                                        AsyncImage(url: image.url) { image in
-                                            image
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fill)
-                                                .frame(width: 200, height: 300)
-                                                .clipped()
-                                                .cornerRadius(20)
-                                        } placeholder: {
-                                            ZStack {
-                                                RoundedRectangle(cornerRadius: 20)
-                                                    .fill(Color.gray.opacity(0.3))
-                                                ProgressView()
-                                            }
-                                            .frame(width: 200, height: 300)
-                                        }
-                                    }
-                                    .buttonStyle(.plain)
-                                    .frame(width: 200, height: 300)
-                                    .scrollTargetLayout()
+                                if dependencies.userSessionManager.user?.identities?.contains(where: { $0.provider == "spotify" }) == true {
+                                    CreatePlaylistButton(viewModel: viewModel)
+                                        .padding(.top, 8)
                                 }
                             }
                         }
-                        .padding(.horizontal)
-                        .scrollClipDisabled()
-                        .scrollTargetBehavior(.viewAligned)
-                        .scrollIndicators(.hidden)
+                        .padding(.horizontal, 20)
                     }
+
+                    if !viewModel.imageUrls.isEmpty {
+                        imageSection(images: viewModel.imageUrls)
+                    }
+
+                    Color.clear.frame(height: 40)
                 }
                 .background {
-                    Color("backgroundColor")
+                    Rectangle()
+                        .fill(.clear)
+                        .glassEffect(in: Rectangle())
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 25))
             }
             .scrollIndicators(.hidden)
             .ignoresSafeArea()
             .coordinateSpace(name: CoordinateSpace.named("ScrollView"))
             .frame(width: UIScreen.screenWidth)
         }
-        .background {
-            Color("backgroundColor")
-        }
+        .background(Color.background)
         .ignoresSafeArea()
         .frame(width: UIScreen.screenWidth)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 if viewModel.concert.date > Date.now {
                     Button {
-                        HapticManager.shared.success()
+                        HapticManager.shared.impact(.light)
                         requestCalendarAccess()
                     } label: {
                         Image(systemName: "calendar.badge.plus")
@@ -318,50 +173,27 @@ struct ConcertDetailView: View {
 
                 Menu {
                     Button {
-                        HapticManager.shared.success()
+                        HapticManager.shared.impact(.light)
                         showEditSheet = true
                     } label: {
-                        HStack {
-                            Image(systemName: "pencil")
-                            Text("Bearbeiten")
-                        }
+                        Label("Bearbeiten", systemImage: "pencil")
                     }
                     Button(role: .destructive) {
-                        HapticManager.shared.success()
+                        HapticManager.shared.impact(.medium)
                         showDeleteDialog = true
                     } label: {
-                        HStack {
-                            Image(systemName: "trash")
-                            Text("Löschen")
-                        }
+                        Label("Löschen", systemImage: "trash")
                     }
                 } label: {
-                    Image(systemName: "ellipsis")
+                    Image(systemName: "ellipsis.circle")
                 }
             }
         }
-        .confirmationDialog("Konzert löschen", isPresented: $showDeleteDialog, titleVisibility: .visible) {
-            Button(role: .destructive) {
-                HapticManager.shared.success()
-                Task {
-                    do {
-                        try await viewModel.deleteConcert()
-                        confirmationText = ConfirmationMessage(message: "Konzert gelöscht!") {
-                            dismiss()
-                        }
-                    } catch {
-                        print(error)
-                    }
-                }
-            } label: {
-                Text("Löschen")
-            }
-            Button {
-                HapticManager.shared.success()
-
-            } label: {
-                Text("Abbrechen")
-            }
+        .adaptiveSheet(isPresented: $showDeleteDialog) {
+            deleteDialog(viewModel: viewModel)
+        }
+        .sheet(item: $confirmationText) { item in
+            ConfirmationView(message: item)
         }
         .sheet(isPresented: $showCalendarSheet) {
             if let calendarEvent {
@@ -370,6 +202,7 @@ struct ConcertDetailView: View {
                     event: calendarEvent
                 ) { action in
                     if action == .saved {
+                        HapticManager.shared.success()
                         confirmationText = ConfirmationMessage(message: "Event gespeichert 🎉")
                     }
                 }
@@ -383,14 +216,15 @@ struct ConcertDetailView: View {
                         savingConcertPresenting = true
                         await viewModel.applyUpdate(updatedConcert)
                         savingConcertPresenting = false
+                        HapticManager.shared.success()
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                            confirmationText = ConfirmationMessage(message: "Updates gespeichert!")
+                            confirmationText = ConfirmationMessage(message: "Updates gespeichert! 🎉")
                         }
                     }
                 }
             )
         }
-        .sheet(item: $confirmationText) { item in
+        .adaptiveSheet(item: $confirmationText) { item in
             ConfirmationView(message: item)
         }
         .fullScreenCover(item: $selectedImage) { item in
@@ -411,208 +245,644 @@ struct ConcertDetailView: View {
     }
 
     @ViewBuilder
-    func header(viewModel: ConcertDetailViewModel) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(viewModel.concert.date.dateOnlyString)
-                .font(.cjTitle2)
+    func deleteDialog(viewModel: ConcertDetailViewModel) -> some View {
+        @State var loading: Bool = false
 
-            if let title = viewModel.concert.title {
-                Text(title)
-                    .bold()
-                    .font(.cjLargeTitle)
+        VStack(spacing: 20) {
+            Image(systemName: "trash.circle.fill")
+                .font(.system(size: 60))
+                .foregroundStyle(.red)
 
-                Button {
-                    navigationManager.push(.artistDetail(viewModel.artist))
+            Text("Konzert löschen?")
+                .font(.cjTitle)
+
+            let concertText = viewModel.concert.title == nil ? "das Konzert" : "\"\(viewModel.concert.title!)\""
+            Text("Möchtest du \(concertText) wirklich löschen? Das kann nicht rückgängig gemacht werden.")
+                .font(.cjBody)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 8)
+
+            VStack(spacing: 12) {
+                Button(role: .destructive) {
+                    HapticManager.shared.impact(.heavy)
+                    Task {
+                        do {
+                            loading = true
+                            try await viewModel.deleteConcert()
+                            showDeleteDialog = false
+                            loading = false
+                            HapticManager.shared.success()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                confirmationText = ConfirmationMessage(message: "Konzert gelöscht!") {
+                                    dismiss()
+                                }
+                            }
+                        } catch {
+                            logError("Deletion of concert failed", error: error, category: .concert)
+                            loading = false
+                        }
+                    }
                 } label: {
-                    HStack(alignment: .lastTextBaseline) {
-                        Text(viewModel.artist.name)
-                            .bold()
-                            .font(.cjTitleF)
-
-                        Image(systemName: "arrow.right.circle.fill")
+                    if loading {
+                        ProgressView()
+                            .tint(.white)
+                    } else {
+                        Text("Löschen")
+                            .font(.cjHeadline)
                     }
                 }
-                .contextMenu {
-                    Button("Detail Seite für \(viewModel.artist.name)") {
-                        navigationManager.push(.artistDetail(viewModel.artist))
-                    }
-                    .font(.cjBody)
-                }
-            } else {
-                Button {
-                    navigationManager.push(.artistDetail(viewModel.artist))
-                } label: {
-                    Text(viewModel.artist.name)
-                        .bold()
-                        .font(.cjLargeTitle)
-                }
-            }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(.red)
+                .foregroundStyle(.white)
+                .cornerRadius(16)
+                .disabled(loading)
 
-            if let openingTime = viewModel.concert.openingTime {
-                Text("Einlass \(openingTime.timeOnlyString)")
-                    .font(.cjHeadline)
+                Button {
+                    HapticManager.shared.impact(.light)
+                    showDeleteDialog = false
+                } label: {
+                    Text("Abbrechen")
+                        .font(.cjHeadline)
+                }
+                .buttonStyle(ModernButtonStyle(style: .glass, color: dependencies.colorThemeManager.appTint))
             }
         }
-        .padding()
+        .padding(24)
+    }
+
+    // MARK: - Section Header
+    @ViewBuilder
+    func sectionHeader(title: String, icon: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundStyle(dependencies.colorThemeManager.appTint)
+            Text(title)
+                .font(.cjTitle)
+        }
     }
 
     @ViewBuilder
+    func supportActsSection(supportActs: [Artist]) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader(title: "Support Acts", icon: "music.microphone")
+                .padding(.horizontal)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(supportActs) { artist in
+                        ArtistChipView(artist: artist, removeable: false, onRemove: {})
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+            }
+            .scrollBounceBehavior(.basedOnSize)
+        }
+    }
+
+    // MARK: - Travel Info Card
+    @ViewBuilder
+    func travelInfoCard(icon: String, title: String, subtitle: String?, isPrice: Bool = false) -> some View {
+        HStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(dependencies.colorThemeManager.appTint.opacity(0.15))
+                    .frame(width: 50, height: 50)
+
+                Image(systemName: icon)
+                    .font(.title3)
+                    .foregroundStyle(dependencies.colorThemeManager.appTint)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.cjBody)
+                    .foregroundStyle(.secondary)
+
+                if let subtitle {
+                    Text(subtitle)
+                        .font(.cjTitle2)
+                        .foregroundStyle(.primary)
+                        .conditionalRedacted(isPrice && localHidePrices)
+                }
+            }
+
+            Spacer()
+        }
+        .padding(16)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+        .contentShape(Rectangle())
+        .contextMenu {
+            if isPrice {
+                Button {
+                    HapticManager.shared.impact(.light)
+                    localHidePrices.toggle()
+                } label: {
+                    Label(localHidePrices ? "Preise anzeigen" : "Preise ausblenden",
+                          systemImage: localHidePrices ? "eye" : "eye.slash")
+                }
+            }
+        }
+    }
+
+    // MARK: - Header
+    @ViewBuilder
+    func header(viewModel: ConcertDetailViewModel) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Date Badge
+            HStack(spacing: 8) {
+                Image(systemName: "calendar")
+                    .font(.caption)
+                Text(viewModel.concert.date.dateOnlyString)
+                    .font(.cjBody)
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .shadow(radius: 3)
+            .background(dependencies.colorThemeManager.appTint)
+            .clipShape(Capsule())
+
+            if let title = viewModel.concert.title {
+                Text(title)
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundStyle(.primary)
+
+                Button {
+                    HapticManager.shared.impact(.light)
+                    navigationManager.push(.artistDetail(viewModel.artist))
+                } label: {
+                    HStack(spacing: 8) {
+                        Text(viewModel.artist.name)
+                            .font(.cjTitle)
+                            .foregroundStyle(dependencies.colorThemeManager.appTint)
+
+                        Image(systemName: "arrow.right.circle.fill")
+                            .foregroundStyle(dependencies.colorThemeManager.appTint)
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
+            } else {
+                Button {
+                    HapticManager.shared.impact(.light)
+                    navigationManager.push(.artistDetail(viewModel.artist))
+                } label: {
+                    HStack(spacing: 8) {
+                        Text(viewModel.artist.name)
+                            .font(.system(size: 32, weight: .bold))
+                            .foregroundStyle(.primary)
+
+                        Image(systemName: "arrow.right.circle.fill")
+                            .foregroundStyle(dependencies.colorThemeManager.appTint)
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+
+            if let openingTime = viewModel.concert.openingTime {
+                HStack(spacing: 8) {
+                    Image(systemName: "clock.fill")
+                        .font(.caption)
+                    Text("Einlass \(openingTime.timeOnlyString)")
+                        .font(.cjHeadline)
+                }
+                .foregroundStyle(.secondary)
+            }
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 6)
+        .padding(.horizontal, 20)
+        .padding(.top, -40)
+    }
+
+    @ViewBuilder
+    func venueSection(venue: Venue, viewModel: ConcertDetailViewModel) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader(title: "Location", icon: "mappin.circle.fill")
+
+            VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(venue.name)
+                        .font(.cjTitle2)
+                        .foregroundStyle(.primary)
+
+                    Text(venue.formattedAddress)
+                        .font(.cjBody)
+                        .foregroundStyle(.secondary)
+                }
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+
+                if let latitude = venue.latitude, let longitude = venue.longitude {
+                    VenueInlineMap(latitude: latitude, longitude: longitude, name: venue.name, formattedAddress: venue.formattedAddress)
+                        .frame(height: 200)
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(.ultraThinMaterial, lineWidth: 1)
+                        )
+                        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+                        .contextMenu {
+                            Button {
+                                HapticManager.shared.impact(.light)
+                                let mapItem = MKMapItem(location: CLLocation(latitude: latitude, longitude: longitude), address: MKAddress(fullAddress: "", shortAddress: venue.formattedAddress))
+                                mapItem.openInMaps()
+                            } label: {
+                                Label("In Apple Karten öffnen", systemImage: "map.fill")
+                            }
+                            .font(.cjBody)
+                        }
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+    }
+
+    @ViewBuilder
+    func notesSection(notes: String) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader(title: "Meine Experience", icon: "heart.text.square.fill")
+
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 8) {
+                    Image(systemName: "quote.opening")
+                        .font(.caption)
+                        .foregroundStyle(dependencies.colorThemeManager.appTint)
+                    Text("Journal Eintrag")
+                        .font(.cjCaption)
+                        .foregroundStyle(dependencies.colorThemeManager.appTint)
+                }
+
+                Text(notes)
+                    .font(.cjBody)
+                    .lineLimit(nil)
+                    .foregroundStyle(.primary)
+            }
+            .padding(20)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(.ultraThinMaterial)
+
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(dependencies.colorThemeManager.appTint.opacity(0.05))
+                }
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(dependencies.colorThemeManager.appTint.opacity(0.2), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
+        }
+        .padding(.horizontal, 20)
+    }
+
+    @ViewBuilder
+    func travelSection(travel: Travel) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader(title: "Meine Reise", icon: "airplane.departure")
+
+            VStack(spacing: 12) {
+                if let travelType = travel.travelType {
+                    travelInfoCard(
+                        icon: travelType.icon,
+                        title: travelType.label,
+                        subtitle: nil
+                    )
+                }
+
+                if let travelDuration = travel.travelDuration {
+                    let parsedDuration = DurationParser.format(travelDuration)
+                    travelInfoCard(
+                        icon: "clock.fill",
+                        title: "Reisezeit",
+                        subtitle: parsedDuration
+                    )
+                }
+
+                if let travelDistance = travel.travelDistance {
+                    let parsedDistance = DistanceParser.format(travelDistance)
+                    travelInfoCard(
+                        icon: "location.fill",
+                        title: "Entfernung",
+                        subtitle: parsedDistance
+                    )
+                }
+
+                if let travelExpenses = travel.travelExpenses {
+                    travelInfoCard(
+                        icon: "car.fill",
+                        title: "Anreisekosten",
+                        subtitle: travelExpenses.formatted,
+                        isPrice: true
+                    )
+                }
+
+                if let hotelExpenses = travel.hotelExpenses {
+                    travelInfoCard(
+                        icon: "bed.double.fill",
+                        title: "Übernachtung",
+                        subtitle: hotelExpenses.formatted,
+                        isPrice: true
+                    )
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+    }
+
+    // MARK: - Setlist Item
+    @ViewBuilder
     func makeSetlistItemView(with item: SetlistItem) -> some View {
         Button {
+            HapticManager.shared.impact(.light)
             guard let spotifyTrackId = item.spotifyTrackId, !spotifyTrackId.isEmpty else { return }
             let url = "https://open.spotify.com/track/\(spotifyTrackId)"
             UIApplication.shared.open(URL(string: url)!)
         } label: {
-            HStack {
-                Text(String(item.position + 1))
-                    .font(.cjTitle)
+            HStack(spacing: 16) {
+                // Position Number
+                ZStack {
+                    Circle()
+                        .fill(dependencies.colorThemeManager.appTint.opacity(0.15))
+                        .frame(width: 40, height: 40)
+
+                    Text("\(item.position + 1)")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(dependencies.colorThemeManager.appTint)
+                }
+
+                // Cover Image
+                AsyncImage(url: URL(string: item.coverImage ?? "")) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 60, height: 60)
+                } placeholder: {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.gray.opacity(0.2))
+                        Image(systemName: "music.note")
+                            .foregroundStyle(.gray)
+                    }
+                    .frame(width: 60, height: 60)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+
+                // Song Info
                 VStack(alignment: .leading, spacing: 4) {
+                    Text(item.title)
+                        .font(.cjHeadline)
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+
+                    Text(item.artistNames)
+                        .font(.cjBody)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+
                     if let albumName = item.albumName {
                         Text(albumName)
                             .font(.cjCaption)
-                            .padding(.leading)
-                            .padding(.top)
-                    } else {
-                        Text(" ")
+                            .foregroundStyle(.tertiary)
+                            .lineLimit(1)
                     }
-                    HStack {
-                        Group {
-                            AsyncImage(url: URL(string: item.coverImage ?? ""), content: { image in
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(width: 40, height: 40)
-                            }, placeholder: {
-                                Rectangle()
-                                    .fill(Color.gray)
-                                    .frame(width: 40, height: 40)
-                            })
-                        }
-                        .clipShape(.circle)
-                        .frame(width: 40, height: 40)
-                        .padding(.leading)
-
-                        VStack(alignment: .leading) {
-                            Text(item.title)
-                                .font(.cjBody)
-                                .bold()
-                                .lineLimit(2)
-                                .multilineTextAlignment(.leading)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-
-                            Text(item.artistNames)
-                                .font(.cjBody)
-                                .lineLimit(2)
-                                .multilineTextAlignment(.leading)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.trailing)
-                    }
-                    .padding(.bottom)
-
                 }
-                .background {
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(dependencies.colorThemeManager.appTint.opacity(0.2))
-                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                // Spotify Icon
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
             }
-            .buttonStyle(.plain)
+            .padding(12)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
         }
+        .buttonStyle(SetlistItemButtonStyle())
         .contextMenu {
-            Button("\(item.title) in Spotify abspielen") {
+            Button {
+                HapticManager.shared.impact(.light)
                 guard let spotifyTrackId = item.spotifyTrackId, !spotifyTrackId.isEmpty else { return }
                 let url = "https://open.spotify.com/track/\(spotifyTrackId)"
                 UIApplication.shared.open(URL(string: url)!)
+            } label: {
+                Label("\(item.title) in Spotify abspielen", systemImage: "play.circle.fill")
             }
             .font(.cjBody)
         }
     }
 
+    // MARK: - Ticket Section
     @ViewBuilder
     func ticketSection(ticket: Ticket) -> some View {
-        VStack {
-            Text(ticket.ticketType.label)
-                .font(.cjTitle)
-                .frame(maxWidth: .infinity, alignment: .center)
+        VStack(spacing: 16) {
+            // Ticket Type Header
+            VStack(spacing: 12) {
+                HStack {
+                    Image(systemName: ticket.ticketType.icon)
+                        .font(.title2)
+                    Text(ticket.ticketType.label)
+                        .font(.cjTitle)
+                }
+                .foregroundStyle(.white)
 
-            VStack {
                 Text(ticket.ticketCategory.label)
-                    .font(.cjTitleF)
-                    .frame(maxWidth: .infinity, alignment: .center)
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundStyle(.white)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 80)
-            .background {
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(ticket.ticketCategory.color)
-                    .blur(radius: 1)
-            }
+            .padding(.vertical, 24)
+            .background(
+                ZStack {
+                    LinearGradient(
+                        colors: [
+                            ticket.ticketCategory.color,
+                            ticket.ticketCategory.color.opacity(0.8)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
 
+                    // Decorative circles
+                    Circle()
+                        .fill(.white.opacity(0.1))
+                        .frame(width: 100, height: 100)
+                        .offset(x: -50, y: -30)
+
+                    Circle()
+                        .fill(.white.opacity(0.1))
+                        .frame(width: 80, height: 80)
+                        .offset(x: 70, y: 40)
+                }
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .shadow(color: ticket.ticketCategory.color.opacity(0.4), radius: 12, x: 0, y: 6)
+
+            // Seat Information
             switch ticket.ticketType {
             case .seated:
-                Grid {
-                    GridRow {
-                        if ticket.seatBlock != nil {
-                            Text("Block")
-                                .font(.cjHeadline)
-                        }
-                        if ticket.seatRow != nil {
-                            Text("Reihe")
-                                .font(.cjHeadline)
-                        }
-                        if ticket.seatNumber != nil {
-                            Text("Platz")
-                                .font(.cjHeadline)
-                        }
+                HStack(spacing: 12) {
+                    if let block = ticket.seatBlock {
+                        seatInfoBox(title: "Block", value: block)
                     }
-                    GridRow {
-                        if let block = ticket.seatBlock {
-                            Text(block)
-                                .font(.cjTitle)
-                        }
-                        if let row = ticket.seatRow {
-                            Text(row)
-                                .font(.cjTitle)
-                        }
-                        if let seatNumber = ticket.seatNumber {
-                            Text(seatNumber)
-                                .font(.cjTitle)
-                        }
+                    if let row = ticket.seatRow {
+                        seatInfoBox(title: "Reihe", value: row)
+                    }
+                    if let seatNumber = ticket.seatNumber {
+                        seatInfoBox(title: "Platz", value: seatNumber)
                     }
                 }
             case .standing:
                 if let standingPosition = ticket.standingPosition {
-                    Text(standingPosition)
-                        .font(.cjBody)
+                    VStack(spacing: 8) {
+                        Text("Position")
+                            .font(.cjCaption)
+                            .foregroundStyle(.secondary)
+                        Text(standingPosition)
+                            .font(.cjTitle2)
+                            .foregroundStyle(.primary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(.ultraThinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
             }
 
+            // Ticket Price
             if let ticketPrice = ticket.ticketPrice {
-                HStack {
-                    Text("Ticketpreis:")
-                        .font(.cjHeadline)
+                HStack(spacing: 16) {
+                    ZStack {
+                        Circle()
+                            .fill(dependencies.colorThemeManager.appTint.opacity(0.15))
+                            .frame(width: 50, height: 50)
 
-                    Text(ticketPrice.formatted)
-                        .font(.cjTitle)
-                        .conditionalRedacted(localHidePrices)
+                        Image(systemName: "eurosign.circle.fill")
+                            .font(.title3)
+                            .foregroundStyle(dependencies.colorThemeManager.appTint)
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Ticketpreis")
+                            .font(.cjBody)
+                            .foregroundStyle(.secondary)
+
+                        Text(ticketPrice.formatted)
+                            .font(.cjTitle)
+                            .foregroundStyle(.primary)
+                            .conditionalRedacted(localHidePrices)
+                    }
+
+                    Spacer()
                 }
-                .padding(.horizontal)
+                .padding(16)
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
                 .contentShape(Rectangle())
                 .contextMenu {
-                    Toggle("Preise ausblenden", isOn: $localHidePrices)
+                    Button {
+                        HapticManager.shared.impact(.light)
+                        localHidePrices.toggle()
+                    } label: {
+                        Label(localHidePrices ? "Preise anzeigen" : "Preise ausblenden",
+                              systemImage: localHidePrices ? "eye" : "eye.slash")
+                    }
                 }
             }
 
-            if let notes = ticket.notes {
-                Text(notes)
-                    .font(.cjBody)
-                    .padding(.horizontal)
+            // Ticket Notes
+            if let notes = ticket.notes, !notes.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "note.text")
+                            .font(.caption)
+                        Text("Notizen")
+                            .font(.cjCaption)
+                    }
+                    .foregroundStyle(.secondary)
+
+                    Text(notes)
+                        .font(.cjBody)
+                        .foregroundStyle(.primary)
+                }
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
             }
         }
+    }
+
+    @ViewBuilder
+    func imageSection(images: [ConcertImage]) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader(title: "Meine Bilder", icon: "photo.on.rectangle.angled")
+                .padding(.horizontal)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: 16) {
+                    ForEach(Array(images), id: \.id) { image in
+                        Button {
+                            HapticManager.shared.impact(.light)
+                            selectedImage = image
+                        } label: {
+                            AsyncImage(url: image.url) { image in
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 240, height: 320)
+                                    .clipped()
+                            } placeholder: {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .fill(Color.gray.opacity(0.2))
+                                    ProgressView()
+                                        .tint(dependencies.colorThemeManager.appTint)
+                                }
+                                .frame(width: 240, height: 320)
+                            }
+                        }
+                        .buttonStyle(ImageCardButtonStyle())
+                        .frame(width: 240, height: 320)
+                        .scrollTargetLayout()
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
+            .scrollClipDisabled()
+            .scrollTargetBehavior(.viewAligned)
+        }
+    }
+
+    @ViewBuilder
+    func seatInfoBox(title: String, value: String) -> some View {
+        VStack(spacing: 8) {
+            Text(title)
+                .font(.cjCaption)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.cjTitle)
+                .foregroundStyle(.primary)
+        }
+        .frame(maxWidth: .infinity)
         .padding()
-        .rectangleGlass()
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
     func requestCalendarAccess() {
@@ -627,6 +897,28 @@ struct ConcertDetailView: View {
         }
     }
 }
+
+// MARK: - Button Styles
+
+struct SetlistItemButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: configuration.isPressed)
+    }
+}
+
+struct ImageCardButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: configuration.isPressed)
+    }
+}
+
+// MARK: - Extensions
 
 extension Date {
     var dateOnlyString: String {
@@ -656,6 +948,38 @@ extension Date {
                 .day(.twoDigits)
                 .locale(Locale(identifier: "de_DE"))
         )
+    }
+}
+
+extension TicketType {
+    var icon: String {
+        switch self {
+        case .seated:
+            return "chair.fill"
+        case .standing:
+            return "figure.stand"
+        }
+    }
+}
+
+extension TravelType {
+    var icon: String {
+        switch self {
+        case .car:
+            return "car.fill"
+        case .train:
+            return "tram.fill"
+        case .plane:
+            return "airplane"
+        case .bus:
+            return "bus.fill"
+        case .bike:
+            return "bicycle"
+        case .foot:
+            return "figure.walk"
+        case .other:
+            return "ellipsis.circle.fill"
+        }
     }
 }
 
@@ -699,8 +1023,6 @@ struct VenueInlineMap: View {
             ))
         }
         .mapStyle(.imagery)
-        .frame(height: 180)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
         .allowsHitTesting(false)
     }
 }

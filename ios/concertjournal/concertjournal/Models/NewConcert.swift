@@ -11,13 +11,14 @@ import Foundation
 struct NewConcertDTO: Codable {
     let userId: String
     let artistId: String
+    let supportActsIds: [String]
     let date: String
-    let openingTime: String
+    let openingTime: String?
     let venueId: String?
     let city: String?
-    let notes: String
-    let rating: Int
-    let title: String
+    let notes: String?
+    let rating: Int?
+    let title: String?
 
     // Travel
     let travelType: TravelType?
@@ -29,6 +30,7 @@ struct NewConcertDTO: Codable {
     enum CodingKeys: String, CodingKey {
         case userId = "user_id"
         case artistId = "artist_id"
+        case supportActsIds = "support_acts_ids"
         case date
         case openingTime = "opening_time"
         case venueId = "venue_id"
@@ -43,16 +45,17 @@ struct NewConcertDTO: Codable {
         case hotelExpenses = "hotel_expenses"
     }
 
-    init(with new: NewConcertVisit, by userId: String, with artistId: String, travel: Travel? = nil) {
+    init(with new: NewConcertVisit, supportActsIds: [String] = [], by userId: String, with artistId: String, travel: Travel? = nil) {
         self.userId = userId
         self.artistId = artistId
+        self.supportActsIds = supportActsIds
         self.venueId = new.venue?.id
         self.city = new.venue?.city
-        self.notes = new.notes
+        self.notes = new.notes.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
         self.rating = new.rating
-        self.title = new.title
+        self.title = new.title.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
         self.date = new.date.supabseDateString
-        self.openingTime = Self.correctedOpeningTime(openingTime: new.openingTime, date: new.date).supabseDateString
+        self.openingTime = Self.correctedOpeningTime(openingTime: new.openingTime, date: new.date)?.supabseDateString
         self.travelType = travel?.travelType
         self.travelDuration = travel?.travelDuration
         self.travelDistance = travel?.travelDistance
@@ -60,7 +63,8 @@ struct NewConcertDTO: Codable {
         self.hotelExpenses = travel?.hotelExpenses
     }
 
-    static func correctedOpeningTime(openingTime: Date, date: Date) -> Date {
+    static func correctedOpeningTime(openingTime: Date?, date: Date) -> Date? {
+        guard let openingTime else { return nil }
         let calendar = Calendar.current
         let openingHourAndMinute = calendar.dateComponents([.hour, .minute], from: openingTime)
         guard let hour = openingHourAndMinute.hour,

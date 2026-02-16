@@ -16,10 +16,11 @@ struct LoadingView: View {
                 .scaleEffect(2.5)
             Text("Laden...")
                 .font(.cjTitle2)
+                .padding()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
-            Color("backgroundColor")
+            Color.background
         }
         .ignoresSafeArea()
     }

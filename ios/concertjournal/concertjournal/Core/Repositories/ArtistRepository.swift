@@ -11,6 +11,7 @@ import Supabase
 protocol ArtistRepositoryProtocol {
     func searchArtists(query: String) async throws -> [Artist]
     func getOrCreateArtist(_ artist: CreateArtistDTO) async throws -> Artist
+    func getArtist(with id: String) async throws -> Artist
 }
 
 class BFFArtistRepository: ArtistRepositoryProtocol {
@@ -28,6 +29,11 @@ class BFFArtistRepository: ArtistRepositoryProtocol {
     
     func getOrCreateArtist(_ artist: CreateArtistDTO) async throws -> Artist {
         let response: Artist = try await client.post("/artists", body: artist)
+        return response
+    }
+
+    func getArtist(with id: String) async throws -> Artist {
+        let response: Artist = try await client.get("/artists/\(id)")
         return response
     }
 }

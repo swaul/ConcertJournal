@@ -63,8 +63,10 @@ enum TravelType: String, Codable, CaseIterable, Identifiable {
     case car
     case plane
     case bike
+    case bus
     case foot
     case train
+    case other
 
     var label: String {
         switch self {
@@ -74,10 +76,14 @@ enum TravelType: String, Codable, CaseIterable, Identifiable {
             return "Flugzeug"
         case .bike:
             return "Fahrrad"
+        case .bus:
+            return "Bus"
         case .foot:
             return "zu Fuß"
         case .train:
             return "Zug"
+        case .other:
+            return "other"
         }
     }
     
@@ -85,6 +91,8 @@ enum TravelType: String, Codable, CaseIterable, Identifiable {
         var text: AttributedString
 
         switch self {
+        case .bus:
+            text = AttributedString("Du bist mit dem \(label) zur Location gekommen")
         case .car:
             text = AttributedString("Du bist mit dem \(label) zur Location gekommen")
         case .plane:
@@ -95,6 +103,8 @@ enum TravelType: String, Codable, CaseIterable, Identifiable {
             text = AttributedString("Die Location war \(label) erreichbar")
         case .train:
             text = AttributedString("Du hast den \(label) genommen")
+        case .other:
+            return "other"
         }
 
         text.font = .cjBody

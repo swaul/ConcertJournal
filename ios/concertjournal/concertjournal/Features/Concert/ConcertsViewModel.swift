@@ -72,19 +72,23 @@ class ConcertsViewModel {
             pastConcerts.removeAll()
             futureConcerts.removeAll()
             errorMessage = nil
+            isLoading = true
         }
 
         do {
             let concerts = try await concertRepository.fetchConcerts(reload: true)
             filterConcerts(concerts)
+            isLoading = false
         } catch let error as NetworkError {
             HapticManager.shared.error()
             errorMessage = error.localizedDescription
             logError("Getting concerts failed", error: error, category: .repository)
+            isLoading = false
         } catch {
             HapticManager.shared.error()
             logError("Getting concerts failed", error: error, category: .repository)
             errorMessage = "Ein unbekannter Fehler ist aufgetreten"
+            isLoading = false
         }
     }
 

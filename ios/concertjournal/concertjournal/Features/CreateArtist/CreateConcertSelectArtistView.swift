@@ -38,7 +38,7 @@ struct CreateConcertSelectArtistView: View {
                 }
             }
             .background {
-                Color("backgroundColor")
+                Color.background.ignoresSafeArea()
             }
             .navigationTitle("Select an Artist")
             .task {

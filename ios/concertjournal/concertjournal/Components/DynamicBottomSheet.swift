@@ -8,8 +8,8 @@
 import SwiftUI
 
 extension View {
-    func adaptiveSheet<Content: View>(isPresent: Binding<Bool>, @ViewBuilder sheetContent: () -> Content) -> some View {
-        modifier(AdaptiveSheetModifier(isPresented: isPresent, sheetContent))
+    func adaptiveSheet<Content: View>(isPresented: Binding<Bool>, @ViewBuilder sheetContent: () -> Content) -> some View {
+        modifier(AdaptiveSheetModifier(isPresented: isPresented, sheetContent))
     }
 
     func adaptiveSheet<Content: View, Item: Identifiable>(item: Binding<Item?>, @ViewBuilder sheetContent: @escaping (Item) -> Content) -> some View {

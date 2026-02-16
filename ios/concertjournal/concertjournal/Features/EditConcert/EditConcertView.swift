@@ -20,6 +20,7 @@ struct ConcertEditView: View {
     @State private var notes: String
     @State private var rating: Int
     @State private var venueName: String
+    @State private var supportActs: [Artist]
     @State private var travel: Travel?
     @State private var ticket: Ticket?
 
@@ -30,6 +31,7 @@ struct ConcertEditView: View {
     @State private var editSeltistPresenting: CreateSetlistViewModel? = nil
     @State private var editTravelPresenting = false
     @State private var presentTicketEdit = false
+    @State private var addSupportActPresenting = false
 
     let concert: FullConcertVisit
     
@@ -51,6 +53,11 @@ struct ConcertEditView: View {
         } else {
             _setlistItems = State(initialValue: [])
         }
+        if let supportActs = concert.supportActs {
+            _supportActs = State(initialValue: supportActs)
+        } else {
+            _supportActs = State(initialValue: [])
+        }
 
         self.concert = concert
         self.onSave = onSave
@@ -65,6 +72,13 @@ struct ConcertEditView: View {
                     DatePicker("Einlass", selection: $openingTime, displayedComponents: .hourAndMinute)
                 } header: {
                     Text("Konzert")
+                        .font(.cjBody)
+                }
+
+                Section {
+                    supportActsSection()
+                } header: {
+                    Text("Supoprt Acts")
                         .font(.cjBody)
                 }
 
@@ -197,6 +211,7 @@ struct ConcertEditView: View {
                                 rating: rating,
                                 travel: travel,
                                 ticket: ticket,
+                                supportActs: supportActs,
                                 setlistItems: setlistItems,
                                 photos: []
                             )
@@ -219,6 +234,17 @@ struct ConcertEditView: View {
                     setlistItems = items
                     editSeltistPresenting = nil
                 }
+            }
+            .sheet(isPresented: $addSupportActPresenting) {
+                CreateConcertSelectArtistView(isPresented: $addSupportActPresenting, didSelectArtist: { artist in
+                    withAnimation {
+                        self.addSupportActPresenting = false
+                    } completion: {
+                        withAnimation {
+                            supportActs.append(artist)
+                        }
+                    }
+                })
             }
         }
     }
@@ -298,6 +324,37 @@ struct ConcertEditView: View {
                 self.travel = travel
                 editTravelPresenting = false
             }
+        }
+    }
+
+    @ViewBuilder
+    func supportActsSection() -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if !supportActs.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(supportActs) { artist in
+                            ArtistChipView(artist: artist, removeable: true) {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    supportActs.removeAll(where: { $0.id == artist.id })
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                }
+            }
+
+            Button {
+                addSupportActPresenting = true
+            } label: {
+                Text("Spport Act hinzufügen")
+                    .font(.cjBody)
+            }
+            .padding()
+            .glassEffect()
+            .padding(.horizontal)
         }
     }
 
@@ -442,6 +499,7 @@ struct ConcertUpdate {
     
     let travel: Travel?
     let ticket: Ticket?
+    let supportActs: [Artist]?
     let setlistItems: [TempCeateSetlistItem]?
     let photos: [Photo]
 }

@@ -31,6 +31,8 @@ public struct FullConcertVisit: Decodable, Identifiable, Equatable, Hashable {
     public let notes: String?
 
     public let artist: Artist
+    public let supportActsIds: [String]?
+    public var supportActs: [Artist]?
     public var setlistItems: [SetlistItem]?
     
     var createdAt: Date? {
@@ -96,6 +98,7 @@ public struct FullConcertVisit: Decodable, Identifiable, Equatable, Hashable {
         case notes
         case title
         case artist = "artists"
+        case supportActsIds = "support_acts_ids"
 
         case travelType = "travel_type"
         case travelDuration = "travel_duration"

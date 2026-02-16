@@ -9,79 +9,76 @@ import Supabase
 import UIKit
 
 protocol PhotoRepositoryProtocol {
-    func fetchPhotos(for concertVisitId: String) async throws -> [ConcertPhoto]
     func uploadPhoto(image: UIImage, concertVisitId: String, userId: String) async throws -> ConcertPhoto
+    func fetchPhotos(for concertVisitId: String) async throws -> [ConcertPhoto]
     func deletePhoto(id: String, storagePath: String) async throws
 }
 
-class BFFPhotoRepository: PhotoRepositoryProtocol {
-    
-    private let client: BFFClient
-    
-    init(client: BFFClient) {
-        self.client = client
-    }
-    
-    func fetchPhotos(for concertVisitId: String) async throws -> [ConcertPhoto] {
-        try await client.get("/photos/\(concertVisitId)")
-    }
-    
-    func uploadPhoto(image: UIImage, concertVisitId: String, userId: String) async throws -> ConcertPhoto {
-        // 1. Get upload URL from BFF
-        struct UploadURLRequest: Codable {
-            let fileName: String
-        }
-        
-        struct UploadURLResponse: Codable {
-            let uploadUrl: String
-            let path: String
-        }
-        
-        let uploadURLResponse: UploadURLResponse = try await client.post(
-            "/photos/upload-url",
-            body: UploadURLRequest(fileName: "\(UUID().uuidString).jpg")
-        )
-        
-        // 2. Upload image to Supabase Storage directly
-        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
-            throw PhotoError.compressionFailed
-        }
-        
-        var request = URLRequest(url: URL(string: uploadURLResponse.uploadUrl)!)
-        request.httpMethod = "PUT"
-        request.httpBody = imageData
-        request.setValue("image/jpeg", forHTTPHeaderField: "Content-Type")
-        
-        let (_, uploadResponse) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = uploadResponse as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw PhotoError.uploadFailed
-        }
-        
-        // 3. Save metadata via BFF
-        struct SavePhotoRequest: Codable {
-            let concert_visit_id: String
-            let storage_path: String
-        }
-        
-        let photo: ConcertPhoto = try await client.post(
-            "/photos",
-            body: SavePhotoRequest(
-                concert_visit_id: concertVisitId,
-                storage_path: uploadURLResponse.path
-            )
-        )
-        
-        return photo
-    }
-    
-    func deletePhoto(id: String, storagePath: String) async throws {
-        try await client.delete("/photos/\(id)")
-    }
-}
+class PhotoRepository: PhotoRepositoryProtocol {
 
-enum PhotoError: Error {
-    case compressionFailed
-    case uploadFailed
+    private let supabaseClient: SupabaseClientManagerProtocol
+    private let storageService: StorageServiceProtocol
+
+    private let bucketName = "concert-photos"
+
+    init(supabaseClient: SupabaseClientManagerProtocol, storageService: StorageServiceProtocol) {
+        self.supabaseClient = supabaseClient
+        self.storageService = storageService
+    }
+
+    // ✅ Upload Photo - nutzt Storage Service
+    func uploadPhoto(image: UIImage, concertVisitId: String, userId: String) async throws -> ConcertPhoto {
+
+        // 1. Generate unique path
+        let fileName = UUID().uuidString + ".jpg"
+        let path = "\(concertVisitId)/\(fileName)"
+
+        // 2. Upload zu Storage (delegiert an StorageService)
+        let publicURL = try await storageService.uploadImage(
+            image,
+            to: bucketName,
+            path: path
+        )
+
+        // 3. Speichere Photo-Metadaten in DB
+        let payload: [String: AnyJSON] = [
+            "concert_visit_id": .string(concertVisitId),
+            "user_id": .string(userId),
+            "storage_path": .string(path),
+            "public_url": .string(publicURL.absoluteString)
+        ]
+
+        let response = try await supabaseClient.client
+            .from("concert_photos")
+            .insert(payload)
+            .select()
+            .single()
+            .execute()
+
+        return try JSONDecoder().decode(ConcertPhoto.self, from: response.data)
+    }
+
+    // ✅ Fetch Photos für ein Concert
+    func fetchPhotos(for concertVisitId: String) async throws -> [ConcertPhoto] {
+        return try await supabaseClient.client
+            .from("concert_photos")
+            .select()
+            .eq("concert_visit_id", value: concertVisitId)
+            .order("created_at", ascending: false)
+            .execute()
+            .value
+    }
+
+    // ✅ Delete Photo - löscht aus Storage UND DB
+    func deletePhoto(id: String, storagePath: String) async throws {
+        // 1. Lösche aus Storage
+        try await storageService.deleteImage(from: bucketName, path: storagePath)
+
+        // 2. Lösche aus DB
+        try await supabaseClient.client
+            .from("concert_photos")
+            .delete()
+            .eq("id", value: id)
+            .execute()
+    }
 }

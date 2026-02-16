@@ -60,12 +60,12 @@ struct CreateConcertTicket: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color("backgroundColor")
+                Color.background
                     .ignoresSafeArea()
 
                 ticketCategoryAnimated.color
                     .ignoresSafeArea()
-                Color("backgroundColor")
+                Color.background
                     .clipShape(Capsule())
                     .ignoresSafeArea()
                     .padding(.vertical, 10)
@@ -319,11 +319,11 @@ struct CreateConcertTicket: View {
         let ticket = Ticket(ticketType: ticketType,
             ticketCategory: ticketCategory,
             ticketPrice: ExpensesParser.parse(ticketPrice),
-            seatBlock: seatBlock.nilIfEmpty,
-            seatRow: seatRow.nilIfEmpty,
-            seatNumber: seatNumber.nilIfEmpty,
-            standingPosition: standingPosition.nilIfEmpty,
-            notes: additionalNotes.nilIfEmpty)
+                            seatBlock: seatBlock.nilIfEmpty?.trimmingCharacters(in: .whitespacesAndNewlines),
+                            seatRow: seatRow.nilIfEmpty?.trimmingCharacters(in: .whitespacesAndNewlines),
+                            seatNumber: seatNumber.nilIfEmpty?.trimmingCharacters(in: .whitespacesAndNewlines),
+                            standingPosition: standingPosition.nilIfEmpty?.trimmingCharacters(in: .whitespacesAndNewlines),
+                            notes: additionalNotes.nilIfEmpty?.trimmingCharacters(in: .whitespacesAndNewlines))
 
         onSave(ticket)
     }

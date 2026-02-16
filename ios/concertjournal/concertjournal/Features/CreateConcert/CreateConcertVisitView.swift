@@ -6,15 +6,17 @@ import SpotifyiOS
 import PhotosUI
 
 struct NewConcertVisit: Identifiable, Equatable {
+    
     let id: UUID = UUID()
     var date: Date = .now
-    var openingTime: Date = .now
+    var openingTime: Date? = nil
     var artistName: String = ""
     var venueName: String = ""
     var title: String = ""
     var notes: String = ""
-    var rating: Int = 0
+    var rating: Int?
 
+    var supportActs: [Artist] = []
     var ticket: Ticket? = nil
     var travel: Travel? = nil
     var venue: Venue? = nil
@@ -42,7 +44,7 @@ struct NewConcertVisit: Identifiable, Equatable {
         self.venueName = ticketInfo.venueName ?? ""
         self.title = ""
         self.notes = ""
-        self.rating = 0
+        self.rating = nil
 
         self.ticket = nil
         self.travel = nil
@@ -57,7 +59,7 @@ struct NewConcertVisit: Identifiable, Equatable {
         self.venueName = ""
         self.title = ""
         self.notes = ""
-        self.rating = 0
+        self.rating = nil
 
         self.ticket = nil
         self.travel = nil
@@ -90,8 +92,12 @@ struct CreateConcertVisitView: View {
     @State var viewModel: CreateConcertVisitViewModel?
 
     @State private var draft: NewConcertVisit
-    @State private var presentConfirmation = false
-    
+    @State private var presentConfirmation: ConfirmationMessage? = nil
+
+    @State private var openingTime = Date.now
+    @State private var rating: Int = 0
+
+    @State private var addSupportActPresenting = false
     @State private var selectArtistPresenting = false
     @State private var selectVenuePresenting = false
     @State private var createSetlistPresenting = false
@@ -102,6 +108,7 @@ struct CreateConcertVisitView: View {
     @State var selectedImages: [UIImage] = []
 
     @FocusState private var noteEditorFocused
+    @FocusState private var titleFocused
 
     @State private var savingConcertPresenting: Bool = false
 
@@ -128,6 +135,8 @@ struct CreateConcertVisitView: View {
                         ArtistHeader(artist: artist)
 
                         timeSection()
+
+                        supportActsSection()
 
                         venueSection()
 
@@ -163,6 +172,11 @@ struct CreateConcertVisitView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity)
+        .background {
+            Color.background
+                .ignoresSafeArea()
+        }
         .task {
             guard viewModel == nil else { return }
             self.viewModel = CreateConcertVisitViewModel(artist: possibleArtist,
@@ -172,11 +186,10 @@ struct CreateConcertVisitView: View {
                                                          photoRepository: dependencies.photoRepository,
                                                          setlistRepository: dependencies.setlistRepository)
         }
-        .sheet(isPresented: $presentConfirmation, onDismiss: {
-            navigationManager.pop()
-        }, content: {
-            ConfirmationView(message: ConfirmationMessage(message: "Fertig"))
-        })
+        .adaptiveSheet(item: $presentConfirmation) { message in
+            ConfirmationView(message: message)
+                .interactiveDismissDisabled()
+        }
         .navigationTitle("New Concert")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $createSetlistPresenting) {
@@ -187,6 +200,17 @@ struct CreateConcertVisitView: View {
                 draft.setlistItems = setlistItems
                 createSetlistPresenting = false
             }
+        }
+        .sheet(isPresented: $addSupportActPresenting) {
+            CreateConcertSelectArtistView(isPresented: $addSupportActPresenting, didSelectArtist: { artist in
+                withAnimation {
+                    self.addSupportActPresenting = false
+                } completion: {
+                    withAnimation {
+                        draft.supportActs.append(artist)
+                    }
+                }
+            })
         }
         .sheet(isPresented: $selectArtistPresenting) {
             CreateConcertSelectArtistView(isPresented: $selectArtistPresenting, didSelectArtist: { artist in
@@ -225,6 +249,18 @@ struct CreateConcertVisitView: View {
             .interactiveDismissDisabled()
         }
         .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button {
+                    HapticManager.shared.buttonTap()
+                    noteEditorFocused = false
+                    titleFocused = false
+                } label: {
+                    Text("Fertig")
+                }
+            }
+        }
+        .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") { navigationManager.pop() }
                     .font(.cjBody)
@@ -240,17 +276,88 @@ struct CreateConcertVisitView: View {
     private func save() {
         Task {
             do {
-                guard let visitId = try await viewModel?.createVisit(from: draft) else { return }
                 savingConcertPresenting = true
-                try await viewModel?.uploadSelectedPhotos(selectedImages: selectedImages, visitId: visitId)
+
+                // Konzert erstellen (wirft Error nur bei kritischen Fehlern)
+                let response = try await viewModel?.createVisit(from: draft, selectedImages: selectedImages)
+
+                // Konzerte neu laden
                 try await dependencies.concertRepository.reloadConcerts()
+
                 savingConcertPresenting = false
+
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                    showConfirmation()
+                    showConfirmation(with: response)
                 }
             } catch {
-                print("failed to create visit: \(error)")
+                savingConcertPresenting = false
+                HapticManager.shared.error()
+
+                // Hier nur kritische Fehler (Konzert konnte nicht erstellt werden)
+                showErrorAlert(error: error)
             }
+        }
+    }
+
+    private func showConfirmation(with response: CreationResponse?) {
+        guard let response else { return }
+
+        if response.success {
+            // Alles perfekt gelaufen
+            HapticManager.shared.success()
+            presentConfirmation = ConfirmationMessage(message: "Konzert erfolgreich erstellt! 🎉") {
+                navigationManager.popToRoot()
+            }
+        } else {
+            // Konzert erstellt, aber mit Warnungen
+            HapticManager.shared.success()
+
+            let warningMessage = "Konzert erfolgreich erstellt! 🎉\nAber ein paar dinge sind leider schief gelaufen:"
+
+            let additionalInfos = AdditionalInfo(infos: response.problems)
+            presentConfirmation = ConfirmationMessage(message: warningMessage, additionalInfos: additionalInfos) {
+                navigationManager.popToRoot()
+            }
+        }
+    }
+
+    private func showErrorAlert(error: Error) {
+        presentConfirmation = ConfirmationMessage(
+            message: "Konzert konnte nicht erstellt werden. Bitte versuche es später nochmal."
+        )
+    }
+
+    @ViewBuilder
+    func supportActsSection() -> some View {
+        VStack(alignment: .leading) {
+            CJDivider(title: "Support Acts", image: nil)
+                .padding(.horizontal)
+
+            if !draft.supportActs.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(draft.supportActs) { artist in
+                            ArtistChipView(artist: artist, removeable: true) {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    draft.supportActs.removeAll(where: { $0.id == artist.id })
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                }
+            }
+
+            Button {
+                addSupportActPresenting = true
+            } label: {
+                Text("Spport Act hinzufügen")
+                    .font(.cjBody)
+            }
+            .padding()
+            .glassEffect()
+            .padding(.horizontal)
         }
     }
 
@@ -264,11 +371,15 @@ struct CreateConcertVisitView: View {
                 .padding(.horizontal)
                 .font(.cjBody)
 
-            DatePicker("Einlass", selection: $draft.openingTime, displayedComponents: [.hourAndMinute])
+            DatePicker("Einlass", selection: $openingTime, displayedComponents: [.hourAndMinute])
                 .padding(.horizontal)
                 .font(.cjBody)
+                .onChange(of: openingTime) { _, newValue in
+                    draft.openingTime = newValue
+                }
 
             TextField("Titel (optional)", text: $draft.title)
+                .focused($titleFocused)
                 .textInputAutocapitalization(.words)
                 .font(.cjBody)
                 .padding()
@@ -396,7 +507,8 @@ struct CreateConcertVisitView: View {
                                 case .foot:
                                     Text("Die Location war zu Fuß errreichbar")
                                         .font(.cjBody)
-                                case .train:
+                                    #warning("fix")
+                                default:
                                     Text("Du hast den Zug genommen")
                                         .font(.cjBody)
                                 }
@@ -556,15 +668,18 @@ struct CreateConcertVisitView: View {
             CJDivider(title: "Rating", image: nil)
                 .padding(.horizontal)
 
-            Stepper(value: $draft.rating, in: 0...10) {
+            Stepper(value: $rating, in: 0...10) {
                 HStack {
                     Text("Rating")
                         .font(.cjBody)
                     Spacer()
-                    Text("\(draft.rating)")
+                    Text("\(rating)")
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
                         .font(.cjBody)
+                        .onChange(of: rating) { oldValue, newValue in
+                            draft.rating = newValue
+                        }
                 }
             }
             .padding(.horizontal)
@@ -587,17 +702,6 @@ struct CreateConcertVisitView: View {
                 .glassEffect(in: RoundedRectangle(cornerRadius: 20, style: .circular))
                 .padding(.horizontal)
                 .font(.cjBody)
-                .toolbar {
-                    ToolbarItemGroup(placement: .keyboard) {
-                        Spacer()
-                        Button {
-                            HapticManager.shared.buttonTap()
-                            noteEditorFocused = false
-                        } label: {
-                            Text("Fertig")
-                        }
-                    }
-                }
         }
     }
 
@@ -753,9 +857,5 @@ struct CreateConcertVisitView: View {
     
     func removeImage(at index: Int) {
         selectedImages.remove(at: index)
-    }
-    
-    func showConfirmation() {
-        presentConfirmation = true
     }
 }
