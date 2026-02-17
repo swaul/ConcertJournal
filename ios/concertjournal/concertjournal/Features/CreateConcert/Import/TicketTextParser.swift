@@ -145,7 +145,7 @@ class TicketTextParser {
         return nil
     }
 
-    private func findOrCreateVenue(address: String) async throws -> Venue? {
+    private func findOrCreateVenue(address: String) async throws -> VenueDTO? {
         let request = MKLocalSearch.Request()
         request.naturalLanguageQuery = address
         request.resultTypes = .pointOfInterest
@@ -164,7 +164,7 @@ class TicketTextParser {
 
             let createdVenueId = try await venueRepository.createVenue(venue)
 
-            return Venue(id: createdVenueId,
+            return VenueDTO(id: createdVenueId,
                          name: name,
                          city: venue.city,
                          formattedAddress: venue.formattedAddress,

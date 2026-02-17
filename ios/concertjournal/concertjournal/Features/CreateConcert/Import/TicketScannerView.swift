@@ -290,24 +290,24 @@ struct TicketScannerView: View {
         }
     }
     
-    private func searchForExtractedArtist(artistName: String?) async throws -> Artist? {
+    private func searchForExtractedArtist(artistName: String?) async throws -> ArtistDTO? {
         // Erstelle neuen Künstler
         guard let artistName, !artistName.isEmpty else { return nil }
-        var importedArtsit: Artist?
-        
+        var importedArtsit: ArtistDTO?
+
         importedArtsit = try await dependencies.artistRepository.searchArtists(query: artistName).first
         
         if importedArtsit == nil {
             let spotifyArtist = try await dependencies.spotifyRepository.searchArtists(query: artistName, limit: 1, offset: 0)
             if let foundSpotifyArtist = spotifyArtist.first {
-                importedArtsit = try await dependencies.artistRepository.getOrCreateArtist(CreateArtistDTO(artist: Artist(artist: foundSpotifyArtist)))
+                importedArtsit = try await dependencies.artistRepository.getOrCreateArtist(CreateArtistDTO(artist: ArtistDTO(artist: foundSpotifyArtist)))
             }
         }
         
         return importedArtsit
     }
 
-    private func findOrCreateVenue(venueName: String?) async throws -> Venue? {
+    private func findOrCreateVenue(venueName: String?) async throws -> VenueDTO? {
         guard let venueName, !venueName.isEmpty else { return nil }
         let request = MKLocalSearch.Request()
         request.naturalLanguageQuery = venueName
@@ -326,7 +326,7 @@ struct TicketScannerView: View {
             
             let createdVenueId = try await dependencies.venueRepository.createVenue(venue)
             
-            return Venue(id: createdVenueId,
+            return VenueDTO(id: createdVenueId,
                          name: name,
                          city: venue.city,
                          formattedAddress: venue.formattedAddress,
@@ -484,10 +484,10 @@ struct ExtendedTicketInfo: Codable, Equatable, Hashable {
     let price: String?
     let seatInfo: String?
     let ticketProvider: String?
-    let venue: Venue?
-    let artist: Artist?
+    let venue: VenueDTO?
+    let artist: ArtistDTO?
 
-    init(ticketInfo: TicketInfo, artist: Artist?, venue: Venue?) {
+    init(ticketInfo: TicketInfo, artist: ArtistDTO?, venue: VenueDTO?) {
         self.artistName = ticketInfo.artistName
         self.venueName = ticketInfo.venueName
         self.city = ticketInfo.city

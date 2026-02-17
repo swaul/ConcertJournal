@@ -7,8 +7,9 @@
 
 import Foundation
 import Supabase
+import CoreData
 
-public struct Artist: Codable, Hashable, Identifiable {
+public struct ArtistDTO: Codable, Hashable, Identifiable {
 
     public let id: String
     let name: String
@@ -48,7 +49,7 @@ public struct CreateArtistDTO: Encodable {
         case spotifyArtistId = "spotify_artist_id"
     }
     
-    init(artist: Artist) {
+    init(artist: ArtistDTO) {
         name = artist.name
         imageUrl = artist.imageUrl
         spotifyArtistId = artist.spotifyArtistId

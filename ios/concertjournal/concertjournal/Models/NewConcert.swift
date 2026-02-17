@@ -14,7 +14,7 @@ struct NewConcertDTO: Codable {
     let supportActsIds: [String]
     let date: String
     let openingTime: String?
-    let venueId: String?
+    let venueId: UUID?
     let city: String?
     let notes: String?
     let rating: Int?
@@ -24,8 +24,8 @@ struct NewConcertDTO: Codable {
     let travelType: TravelType?
     let travelDuration: TimeInterval?
     let travelDistance: Double?
-    let travelExpenses: Price?
-    let hotelExpenses: Price?
+    let travelExpenses: PriceDTO?
+    let hotelExpenses: PriceDTO?
 
     enum CodingKeys: String, CodingKey {
         case userId = "user_id"
@@ -71,5 +71,43 @@ struct NewConcertDTO: Codable {
               let minute = openingHourAndMinute.minute else { return openingTime }
 
         return Calendar.current.date(bySettingHour: hour, minute: minute, second: 0, of: date) ?? openingTime
+    }
+}
+
+struct CreateConcertDTO {
+    let userId: String
+    let artistId: String
+    let supportActsIds: [ArtistDTO]
+    let date: Date
+    let openingTime: Date?
+    let city: String?
+    let notes: String?
+    let rating: Int?
+    let title: String?
+    let venue: VenueDTO?
+
+    // Travel
+    let travelType: TravelType?
+    let travelDuration: TimeInterval?
+    let travelDistance: Double?
+    let travelExpenses: Price?
+    let hotelExpenses: Price?
+
+    enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
+        case artistId = "artist_id"
+        case supportActsIds = "support_acts_ids"
+        case date
+        case openingTime = "opening_time"
+        case venueId = "venue_id"
+        case city
+        case notes
+        case rating
+        case title
+        case travelType = "travel_type"
+        case travelDuration = "travel_duration"
+        case travelDistance = "travel_distance"
+        case travelExpenses = "travel_expenses"
+        case hotelExpenses = "hotel_expenses"
     }
 }

@@ -6,19 +6,24 @@
 //
 
 import Observation
+import CoreData
+import Combine
 
 @Observable
 class SearchViewModel {
 
-    private let concertRepository: ConcertRepositoryProtocol
+    private let coreData = CoreDataStack.shared
+    private var fetchedResultsController: NSFetchedResultsController<Concert>?
 
     var concertFilter = ConcertFilters()
 
     var errorMessage: String? = nil
-    var concerts: [PartialConcertVisit] = []
+    var concerts: [Concert] = []
     var searchText: String = ""
 
-    var filteredConcerts: [PartialConcertVisit] {
+    private var cancellables = Set<AnyCancellable>()
+
+    var filteredConcerts: [Concert] {
         concertFilter.apply(to: concerts)
     }
 
@@ -30,7 +35,7 @@ class SearchViewModel {
         Array(Set(concerts.compactMap { $0.city })).sorted()
     }
 
-    var concertsToDisaplay: [PartialConcertVisit] {
+    var concertsToDisaplay: [Concert] {
         if searchText.isEmpty {
             return filteredConcerts
         } else {
@@ -38,16 +43,56 @@ class SearchViewModel {
         }
     }
 
-    init(concertRepository: ConcertRepositoryProtocol) {
-        self.concertRepository = concertRepository
+    init() {
+        setupFetchedResultsController()
     }
 
-    func loadConcerts() async throws {
-        self.concerts = try await concertRepository.fetchConcerts(reload: false)
+    private func setupFetchedResultsController() {
+        let request: NSFetchRequest<Concert> = Concert.fetchRequest()
+
+        // Filter out deleted
+        request.predicate = NSPredicate(
+            format: "syncStatus != %@",
+            SyncStatus.deleted.rawValue
+        )
+
+        // Sort by date
+        request.sortDescriptors = [
+            NSSortDescriptor(keyPath: \Concert.date, ascending: false)
+        ]
+
+        fetchedResultsController = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: coreData.viewContext,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+
+        try? fetchedResultsController?.performFetch()
+
+        // Initial load
+        updateConcerts()
+    }
+
+    private func observeCoreDataChanges() {
+        // Listen to Core Data changes
+        NotificationCenter.default.publisher(
+            for: .NSManagedObjectContextObjectsDidChange,
+            object: coreData.viewContext
+        )
+        .sink { [weak self] _ in
+            self?.updateConcerts()
+        }
+        .store(in: &cancellables)
+    }
+
+    private func updateConcerts() {
+        let concerts = fetchedResultsController?.fetchedObjects ?? []
+        self.concerts = concerts.sorted(by: { $0.date < $1.date })
     }
 }
 
-extension PartialConcertVisit {
+extension Concert {
     func containsText(query: String) -> Bool {
         if title?.contains(query) == true {
             return true

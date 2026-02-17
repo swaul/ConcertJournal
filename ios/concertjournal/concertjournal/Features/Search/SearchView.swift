@@ -13,8 +13,8 @@ struct SearchView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.navigationManager) private var navigationManager
     
-    @Bindable var viewModel: SearchViewModel
-    
+    @State var viewModel = SearchViewModel()
+
     @State private var filterPresented = false
     
     var body: some View {
@@ -64,13 +64,6 @@ struct SearchView: View {
                                 availableArtists: viewModel.availableArtists,
                                 availableCities: viewModel.availableCities)
             }
-            .task {
-                do {
-                    try await viewModel.loadConcerts()
-                } catch {
-                    viewModel.errorMessage = error.localizedDescription
-                }
-            }
             .navigationDestination(for: NavigationRoute.self) { route in
                 navigationDestination(for: route)
             }
@@ -78,7 +71,7 @@ struct SearchView: View {
     }
     
     @ViewBuilder
-    func visitItem(visit: PartialConcertVisit) -> some View {
+    func visitItem(visit: Concert) -> some View {
         HStack(spacing: 0) {
             Group {
                 AsyncImage(url: URL(string: visit.artist.imageUrl ?? "")) { result in

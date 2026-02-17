@@ -8,8 +8,8 @@
 import Foundation
 import Supabase
 
-public struct SetlistItem: Codable {
-    
+public struct SetlistItemDTO: Codable {
+
     let id: String
     let concertVisitId: String
     let position: Int
@@ -92,8 +92,8 @@ public struct TempCeateSetlistItem: Equatable, Identifiable, Codable {
     }
 
     init(setlistItem: SetlistItem) {
-        self.existingItemid = setlistItem.id
-        self.position = setlistItem.position
+        self.existingItemid = setlistItem.id.uuidString
+        self.position = Int(setlistItem.position)
         self.section = setlistItem.section
         self.spotifyTrackId = setlistItem.spotifyTrackId
         self.title = setlistItem.title

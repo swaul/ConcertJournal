@@ -11,7 +11,12 @@ struct CreateConcertSelectArtistView: View {
     
     @Environment(\.dependencies) private var dependencies
 
-    @State var viewModel: CreateConcertSelectArtistViewModel?
+    init(isPresented: Binding<Bool>, didSelectArtist: @escaping (Artist) -> Void) {
+        self.didSelectArtist = didSelectArtist
+        self._isPresented = isPresented
+    }
+
+    @State var viewModel: CreateConcertSelectArtistViewModel? = nil
 
     @Binding var isPresented: Bool
     
@@ -42,8 +47,8 @@ struct CreateConcertSelectArtistView: View {
             }
             .navigationTitle("Select an Artist")
             .task {
-                guard viewModel == nil else { return }
-                viewModel = CreateConcertSelectArtistViewModel(spotifyRepository: dependencies.spotifyRepository, concertRepository: dependencies.concertRepository)
+                viewModel = CreateConcertSelectArtistViewModel(spotifyRepository: dependencies.spotifyRepository,
+                                                               offlineConcertRepository: dependencies.offlineConcertRepository)
             }
         }
     }
@@ -56,7 +61,7 @@ struct CreateConcertSelectArtistView: View {
                     ForEach(viewModel.currentArtists) { artist in
                         Button {
                             HapticManager.shared.buttonTap()
-                            selectedArtist = artist.id
+                            selectedArtist = artist.id.uuidString
                         } label: {
                             makeKnownArtistView(artist: artist)
                                 .contentShape(.rect)
@@ -83,13 +88,7 @@ struct CreateConcertSelectArtistView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         HapticManager.shared.buttonTap()
-                        if let artist = viewModel.artistsResponse.first(where: { $0.id == selectedArtist }) {
-                            didSelectArtist(Artist(artist: artist))
-                            isPresented = false
-                        } else if let artist = viewModel.currentArtists.first(where: { $0.id == selectedArtist }) {
-                            didSelectArtist(artist)
-                            isPresented = false
-                        }
+                        selectArtist(viewModel: viewModel)
                     } label: {
                         Text("Speichern")
                             .font(.cjBody)
@@ -208,7 +207,22 @@ struct CreateConcertSelectArtistView: View {
 
             Spacer()
         }
-        .selectedGlass(selected: selectedArtist == artist.id)
+        .selectedGlass(selected: selectedArtist == artist.id.uuidString)
     }
 
+
+    private func selectArtist(viewModel: CreateConcertSelectArtistViewModel) {
+        do {
+            if let artist = viewModel.artistsResponse.first(where: { $0.id == selectedArtist }) {
+                let savedArtist = try dependencies.offlineConcertRepository.presaveArtist(ArtistDTO(artist: artist))
+                didSelectArtist(savedArtist)
+                isPresented = false
+            } else if let artist = viewModel.currentArtists.first(where: { $0.id.uuidString == selectedArtist }) {
+                didSelectArtist(artist)
+                isPresented = false
+            }
+        } catch {
+            logError("Selecting artist failed", error: error)
+        }
+    }
 }

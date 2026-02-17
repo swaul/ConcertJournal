@@ -10,7 +10,7 @@ import SwiftUI
 struct FutureConcertView: View {
     @Environment(\.dependencies) private var dependencies
 
-    let concert: PartialConcertVisit
+    let concert: Concert
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {

@@ -9,7 +9,7 @@ import Foundation
 import Supabase
 import SwiftUI
 
-struct Price: Codable, Equatable {
+struct PriceDTO: Codable, Equatable {
     let value: Decimal
     let currency: String
 
@@ -48,11 +48,11 @@ extension Decimal {
     }
 }
 
-struct Ticket: Equatable {
+struct TicketDTO: Equatable {
 
     let ticketType: TicketType
     let ticketCategory: TicketCategory
-    let ticketPrice: Price?
+    let ticketPrice: PriceDTO?
 
     // Seated Ticket Info
     let seatBlock: String?
@@ -65,7 +65,7 @@ struct Ticket: Equatable {
     let notes: String?
 }
 
-enum TicketType: String, CaseIterable, Codable {
+public enum TicketType: String, CaseIterable, Codable {
     case seated
     case standing
     
@@ -79,7 +79,7 @@ enum TicketType: String, CaseIterable, Codable {
     }
 }
 
-enum TicketCategory: String, CaseIterable, Codable {
+public enum TicketCategory: String, CaseIterable, Codable {
     case regular
     case vip
     case goldenCircle

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24512" systemVersion="25D125" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="Artist" representedClassName="Artist" syncable="YES">
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="imageUrl" optional="YES" attributeType="String"/>
+        <attribute name="lastSyncedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="name" attributeType="String"/>
+        <attribute name="serverId" optional="YES" attributeType="String"/>
+        <attribute name="spotifyArtistId" optional="YES" attributeType="String"/>
+        <attribute name="syncStatus" attributeType="String"/>
+        <relationship name="concerts" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Concert" inverseName="supportActs" inverseEntity="Concert"/>
+    </entity>
+    <entity name="Concert" representedClassName="Concert" syncable="YES">
+        <attribute name="canEdit" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="city" optional="YES" attributeType="String"/>
+        <attribute name="date" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isOwner" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isShared" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="lastSyncedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="locallyModifiedAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="openingTime" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="ownerId" optional="YES" attributeType="String"/>
+        <attribute name="rating" optional="YES" attributeType="Integer 16" defaultValueString="-1" usesScalarValueType="YES"/>
+        <attribute name="serverId" optional="YES" attributeType="String"/>
+        <attribute name="serverModifiedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="syncStatus" optional="YES" attributeType="String"/>
+        <attribute name="syncVersion" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
+        <relationship name="artist" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Artist"/>
+        <relationship name="setlistItems" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SetlistItem" inverseName="concert" inverseEntity="SetlistItem"/>
+        <relationship name="supportActs" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Artist" inverseName="concerts" inverseEntity="Artist"/>
+        <relationship name="ticket" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Ticket"/>
+        <relationship name="travel" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Travel"/>
+        <relationship name="venue" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Venue"/>
+    </entity>
+    <entity name="Photo" representedClassName="Photo" syncable="YES">
+        <attribute name="createdAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="localPath" optional="YES" attributeType="String"/>
+        <attribute name="serverId" optional="YES" attributeType="String"/>
+        <attribute name="serverUrl" optional="YES" attributeType="String"/>
+        <attribute name="syncStatus" attributeType="String"/>
+        <attribute name="uploadStatus" attributeType="String"/>
+        <relationship name="concert" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Concert"/>
+    </entity>
+    <entity name="Price" representedClassName="Price" syncable="YES">
+        <attribute name="currency" attributeType="String"/>
+        <attribute name="value" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+    </entity>
+    <entity name="SetlistItem" representedClassName="SetlistItem" syncable="YES">
+        <attribute name="albumName" optional="YES" attributeType="String"/>
+        <attribute name="artistNames" attributeType="String"/>
+        <attribute name="coverImage" optional="YES" attributeType="String"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="locallyModifiedAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="position" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="section" optional="YES" attributeType="String"/>
+        <attribute name="serverId" optional="YES" attributeType="String"/>
+        <attribute name="spotifyTrackId" optional="YES" attributeType="String"/>
+        <attribute name="syncStatus" optional="YES" attributeType="String"/>
+        <attribute name="title" attributeType="String"/>
+        <relationship name="concert" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Concert" inverseName="setlistItems" inverseEntity="Concert"/>
+    </entity>
+    <entity name="SyncLog" representedClassName="SyncLog" syncable="YES">
+        <attribute name="details" optional="YES" attributeType="String"/>
+        <attribute name="entityId" attributeType="String"/>
+        <attribute name="entityType" attributeType="String"/>
+        <attribute name="errorMessage" optional="YES" attributeType="String"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="operation" attributeType="String"/>
+        <attribute name="status" attributeType="String"/>
+        <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="Ticket" representedClassName="Ticket" syncable="YES">
+        <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="seatBlock" optional="YES" attributeType="String"/>
+        <attribute name="seatNumber" optional="YES" attributeType="String"/>
+        <attribute name="seatRow" optional="YES" attributeType="String"/>
+        <attribute name="standingPosition" optional="YES" attributeType="String"/>
+        <attribute name="ticketCategory" optional="YES" attributeType="String"/>
+        <attribute name="ticketType" attributeType="String"/>
+        <relationship name="ticketPrice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Price"/>
+    </entity>
+    <entity name="Travel" representedClassName="Travel" syncable="YES">
+        <attribute name="arrivedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="travelDistance" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="travelDuration" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="travelType" optional="YES" attributeType="String"/>
+        <relationship name="hotelExpenses" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Price"/>
+        <relationship name="travelExpenses" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Price"/>
+    </entity>
+    <entity name="Venue" representedClassName="Venue" syncable="YES">
+        <attribute name="appleMapsId" optional="YES" attributeType="String"/>
+        <attribute name="city" optional="YES" attributeType="String"/>
+        <attribute name="formattedAddress" attributeType="String"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="latitude" optional="YES" attributeType="Double" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="longitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="name" attributeType="String"/>
+        <attribute name="serverId" optional="YES" attributeType="String"/>
+    </entity>
+</model>

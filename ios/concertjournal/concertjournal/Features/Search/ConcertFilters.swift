@@ -277,7 +277,7 @@ struct FilterChip: Identifiable {
 extension ConcertFilters {
 
     /// Applies all filters to a list of concerts
-    func apply(to concerts: [PartialConcertVisit]) -> [PartialConcertVisit] {
+    func apply(to concerts: [Concert]) -> [Concert] {
         var filtered = concerts
 
         // Apply date filter
@@ -317,7 +317,7 @@ extension ConcertFilters {
     }
 
     /// Sorts concerts based on current sort option
-    private func sort(concerts: [PartialConcertVisit]) -> [PartialConcertVisit] {
+    private func sort(concerts: [Concert]) -> [Concert] {
         switch sortOption {
         case .dateNewest:
             return concerts.sorted { $0.date > $1.date }
@@ -337,13 +337,13 @@ extension ConcertFilters {
     }
 
     /// Extracts unique artists from concerts
-    func getAvailableArtists(from concerts: [FullConcertVisit]) -> [String] {
+    func getAvailableArtists(from concerts: [Concert]) -> [String] {
         let artists = Set(concerts.map { $0.artist.name })
         return artists.sorted()
     }
 
     /// Extracts unique cities from concerts
-    func getAvailableCities(from concerts: [FullConcertVisit]) -> [String] {
+    func getAvailableCities(from concerts: [Concert]) -> [String] {
         let cities = Set(concerts.compactMap { $0.city })
         return cities.sorted()
     }

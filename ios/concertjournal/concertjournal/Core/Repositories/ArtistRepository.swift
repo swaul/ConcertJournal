@@ -9,9 +9,9 @@ import Foundation
 import Supabase
 
 protocol ArtistRepositoryProtocol {
-    func searchArtists(query: String) async throws -> [Artist]
-    func getOrCreateArtist(_ artist: CreateArtistDTO) async throws -> Artist
-    func getArtist(with id: String) async throws -> Artist
+    func searchArtists(query: String) async throws -> [ArtistDTO]
+    func getOrCreateArtist(_ artist: CreateArtistDTO) async throws -> ArtistDTO
+    func getArtist(with id: String) async throws -> ArtistDTO
 }
 
 class BFFArtistRepository: ArtistRepositoryProtocol {
@@ -22,18 +22,18 @@ class BFFArtistRepository: ArtistRepositoryProtocol {
         self.client = client
     }
     
-    func searchArtists(query: String) async throws -> [Artist] {
+    func searchArtists(query: String) async throws -> [ArtistDTO] {
         let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
         return try await client.get("/artists/search?q=\(encoded)")
     }
     
-    func getOrCreateArtist(_ artist: CreateArtistDTO) async throws -> Artist {
-        let response: Artist = try await client.post("/artists", body: artist)
+    func getOrCreateArtist(_ artist: CreateArtistDTO) async throws -> ArtistDTO {
+        let response: ArtistDTO = try await client.post("/artists", body: artist)
         return response
     }
 
-    func getArtist(with id: String) async throws -> Artist {
-        let response: Artist = try await client.get("/artists/\(id)")
+    func getArtist(with id: String) async throws -> ArtistDTO {
+        let response: ArtistDTO = try await client.get("/artists/\(id)")
         return response
     }
 }

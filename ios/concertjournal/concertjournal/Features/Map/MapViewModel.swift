@@ -6,57 +6,94 @@
 //
 
 import Observation
+import CoreData
+import Combine
 import Foundation
 import MapKit
 
 @Observable
 class MapViewModel {
 
+    private let coreData = CoreDataStack.shared
+    private var fetchedResultsController: NSFetchedResultsController<Concert>?
+
+    private var cancellables = Set<AnyCancellable>()
+
+    var concerts: [Concert] = []
+
     var isLoading: Bool = true
     var errorMessage: String?
     var concertLocations: [ConcertMapItem] = []
 
-    private let concertRepository: ConcertRepositoryProtocol
+    init() {
+        setupFetchedResultsController()
+    }
 
-    init(concertRepository: ConcertRepositoryProtocol) {
-        self.concertRepository = concertRepository
-        Task {
-            do {
-                isLoading = true
-                let concerts = try await loadConcerts()
-                concertLocations = Self.groupConcertsByLocation(concerts)
-                isLoading = false
-            } catch {
-                errorMessage = error.localizedDescription
-                isLoading = false
-            }
+    private func setupFetchedResultsController() {
+        let request: NSFetchRequest<Concert> = Concert.fetchRequest()
+
+        // Filter out deleted
+        request.predicate = NSPredicate(
+            format: "syncStatus != %@",
+            SyncStatus.deleted.rawValue
+        )
+
+        // Sort by date
+        request.sortDescriptors = [
+            NSSortDescriptor(keyPath: \Concert.date, ascending: false)
+        ]
+
+        fetchedResultsController = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: coreData.viewContext,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+
+        try? fetchedResultsController?.performFetch()
+
+        // Initial load
+        updateConcerts()
+    }
+
+    private func observeCoreDataChanges() {
+        // Listen to Core Data changes
+        NotificationCenter.default.publisher(
+            for: .NSManagedObjectContextObjectsDidChange,
+            object: coreData.viewContext
+        )
+        .sink { [weak self] _ in
+            self?.updateConcerts()
         }
+        .store(in: &cancellables)
     }
 
-    func loadConcerts() async throws -> [PartialConcertVisit] {
-        try await concertRepository.fetchConcerts(reload: false)
+    private func updateConcerts() {
+        let concerts = fetchedResultsController?.fetchedObjects ?? []
+        self.concerts = concerts.sorted(by: { $0.date < $1.date })
     }
 
-    static func groupConcertsByLocation(_ concerts: [PartialConcertVisit]) -> [ConcertMapItem] {
+    static func groupConcertsByLocation(_ concerts: [Concert]) -> [ConcertMapItem] {
         let concertsWithVenue = concerts.filter { concert in
             guard
                 let venue = concert.venue,
-                (venue.latitude != nil) && (venue.longitude != nil)
+                (venue.latitude != 0) && (venue.longitude != 0)
             else { return false }
             return true
         }
         let grouped = Dictionary(grouping: concertsWithVenue) { concert in
-            let lat = concert.venue!.latitude!
-            let lon = concert.venue!.longitude!
+            let lat = concert.venue!.latitude
+            let lon = concert.venue!.longitude
             return "\(lat.rounded(toPlaces: 5))-\(lon.rounded(toPlaces: 5))"
         }
 
         return grouped.compactMap { (_, concerts) in
-            guard
-                let venue = concerts.first?.venue,
-                let lat = venue.latitude,
-                let lon = venue.longitude
-            else { return nil }
+            guard let venue = concerts.first?.venue else { return nil }
+
+            let lat = venue.latitude
+            let lon = venue.longitude
+
+            guard lat != 0, lon != 0 else { return nil }
 
             return ConcertMapItem(
                 venueName: venue.name,

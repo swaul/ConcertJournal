@@ -63,7 +63,7 @@ final class VenueSearchViewModel {
         }
     }
     
-    func saveVenue(venue: MKMapItem) async throws -> Venue {
+    func saveVenue(venue: MKMapItem) async throws -> VenueDTO {
         guard let name = venue.name else { throw CancellationError() }
         
         let venue = CreateVenueDTO(name: name,
@@ -75,7 +75,7 @@ final class VenueSearchViewModel {
         
         let venueId = try await venueRepository.createVenue(venue)
         
-        return Venue(id: venueId,
+        return VenueDTO(id: venueId,
                      name: name,
                      city: venue.city,
                      formattedAddress: venue.formattedAddress,

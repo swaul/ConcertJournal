@@ -16,17 +16,17 @@ class CreateConcertSelectArtistViewModel {
     var currentArtists: [Artist] = []
 
     private let spotifyRepository: SpotifyRepositoryProtocol
-    private let concertRepository: ConcertRepositoryProtocol
+    private let offlineConcertRepository: OfflineConcertRepositoryProtocol
 
-    init(spotifyRepository: SpotifyRepositoryProtocol, concertRepository: ConcertRepositoryProtocol) {
+    init(spotifyRepository: SpotifyRepositoryProtocol, offlineConcertRepository: OfflineConcertRepositoryProtocol) {
         self.spotifyRepository = spotifyRepository
-        self.concertRepository = concertRepository
+        self.offlineConcertRepository = offlineConcertRepository
 
         fillWithCurrentArtists()
     }
 
     func fillWithCurrentArtists() {
-        let artists = concertRepository.cachedConcerts.map { $0.artist }
+        let artists = offlineConcertRepository.fetchConcerts().map { $0.artist }
         currentArtists = Array(Set(artists)).sorted(by: { $0.name < $1.name })
     }
 

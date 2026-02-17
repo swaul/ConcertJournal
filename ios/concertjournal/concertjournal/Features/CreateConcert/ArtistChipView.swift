@@ -67,7 +67,3 @@ struct ArtistChipView: View {
         }
     }
 }
-
-#Preview {
-    ArtistChipView(artist: Artist(artist: .taylorSwift), removeable: false, onRemove: { })
-}

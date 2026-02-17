@@ -24,9 +24,13 @@ struct ConcertDetailView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.navigationManager) private var navigationManager
 
-    @State var viewModel: ConcertDetailViewModel?
+    @State var viewModel: ConcertDetailViewModel? = nil
 
-    let concert: PartialConcertVisit
+    let concert: Concert
+
+    init(concert: Concert) {
+        self.concert = concert
+    }
 
     @State private var showCalendarSheet = false
     @State private var calendarEvent: EKEvent?
@@ -43,37 +47,15 @@ struct ConcertDetailView: View {
 
     var body: some View {
         Group {
-            if let viewModel, !viewModel.isLoading {
+            if let viewModel {
                 viewWithViewModel(viewModel: viewModel)
-            } else if let errorMessage = errorMessage {
-                VStack(spacing: 20) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.system(size: 60))
-                        .foregroundStyle(dependencies.colorThemeManager.appTint)
-                    Text(errorMessage)
-                        .font(.cjBody)
-                        .padding(.horizontal)
-                }
             } else {
                 LoadingView()
             }
         }
         .task {
-            guard viewModel == nil else { return }
-            do {
-                let concert = try await dependencies.concertRepository.getConcert(id: concert.id)
-
-                viewModel = ConcertDetailViewModel(concert: concert,
-                                                   bffClient: dependencies.bffClient,
-                                                   concertRepository: dependencies.concertRepository,
-                                                   setlistRepository: dependencies.setlistRepository,
-                                                   photoRepository: dependencies.photoRepository,
-                                                   artistRepository: dependencies.artistRepository)
-            } catch {
-                errorMessage = "Da ist etwas schief gelaufen"
-            }
+            viewModel = ConcertDetailViewModel(concert: concert, repository: dependencies.offlineConcertRepository)
         }
-
     }
 
     @ViewBuilder
@@ -84,7 +66,7 @@ struct ConcertDetailView: View {
                     coordinateSpace: CoordinateSpace.named("ScrollView"),
                     defaultHeight: 400
                 ) {
-                    AsyncImage(url: URL(string: viewModel.artist.imageUrl ?? "")) { result in
+                    AsyncImage(url: URL(string: viewModel.concert.artist.imageUrl ?? "")) { result in
                         result.image?
                             .resizable()
                             .aspectRatio(contentMode: .fill)
@@ -98,7 +80,7 @@ struct ConcertDetailView: View {
                         .frame(maxWidth: .infinity)
                         .zIndex(100)
 
-                    if let supportActs = viewModel.supportActs {
+                    if let supportActs = viewModel.concert.supportActsArray {
                         supportActsSection(supportActs: supportActs)
                     }
 
@@ -229,7 +211,7 @@ struct ConcertDetailView: View {
         }
         .fullScreenCover(item: $selectedImage) { item in
             FullscreenImagePagerView(
-                imageUrls: viewModel.imageUrls,
+                imageUrls: viewModel.concert.imageUrls,
                 startIndex: item.index
             )
         }
@@ -415,10 +397,10 @@ struct ConcertDetailView: View {
 
                 Button {
                     HapticManager.shared.impact(.light)
-                    navigationManager.push(.artistDetail(viewModel.artist))
+                    navigationManager.push(.artistDetail(viewModel.concert.artist))
                 } label: {
                     HStack(spacing: 8) {
-                        Text(viewModel.artist.name)
+                        Text(viewModel.concert.artist.name)
                             .font(.cjTitle)
                             .foregroundStyle(dependencies.colorThemeManager.appTint)
 
@@ -430,10 +412,10 @@ struct ConcertDetailView: View {
             } else {
                 Button {
                     HapticManager.shared.impact(.light)
-                    navigationManager.push(.artistDetail(viewModel.artist))
+                    navigationManager.push(.artistDetail(viewModel.concert.artist))
                 } label: {
                     HStack(spacing: 8) {
-                        Text(viewModel.artist.name)
+                        Text(viewModel.concert.artist.name)
                             .font(.system(size: 32, weight: .bold))
                             .foregroundStyle(.primary)
 
@@ -483,8 +465,8 @@ struct ConcertDetailView: View {
                 .background(.ultraThinMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 20))
 
-                if let latitude = venue.latitude, let longitude = venue.longitude {
-                    VenueInlineMap(latitude: latitude, longitude: longitude, name: venue.name, formattedAddress: venue.formattedAddress)
+                if venue.latitude != 0, venue.longitude != 0 {
+                    VenueInlineMap(latitude: venue.latitude, longitude: venue.longitude, name: venue.name, formattedAddress: venue.formattedAddress)
                         .frame(height: 200)
                         .clipShape(RoundedRectangle(cornerRadius: 20))
                         .overlay(
@@ -495,7 +477,7 @@ struct ConcertDetailView: View {
                         .contextMenu {
                             Button {
                                 HapticManager.shared.impact(.light)
-                                let mapItem = MKMapItem(location: CLLocation(latitude: latitude, longitude: longitude), address: MKAddress(fullAddress: "", shortAddress: venue.formattedAddress))
+                                let mapItem = MKMapItem(location: CLLocation(latitude: venue.latitude, longitude: venue.longitude), address: MKAddress(fullAddress: "", shortAddress: venue.formattedAddress))
                                 mapItem.openInMaps()
                             } label: {
                                 Label("In Apple Karten öffnen", systemImage: "map.fill")
@@ -554,7 +536,7 @@ struct ConcertDetailView: View {
             sectionHeader(title: "Meine Reise", icon: "airplane.departure")
 
             VStack(spacing: 12) {
-                if let travelType = travel.travelType {
+                if let travelType = travel.travelTypeEnum {
                     travelInfoCard(
                         icon: travelType.icon,
                         title: travelType.label,
@@ -562,8 +544,8 @@ struct ConcertDetailView: View {
                     )
                 }
 
-                if let travelDuration = travel.travelDuration {
-                    let parsedDuration = DurationParser.format(travelDuration)
+                if travel.travelDuration != 0 {
+                    let parsedDuration = DurationParser.format(travel.travelDuration)
                     travelInfoCard(
                         icon: "clock.fill",
                         title: "Reisezeit",
@@ -571,8 +553,8 @@ struct ConcertDetailView: View {
                     )
                 }
 
-                if let travelDistance = travel.travelDistance {
-                    let parsedDistance = DistanceParser.format(travelDistance)
+                if travel.travelDistance != 0 {
+                    let parsedDistance = DistanceParser.format(travel.travelDistance)
                     travelInfoCard(
                         icon: "location.fill",
                         title: "Entfernung",
@@ -604,7 +586,7 @@ struct ConcertDetailView: View {
 
     // MARK: - Setlist Item
     @ViewBuilder
-    func makeSetlistItemView(with item: SetlistItem) -> some View {
+    func makeSetlistItemView(with item: SetlistItemDTO) -> some View {
         Button {
             HapticManager.shared.impact(.light)
             guard let spotifyTrackId = item.spotifyTrackId, !spotifyTrackId.isEmpty else { return }
@@ -689,18 +671,19 @@ struct ConcertDetailView: View {
     // MARK: - Ticket Section
     @ViewBuilder
     func ticketSection(ticket: Ticket) -> some View {
+        guard let ticketCategory = ticket.ticketCategoryEnum else { return EmptyView() }
         VStack(spacing: 16) {
             // Ticket Type Header
             VStack(spacing: 12) {
                 HStack {
-                    Image(systemName: ticket.ticketType.icon)
+                    Image(systemName: ticket.ticketTypeEnum.icon)
                         .font(.title2)
-                    Text(ticket.ticketType.label)
+                    Text(ticket.ticketTypeEnum.label)
                         .font(.cjTitle)
                 }
                 .foregroundStyle(.white)
 
-                Text(ticket.ticketCategory.label)
+                Text(ticketCategory.label)
                     .font(.system(size: 28, weight: .bold))
                     .foregroundStyle(.white)
             }
@@ -710,8 +693,8 @@ struct ConcertDetailView: View {
                 ZStack {
                     LinearGradient(
                         colors: [
-                            ticket.ticketCategory.color,
-                            ticket.ticketCategory.color.opacity(0.8)
+                            ticketCategory.color,
+                            ticketCategory.color.opacity(0.8)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -730,36 +713,38 @@ struct ConcertDetailView: View {
                 }
             )
             .clipShape(RoundedRectangle(cornerRadius: 20))
-            .shadow(color: ticket.ticketCategory.color.opacity(0.4), radius: 12, x: 0, y: 6)
+            .shadow(color: ticketCategory.color.opacity(0.4), radius: 12, x: 0, y: 6)
 
-            // Seat Information
-            switch ticket.ticketType {
-            case .seated:
-                HStack(spacing: 12) {
-                    if let block = ticket.seatBlock {
-                        seatInfoBox(title: "Block", value: block)
+            if let ticketType = ticket.ticketTypeEnum {
+                // Seat Information
+                switch ticketType {
+                case .seated:
+                    HStack(spacing: 12) {
+                        if let block = ticket.seatBlock {
+                            seatInfoBox(title: "Block", value: block)
+                        }
+                        if let row = ticket.seatRow {
+                            seatInfoBox(title: "Reihe", value: row)
+                        }
+                        if let seatNumber = ticket.seatNumber {
+                            seatInfoBox(title: "Platz", value: seatNumber)
+                        }
                     }
-                    if let row = ticket.seatRow {
-                        seatInfoBox(title: "Reihe", value: row)
+                case .standing:
+                    if let standingPosition = ticket.standingPosition {
+                        VStack(spacing: 8) {
+                            Text("Position")
+                                .font(.cjCaption)
+                                .foregroundStyle(.secondary)
+                            Text(standingPosition)
+                                .font(.cjTitle2)
+                                .foregroundStyle(.primary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
                     }
-                    if let seatNumber = ticket.seatNumber {
-                        seatInfoBox(title: "Platz", value: seatNumber)
-                    }
-                }
-            case .standing:
-                if let standingPosition = ticket.standingPosition {
-                    VStack(spacing: 8) {
-                        Text("Position")
-                            .font(.cjCaption)
-                            .foregroundStyle(.secondary)
-                        Text(standingPosition)
-                            .font(.cjTitle2)
-                            .foregroundStyle(.primary)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
             }
 
@@ -889,7 +874,7 @@ struct ConcertDetailView: View {
         Task {
             do {
                 guard try await eventStore.requestWriteOnlyAccessToEvents() else { return }
-                calendarEvent = viewModel?.createCalendarEntry(store: eventStore)
+                calendarEvent = viewModel.createCalendarEntry(store: eventStore)
                 showCalendarSheet = true
             } catch {
                 print("could not open calendar thingy. Reason:", error)

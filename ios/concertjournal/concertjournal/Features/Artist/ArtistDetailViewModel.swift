@@ -12,21 +12,19 @@ class ArtistDetailViewModel {
 
     var isLoading: Bool = true
     let artist: Artist
-    let concertRepository: ConcertRepositoryProtocol
+    let repository: OfflineConcertRepositoryProtocol
     var artistInfos: [ArtistInfo] = []
 
-    init(artist: Artist, concertRepository: ConcertRepositoryProtocol) {
+    init(artist: Artist, repository: OfflineConcertRepositoryProtocol) {
         self.artist = artist
-        self.concertRepository = concertRepository
+        self.repository = repository
 
-        Task {
-            try await collectArtistInfo()
-        }
+        collectArtistInfo()
     }
 
-    func collectArtistInfo() async throws {
+    func collectArtistInfo() {
         isLoading = true
-        let concerts = try await concertRepository.fetchConcertsWithArtist(artistId: artist.id)
+        let concerts = repository.fetchConcertsWithArtist(artist.id)
 
         let concertsByYear = Dictionary(grouping: concerts, by: { $0.date.year })
 
@@ -45,11 +43,11 @@ class ArtistDetailViewModel {
         }
     }
 
-    func getArtistInfoByYear(concerts: [ConcertDetails], year: String) -> ArtistInfo{
+    func getArtistInfoByYear(concerts: [Concert], year: String) -> ArtistInfo{
         var futureConcertsThisYear = concerts.filter { $0.date > Date.now }.count
 
         var artistInfo = ArtistInfo(year: year, totalPastConcerts: concerts.count, futureConcerts: futureConcertsThisYear)
-        let currency: String = concerts.compactMap { $0.travelExpenses?.currency ?? $0.hotelExpenses?.currency }.first ?? "EUR"
+        let currency: String = concerts.compactMap { $0.travel?.travelExpenses?.currency ?? $0.travel?.hotelExpenses?.currency }.first ?? "EUR"
 
         getTravelInfos(artistInfo: &artistInfo, concerts: concerts, currency: currency)
         getTicketInfos(artistInfo: &artistInfo, concerts: concerts, currency: currency)
@@ -59,35 +57,35 @@ class ArtistDetailViewModel {
         + (artistInfo.moneySpentOnTickets?.value ?? 0.0)
 
         if totalMoneySpent != 0 {
-            artistInfo.moneySpentTotal = Price(value: totalMoneySpent, currency: currency)
+            artistInfo.moneySpentTotal = PriceDTO(value: totalMoneySpent, currency: currency)
         }
 
         return artistInfo
     }
 
-    func getTravelInfos(artistInfo: inout ArtistInfo, concerts: [ConcertDetails], currency: String) {
+    func getTravelInfos(artistInfo: inout ArtistInfo, concerts: [Concert], currency: String) {
         let hotelExpensesValue = concerts.reduce(into: 0.0) { partialResult, detail in
-            partialResult += detail.hotelExpenses?.value ?? 0.0
+            partialResult += detail.travel?.hotelExpenses?.value ?? 0.0
         }
 
         let travelExpensesValue = concerts.reduce(into: 0.0) { partialResult, detail in
-            partialResult += detail.travelExpenses?.value ?? 0.0
+            partialResult += detail.travel?.travelExpenses?.value ?? 0.0
         }
 
         let traveledDistance = concerts.reduce(into: 0.0) { partialResult, detail in
-            partialResult += detail.travelDistance ?? 0.0
+            partialResult += detail.travel?.travelDistance ?? 0.0
         }
 
         let traveledDuration = concerts.reduce(into: 0.0) { partialResult, detail in
-            partialResult += detail.travelDuration ?? 0.0
+            partialResult += detail.travel?.travelDuration ?? 0.0
         }
 
         if travelExpensesValue != 0 {
-            artistInfo.moneySpentOnTravel = Price(value: travelExpensesValue, currency: currency)
+            artistInfo.moneySpentOnTravel = PriceDTO(value: Decimal(travelExpensesValue), currency: currency)
         }
 
         if hotelExpensesValue != 0 {
-            artistInfo.moneySpentOnHotels = Price(value: hotelExpensesValue, currency: currency)
+            artistInfo.moneySpentOnHotels = PriceDTO(value: Decimal(hotelExpensesValue), currency: currency)
         }
 
         if traveledDistance != 0 {
@@ -107,31 +105,31 @@ class ArtistDetailViewModel {
         }
     }
 
-    func getWaitingTime(for concert: ConcertDetails) -> Double? {
-        guard let openingTime = concert.openingTime, let arrivedAt = concert.arrivedAt else { return nil }
+    func getWaitingTime(for concert: Concert) -> Double? {
+        guard let openingTime = concert.openingTime, let arrivedAt = concert.travel?.arrivedAt else { return nil }
         let waitingTime = openingTime.timeIntervalSince(arrivedAt)
         return waitingTime
     }
 
-    func getTicketInfos(artistInfo: inout ArtistInfo, concerts: [ConcertDetails], currency: String) {
-        let ticketTypes = concerts.compactMap { $0.ticketType }
+    func getTicketInfos(artistInfo: inout ArtistInfo, concerts: [Concert], currency: String) {
+        let ticketTypes = concerts.compactMap { $0.ticket?.ticketTypeEnum }
         if !ticketTypes.isEmpty {
             artistInfo.ticketTypes = Dictionary(grouping: ticketTypes, by: { $0 })
                 .mapValues { $0.count }
         }
 
-        let ticketCategories = concerts.compactMap { $0.ticketCategory }
+        let ticketCategories = concerts.compactMap { $0.ticket?.ticketCategoryEnum }
         if !ticketTypes.isEmpty {
             artistInfo.ticketCategories = Dictionary(grouping: ticketCategories, by: { $0 })
                 .mapValues { $0.count }
         }
 
         let ticketExpenesValue = concerts.reduce(into: 0.0) { partialResult, detail in
-            partialResult += detail.ticketPrice?.value ?? 0.0
+            partialResult += detail.ticket?.ticketPrice?.value ?? 0.0
         }
 
         if ticketExpenesValue != 0 {
-            artistInfo.moneySpentOnTickets = Price(value: ticketExpenesValue, currency: currency)
+            artistInfo.moneySpentOnTickets = PriceDTO(value: Decimal(ticketExpenesValue), currency: currency)
         }
     }
 }
@@ -140,17 +138,17 @@ struct ArtistInfo {
     let year: String
     let totalPastConcerts: Int
     let futureConcerts: Int
-    var moneySpentTotal: Price?
+    var moneySpentTotal: PriceDTO?
 
     // Travel
-    var moneySpentOnHotels: Price?
-    var moneySpentOnTravel: Price?
+    var moneySpentOnHotels: PriceDTO?
+    var moneySpentOnTravel: PriceDTO?
     var travelDistance: Double?
     var travelDuration: Double?
     var waitedFor: Double?
 
     // Ticket
-    var moneySpentOnTickets: Price?
+    var moneySpentOnTickets: PriceDTO?
     var ticketCategories: [TicketCategory: Int]?
     var ticketTypes: [TicketType: Int]?
 

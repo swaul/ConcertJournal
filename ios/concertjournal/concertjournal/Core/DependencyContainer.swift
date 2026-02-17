@@ -12,14 +12,17 @@ class DependencyContainer {
     
     // BFF Client
     let bffClient: BFFClient
-    
+    let coreDataStack: CoreDataStack
+
     // Managers (bleiben lokal)
     let supabaseClient: SupabaseClientManager
     let userSessionManager: UserSessionManagerProtocol
     let colorThemeManager: ColorThemeManager
     let storageService: StorageServiceProtocol
+    let syncManager: SyncManager
 
     // ✅ BFF Repositories
+    let offlineConcertRepository: OfflineConcertRepositoryProtocol
     let concertRepository: ConcertRepositoryProtocol
     let artistRepository: ArtistRepositoryProtocol
     let venueRepository: VenueRepositoryProtocol
@@ -34,12 +37,14 @@ class DependencyContainer {
     init() {
         // BFF Client
         self.bffClient = BFFClient(baseURL: "https://concertjournal-bff.vercel.app")
-        
+        self.coreDataStack = CoreDataStack()
+
         // Managers
         self.supabaseClient = SupabaseClientManager()
         self.userSessionManager = UserSessionManager(client: supabaseClient.client)
         self.colorThemeManager = ColorThemeManager()
         self.storageService = StorageService(supabaseClient: supabaseClient)
+        self.syncManager = SyncManager(apiClient: bffClient, coreData: coreDataStack)
 
         // ✅ BFF Client needs auth token
         self.bffClient.getAuthToken = { [weak supabaseClient] in
@@ -50,6 +55,7 @@ class DependencyContainer {
         }
         
         // ✅ BFF Repositories
+        self.offlineConcertRepository = OfflineConcertRepository(syncManager: syncManager)
         self.concertRepository = BFFConcertRepository(client: bffClient)
         self.artistRepository = BFFArtistRepository(client: bffClient)
         self.venueRepository = BFFVenueRepository(client: bffClient)

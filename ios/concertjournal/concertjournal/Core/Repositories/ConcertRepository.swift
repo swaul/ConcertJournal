@@ -10,18 +10,12 @@ import Foundation
 import Supabase
 
 protocol ConcertRepositoryProtocol {
-    var concertsDidUpdate: AnyPublisher<[PartialConcertVisit], Never> { get }
-    var cachedConcerts: [PartialConcertVisit] { get }
-
-    func fetchConcerts(reload: Bool) async throws -> [PartialConcertVisit]
+    func fetchConcerts() async throws -> [PartialConcertVisit]
     func fetchConcertsWithArtist(artistId: String) async throws -> [ConcertDetails]
-    func getConcert(id: String) async throws -> FullConcertVisit
-    func reloadConcerts() async throws
+    func getConcert(id: UUID) async throws -> FullConcertVisit
     func createConcert(_ concert: NewConcertDTO) async throws -> CreateConcertResponse
-    func updateConcert(id: String, concert: ConcertVisitUpdateDTO) async throws
-    func deleteConcert(id: String) async throws
-
-    func reset()
+    func updateConcert(id: UUID, concert: ConcertVisitUpdateDTO) async throws
+    func deleteConcert(id: UUID) async throws
 }
 
 class BFFConcertRepository: ConcertRepositoryProtocol {
@@ -32,29 +26,15 @@ class BFFConcertRepository: ConcertRepositoryProtocol {
 
     let concertsSubject = PassthroughSubject<[PartialConcertVisit], Never>()
 
-    var cachedConcerts = [PartialConcertVisit]()
-
     private let client: BFFClient
     
     init(client: BFFClient) {
         self.client = client
     }
     
-    func reloadConcerts() async throws {
-        logInfo("Reloading concerts", category: .repository)
-        _ = try await fetchConcerts(reload: true)
-    }
-    
-    func fetchConcerts(reload: Bool = false) async throws -> [PartialConcertVisit] {
-        guard cachedConcerts.isEmpty || reload else {
-            logSuccess("Returning \(cachedConcerts.count) cached concerts", category: .repository)
-            return cachedConcerts
-        }
-        logInfo("Loading concerts", category: .repository)
-
+    func fetchConcerts() async throws -> [PartialConcertVisit] {
         let concerts: [PartialConcertVisit] = try await client.get("/concerts")
         logSuccess("Loaded \(concerts.count) concerts", category: .repository)
-        self.cachedConcerts = concerts
         concertsSubject.send(concerts)
         return concerts
     }
@@ -64,7 +44,7 @@ class BFFConcertRepository: ConcertRepositoryProtocol {
         return try await client.get("/concerts/withArtist/\(artistId)")
     }
 
-    func getConcert(id: String) async throws -> FullConcertVisit {
+    func getConcert(id: UUID) async throws -> FullConcertVisit {
         logInfo("Getting details for concert with id: \(id)", category: .repository)
         return try await client.get("/concerts/\(id)")
     }
@@ -74,20 +54,14 @@ class BFFConcertRepository: ConcertRepositoryProtocol {
         return try await client.post("/concerts", body: concert)
     }
     
-    func updateConcert(id: String, concert: ConcertVisitUpdateDTO) async throws {
+    func updateConcert(id: UUID, concert: ConcertVisitUpdateDTO) async throws {
         logInfo("Updating concert with id: \(id)", category: .repository)
         return try await client.put("/concerts/\(id)", body: concert)
     }
 
-    func deleteConcert(id: String) async throws {
+    func deleteConcert(id: UUID) async throws {
         logInfo("Deleting concert with id: \(id)", category: .repository)
         try await client.delete("/concerts/\(id)")
-        cachedConcerts.removeAll(where: { $0.id == id })
-        concertsSubject.send(cachedConcerts)
-    }
-
-    func reset() {
-        cachedConcerts.removeAll()
     }
 }
 
@@ -116,18 +90,18 @@ struct ConcertVisitUpdateDTO: Codable {
     var venueId: String?
     var city: String?
     var rating: Int?
-    var supportActs: [Artist]?
+    var supportActs: [ArtistDTO]?
 
     var travelType: TravelType?
     var travelDuration: TimeInterval?
     var travelDistance: Double?
     var arrivedAt: String?
-    var travelExpenses: Price?
-    var hotelExpenses: Price?
+    var travelExpenses: PriceDTO?
+    var hotelExpenses: PriceDTO?
 
     var ticketType: TicketType?
     var ticketCategory: TicketCategory?
-    var ticketPrice: Price?
+    var ticketPrice: PriceDTO?
     var seatBlock: String?
     var seatRow: String?
     var seatNumber: String?
@@ -140,7 +114,7 @@ struct ConcertVisitUpdateDTO: Codable {
 
         if let title = title { dict["title"] = title }
         if let date = date { dict["date"] = date }
-        if let date = openingTime { dict["openingTime"] = date }
+        if let openingTime = openingTime { dict["openingTime"] = openingTime }
         if let notes = notes { dict["notes"] = notes }
         if let venueId = venueId { dict["venueId"] = venueId }
         if let city = city { dict["city"] = city }
@@ -199,7 +173,7 @@ struct ConcertVisitUpdateDTO: Codable {
     }
 }
 
-extension FullConcertVisit {
+extension Concert {
 
     func detectChanges(from update: ConcertUpdate) -> (changes: ConcertChanges, dto: ConcertVisitUpdateDTO) {
         var changes = ConcertChanges()
@@ -212,14 +186,14 @@ extension FullConcertVisit {
             changes.hasBasicChanges = true
         }
 
-        if self.date.supabseDateString != update.date {
-            dto.date = update.date
+        if self.date != update.date {
+            dto.date = update.date.supabseDateString
             changes.changedFields.append("date")
             changes.hasBasicChanges = true
         }
 
-        if self.openingTime?.supabseDateString != update.openingTime {
-            dto.openingTime = update.openingTime
+        if self.openingTime != update.openingTime {
+            dto.openingTime = update.openingTime?.supabseDateString
             changes.changedFields.append("openingTime")
             changes.hasBasicChanges = true
         }
@@ -230,7 +204,7 @@ extension FullConcertVisit {
             changes.hasBasicChanges = true
         }
 
-        if self.venue?.id != update.venue?.id {
+        if self.venue?.id.uuidString != update.venue?.id {
             dto.venueId = update.venue?.id
             changes.changedFields.append("venueId")
             changes.hasBasicChanges = true
@@ -242,13 +216,15 @@ extension FullConcertVisit {
             changes.hasBasicChanges = true
         }
 
-        if self.rating != update.rating {
+        if self.rating != update.rating ?? -1 {
             dto.rating = update.rating
             changes.changedFields.append("rating")
             changes.hasBasicChanges = true
         }
 
-        if self.supportActs != update.supportActs {
+
+        if let updatedSupportActs = update.supportActs,
+           self.supportActsArray.map({ $0.id.uuidString }) != updatedSupportActs.map({ $0.id }) {
             dto.supportActs = update.supportActs
             changes.changedFields.append("supportActs")
             changes.hasBasicChanges = true
@@ -258,7 +234,7 @@ extension FullConcertVisit {
         if let updateTravel = update.travel {
             var travelChanged = false
 
-            if self.travel?.travelType != updateTravel.travelType {
+            if self.travel?.travelTypeEnum != updateTravel.travelType {
                 dto.travelType = updateTravel.travelType
                 changes.changedFields.append("travelType")
                 travelChanged = true
@@ -301,13 +277,13 @@ extension FullConcertVisit {
         if let updateTicket = update.ticket {
             var ticketChanged = false
 
-            if self.ticket?.ticketType != updateTicket.ticketType {
+            if self.ticket?.ticketTypeEnum != updateTicket.ticketType {
                 dto.ticketType = updateTicket.ticketType
                 changes.changedFields.append("ticketType")
                 ticketChanged = true
             }
 
-            if self.ticket?.ticketCategory != updateTicket.ticketCategory {
+            if self.ticket?.ticketCategoryEnum != updateTicket.ticketCategory {
                 dto.ticketCategory = updateTicket.ticketCategory
                 changes.changedFields.append("ticketCategory")
                 ticketChanged = true
@@ -354,7 +330,7 @@ extension FullConcertVisit {
 
         // Setlist Changes
         if let updateSetlistItems = update.setlistItems {
-            let currentSetlistIds = Set(self.setlistItems?.map { $0.id } ?? [])
+            let currentSetlistIds = Set(self.setlistItemsArray.map { $0.id?.uuidString })
             let updateSetlistIds = Set(updateSetlistItems.compactMap { $0.id })
 
             if currentSetlistIds != updateSetlistIds {
@@ -367,11 +343,11 @@ extension FullConcertVisit {
     }
 
     // Helper: Vergleiche Prices
-    private func arePricesEqual(_ price1: Price?, _ price2: Price?) -> Bool {
+    private func arePricesEqual(_ price1: Price?, _ price2: PriceDTO?) -> Bool {
         switch (price1, price2) {
         case (nil, nil): return true
         case (nil, _), (_, nil): return false
-        case let (p1?, p2?): return p1.value == p2.value && p1.currency == p2.currency
+        case let (p1?, p2?): return Decimal(p1.value) == p2.value && p1.currency == p2.currency
         }
     }
 }

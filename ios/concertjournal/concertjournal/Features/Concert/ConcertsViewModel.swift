@@ -5,157 +5,156 @@
 //  Created by Paul Kühnel on 19.12.25.
 //
 
-import Combine
 import SwiftUI
-import Observation
-internal import Auth
+import CoreData
+import Combine
 
 @Observable
 class ConcertsViewModel {
 
-    // MARK: - Published State
+    // MARK: - State
 
-    var concertToday: PartialConcertVisit? = nil
-    var pastConcerts: [PartialConcertVisit] = []
-    var futureConcerts: [PartialConcertVisit] = []
-    var isLoading: Bool = true
+    var concertToday: Concert? = nil
+    var pastConcerts: [Concert] = []
+    var futureConcerts: [Concert] = []
+    var isLoading = false
+    var isSyncing = false
     var errorMessage: String?
+    var lastSyncDate: Date?
 
-    // MARK: - Dependencies (Dependency Injection statt Singleton!)
+    // MARK: - Dependencies
 
-    private let userManager: UserSessionManagerProtocol
-    private let concertRepository: ConcertRepositoryProtocol
-    private let userId: String
+    private let repository: OfflineConcertRepositoryProtocol
+    private let syncManager: SyncManager
+    private var cancellables = Set<AnyCancellable>()
 
-    private var cancellabels = Set<AnyCancellable>()
+    // MARK: - Core Data
 
-    // MARK: - Initialization
+    private let coreData = CoreDataStack.shared
+    private var fetchedResultsController: NSFetchedResultsController<Concert>?
 
-    init(concertRepository: ConcertRepositoryProtocol, userManager: UserSessionManagerProtocol, userId: String) {
-        self.concertRepository = concertRepository
-        self.userManager = userManager
-        self.userId = userId
+    init(repository: OfflineConcertRepositoryProtocol, syncManager: SyncManager) {
+        self.repository = repository
+        self.syncManager = syncManager
 
-        concertRepository.concertsDidUpdate
-            .sink { [weak self] concerts in
-                self?.filterConcerts(concerts)
-            }
-            .store(in: &cancellabels)
+        setupFetchedResultsController()
+        observeCoreDataChanges()
 
+        // Auto-sync on init
         Task {
-            await loadConcerts()
+            await autoSync()
         }
     }
 
-    // MARK: - Public Methods
+    // MARK: - Setup
 
-    func loadConcerts() async {
-        isLoading = true
-        errorMessage = nil
+    private func setupFetchedResultsController() {
+        let request: NSFetchRequest<Concert> = Concert.fetchRequest()
 
-        do {
-            let concerts = try await concertRepository.fetchConcerts(reload: false)
-            filterConcerts(concerts)
-        } catch let error as NetworkError {
-            HapticManager.shared.error()
-            errorMessage = error.localizedDescription
-        } catch {
-            HapticManager.shared.error()
-            errorMessage = "Ein unbekannter Fehler ist aufgetreten: \(error)"
-        }
+        // Filter out deleted
+        request.predicate = NSPredicate(
+            format: "syncStatus != %@",
+            SyncStatus.deleted.rawValue
+        )
 
-        isLoading = false
+        // Sort by date
+        request.sortDescriptors = [
+            NSSortDescriptor(keyPath: \Concert.date, ascending: false)
+        ]
+
+        fetchedResultsController = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: coreData.viewContext,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+
+        try? fetchedResultsController?.performFetch()
+
+        // Initial load
+        updateConcerts()
     }
 
-    func refreshConcerts() async {
-        withAnimation {
-            pastConcerts.removeAll()
-            futureConcerts.removeAll()
-            errorMessage = nil
-            isLoading = true
+    private func observeCoreDataChanges() {
+        // Listen to Core Data changes
+        NotificationCenter.default.publisher(
+            for: .NSManagedObjectContextObjectsDidChange,
+            object: coreData.viewContext
+        )
+        .sink { [weak self] _ in
+            self?.updateConcerts()
         }
-
-        do {
-            let concerts = try await concertRepository.fetchConcerts(reload: true)
-            filterConcerts(concerts)
-            isLoading = false
-        } catch let error as NetworkError {
-            HapticManager.shared.error()
-            errorMessage = error.localizedDescription
-            logError("Getting concerts failed", error: error, category: .repository)
-            isLoading = false
-        } catch {
-            HapticManager.shared.error()
-            logError("Getting concerts failed", error: error, category: .repository)
-            errorMessage = "Ein unbekannter Fehler ist aufgetreten"
-            isLoading = false
-        }
+        .store(in: &cancellables)
     }
 
-    func deleteConcert(_ concert: PartialConcertVisit) async {
-        errorMessage = nil
-
-        do {
-            try await concertRepository.deleteConcert(id: concert.id)
-
-            // Update local state
-            withAnimation {
-                pastConcerts.removeAll { $0.id == concert.id }
-                futureConcerts.removeAll { $0.id == concert.id }
-            }
-        } catch let error as NetworkError {
-            HapticManager.shared.error()
-            errorMessage = error.localizedDescription
-        } catch {
-            HapticManager.shared.error()
-            errorMessage = "Löschen fehlgeschlagen"
-        }
-    }
-
-    // MARK: - Private Helpers
-
-    private func filterConcerts(_ concerts: [PartialConcertVisit]) {
-        let now = Date.now
+    private func updateConcerts() {
+        let concerts = fetchedResultsController?.fetchedObjects ?? []
+            let now = Date.now
 
         let calendar = Calendar.current
         concertToday = concerts.first(where: { calendar.isDateInToday($0.date) })
-        let concertsWithoutToday = concerts.filter { $0.id != (concertToday?.id ?? "") }
+        let concertsWithoutToday = concerts.filter {
+            guard let todayId = concertToday?.id else { return true }
+            return $0.id != todayId
+        }
 
         let futureConcerts = concertsWithoutToday.filter { $0.date > now }
         let pastConcerts = concertsWithoutToday.filter { $0.date <= now }
 
-        HapticManager.shared.success()
         withAnimation {
             self.futureConcerts = futureConcerts.sorted(by: { $0.date < $1.date })
             self.pastConcerts = pastConcerts
         }
     }
+
+    // MARK: - Actions (Always Instant!)
+
+    func loadConcerts() {
+        // ✅ Already loaded from Core Data via FetchedResultsController!
+        // Just trigger a background sync
+        Task {
+            await autoSync()
+        }
+    }
+
+    func refreshConcerts() async {
+        isSyncing = true
+        defer { isSyncing = false }
+
+        do {
+            try await repository.sync()
+            lastSyncDate = Date()
+        } catch {
+            errorMessage = "Sync failed: \(error.localizedDescription)"
+        }
+    }
+
+    func deleteConcert(_ concert: Concert) async {
+        do {
+            try repository.deleteConcert(concert)
+            // UI updates automatically via FetchedResultsController!
+        } catch {
+            errorMessage = "Delete failed: \(error.localizedDescription)"
+        }
+    }
+
+    // MARK: - Auto Sync
+
+    private func autoSync() async {
+        // Check if should sync
+        guard shouldAutoSync() else { return }
+
+        do {
+            try await repository.sync()
+            UserDefaults.standard.set(Date(), forKey: "lastAutoSync")
+        } catch {
+            logError("Auto sync failed", error: error, category: .sync)
+        }
+    }
+
+    private func shouldAutoSync() -> Bool {
+        // Sync max every 5 minutes
+        let lastSync = UserDefaults.standard.object(forKey: "lastAutoSync") as? Date ?? .distantPast
+        return Date().timeIntervalSince(lastSync) > 300
+    }
 }
-
-// MARK: - Preview Helper
-
-//extension ConcertsViewModel {
-//    static func preview() -> ConcertsViewModel {
-//        let mockRepo = MockConcertRepository(mockConcerts: [], concerts: [])
-//
-//        // Test data
-//        let artist = Artist(name: "Paula Hartmann", imageUrl: "https://i.scdn.co/image/ab6761610000e5eb6db6bdfd82c3394a6af3399e", spotifyArtistId: "3Fl31gc0mEUC2H0JWL1vic")
-//        let venue = Venue(id: "V1", name: "Capitol", formattedAddress: "Schwarzer Bär 1, Hannover", latitude: nil, longitude: nil, appleMapsId: nil)
-//        let concert = FullConcertVisit(
-//            id: "C1",
-//            createdAt: .now,
-//            updatedAt: .now,
-//            date: .now.addingTimeInterval(-86400 * 30), // 30 Tage in der Vergangenheit
-//            venue: venue,
-//            city: "Hannover",
-//            rating: 5,
-//            title: "Amazing Show",
-//            notes: "Best concert ever!",
-//            artist: artist
-//        )
-//
-//        mockRepo.mockConcerts = [concert]
-//
-//        return ConcertsViewModel(concertRepository: mockRepo, userId: "preview-user")
-//    }
-//}

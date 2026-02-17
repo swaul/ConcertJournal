@@ -53,7 +53,7 @@ struct ArtistDetailView: View {
         .navigationTitle(artist.name)
         .task {
             guard viewModel == nil else { return }
-            viewModel = ArtistDetailViewModel(artist: artist, concertRepository: dependencies.concertRepository)
+            viewModel = ArtistDetailViewModel(artist: artist, repository: dependencies.offlineConcertRepository)
         }
     }
 

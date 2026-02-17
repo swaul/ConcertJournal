@@ -24,17 +24,17 @@ public struct FullConcertVisit: Decodable, Identifiable, Equatable, Hashable {
     public let updatedAtString: String
     public let dateString: String
     public let openingTimeString: String?
-    public let venue: Venue?
+    public let venue: VenueDTO?
     public let city: String?
     public let rating: Int?
     public let title: String?
     public let notes: String?
 
-    public let artist: Artist
+    public let artist: ArtistDTO
     public let supportActsIds: [String]?
-    public var supportActs: [Artist]?
-    public var setlistItems: [SetlistItem]?
-    
+    public var supportActs: [ArtistDTO]?
+    public var setlistItems: [SetlistItemDTO]?
+
     var createdAt: Date? {
         createdAtString.supabaseStringDate
     }
@@ -56,20 +56,20 @@ public struct FullConcertVisit: Decodable, Identifiable, Equatable, Hashable {
     let travelDuration: TimeInterval?
     let travelDistance: Double?
     let arrivedAtString: String?
-    let travelExpenses: Price?
-    let hotelExpenses: Price?
+    let travelExpenses: PriceDTO?
+    let hotelExpenses: PriceDTO?
 
     var arrivedAt: Date? {
         arrivedAtString?.supabaseStringDate
     }
 
-    var travel: Travel? {
-        Travel(travelType: travelType, travelDuration: travelDuration, travelDistance: travelDistance, arrivedAt: arrivedAt, travelExpenses: travelExpenses, hotelExpenses: hotelExpenses)
+    var travel: TravelDTO? {
+        TravelDTO(travelType: travelType, travelDuration: travelDuration, travelDistance: travelDistance, arrivedAt: arrivedAt, travelExpenses: travelExpenses, hotelExpenses: hotelExpenses)
     }
 
     let ticketType: TicketType?
     let ticketCategory: TicketCategory?
-    let ticketPrice: Price?
+    let ticketPrice: PriceDTO?
 
     // Seated Ticket Info
     let seatBlock: String?
@@ -81,9 +81,9 @@ public struct FullConcertVisit: Decodable, Identifiable, Equatable, Hashable {
 
     let ticketNotes: String?
 
-    var ticket: Ticket? {
+    var ticket: TicketDTO? {
         guard let ticketType = ticketType, let ticketCategory = ticketCategory else { return nil }
-        return Ticket(ticketType: ticketType, ticketCategory: ticketCategory, ticketPrice: ticketPrice, seatBlock: seatBlock, seatRow: seatRow, seatNumber: seatNumber, standingPosition: standingPosition, notes: ticketNotes)
+        return TicketDTO(ticketType: ticketType, ticketCategory: ticketCategory, ticketPrice: ticketPrice, seatBlock: seatBlock, seatRow: seatRow, seatNumber: seatNumber, standingPosition: standingPosition, notes: ticketNotes)
     }
 
     enum CodingKeys: String, CodingKey {
@@ -123,8 +123,8 @@ public struct PartialConcertVisit: Decodable, Identifiable, Equatable, Hashable 
     public let id: String
     public let dateString: String
     public let openingTimeString: String?
-    public let venue: Venue?
-    public let artist: Artist
+    public let venue: VenueDTO?
+    public let artist: ArtistDTO
     public let city: String?
     public let title: String?
     public let rating: Int?
@@ -167,8 +167,8 @@ public struct ConcertDetails: Decodable {
     let travelDuration: TimeInterval?
     let travelDistance: Double?
     let arrivedAtString: String?
-    let travelExpenses: Price?
-    let hotelExpenses: Price?
+    let travelExpenses: PriceDTO?
+    let hotelExpenses: PriceDTO?
 
     var arrivedAt: Date? {
         arrivedAtString?.supabaseStringDate
@@ -177,7 +177,7 @@ public struct ConcertDetails: Decodable {
     // Ticket
     let ticketType: TicketType?
     let ticketCategory: TicketCategory?
-    let ticketPrice: Price?
+    let ticketPrice: PriceDTO?
 
     enum CodingKeys: String, CodingKey {
         case id

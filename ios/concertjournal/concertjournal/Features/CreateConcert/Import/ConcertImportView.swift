@@ -195,23 +195,23 @@ struct ConcertImportView: View {
         isImporting = false
     }
 
-    func searchForExtractedArtist() async throws -> Artist? {
+    func searchForExtractedArtist() async throws -> ArtistDTO? {
         // Erstelle neuen Künstler
-        var importedArtsit: Artist?
-        
+        var importedArtsit: ArtistDTO?
+
         importedArtsit = try await dependencies.artistRepository.searchArtists(query: extractedInfo.artistName).first
         
         if importedArtsit == nil {
             let spotifyArtist = try await dependencies.spotifyRepository.searchArtists(query: extractedInfo.artistName, limit: 1, offset: 0)
             if let foundSpotifyArtist = spotifyArtist.first {
-                importedArtsit = try await dependencies.artistRepository.getOrCreateArtist(CreateArtistDTO(artist: Artist(artist: foundSpotifyArtist)))
+                importedArtsit = try await dependencies.artistRepository.getOrCreateArtist(CreateArtistDTO(artist: ArtistDTO(artist: foundSpotifyArtist)))
             }
         }
 
         return importedArtsit
     }
 
-    func findOrCreateVenue() async throws -> Venue? {
+    func findOrCreateVenue() async throws -> VenueDTO? {
         guard let venueName = extractedInfo.venueName, !venueName.isEmpty else { return nil }
         let request = MKLocalSearch.Request()
         request.naturalLanguageQuery = venueName
@@ -230,7 +230,7 @@ struct ConcertImportView: View {
 
             let createdVenueId = try await dependencies.venueRepository.createVenue(venue)
 
-            return Venue(id: createdVenueId,
+            return VenueDTO(id: createdVenueId,
                          name: name,
                          city: venue.city,
                          formattedAddress: venue.formattedAddress,
@@ -246,9 +246,9 @@ struct ConcertImportView: View {
 struct ImportedConcert: Hashable {
     
     let date: Date?
-    let venue: Venue?
+    let venue: VenueDTO?
     let venueName: String?
-    let artist: Artist?
+    let artist: ArtistDTO?
     let artistName: String?
     let city: String?
     let rating: String?

@@ -8,8 +8,8 @@
 import Foundation
 import SwiftUI
 
-struct Travel: Identifiable, Equatable, Codable {
-    init?(id: String = UUID().uuidString, travelType: TravelType? = nil, travelDuration: TimeInterval? = nil, travelDistance: Double? = nil, arrivedAt: Date? = nil, travelExpenses: Price? = nil, hotelExpenses: Price? = nil) {
+struct TravelDTO: Identifiable, Equatable, Codable {
+    init?(id: String = UUID().uuidString, travelType: TravelType? = nil, travelDuration: TimeInterval? = nil, travelDistance: Double? = nil, arrivedAt: Date? = nil, travelExpenses: PriceDTO? = nil, hotelExpenses: PriceDTO? = nil) {
         self.id = id
         self.travelType = travelType
         self.travelDuration = travelDuration
@@ -29,8 +29,8 @@ struct Travel: Identifiable, Equatable, Codable {
     let travelDuration: TimeInterval?
     let travelDistance: Double?
     let arrivedAt: Date?
-    let travelExpenses: Price?
-    let hotelExpenses: Price?
+    let travelExpenses: PriceDTO?
+    let hotelExpenses: PriceDTO?
 
     // Computed properties for display
     var formattedDuration: String? {
@@ -55,7 +55,7 @@ struct Travel: Identifiable, Equatable, Codable {
     }
 }
 
-enum TravelType: String, Codable, CaseIterable, Identifiable {
+public enum TravelType: String, Codable, CaseIterable, Identifiable {
     var id: String {
         rawValue
     }

@@ -10,80 +10,24 @@ import Supabase
 import Observation
 import EventKit
 import MapKit
+import CoreData
 
 @Observable
 class ConcertDetailViewModel {
     
-    var concert: FullConcertVisit
-    let artist: Artist
-    var imageUrls: [ConcertImage] = []
-    var setlistItems: [SetlistItem]? = nil
-    var supportActs: [Artist]? = nil
+    var concert: Concert
     var errorMessage: String?
     var successMessage: String? = nil
     var createdPlaylistURL: String? = nil
     
     var isLoading: Bool = true
 
-    private let client: BFFClient
-    private let photoRepository: PhotoRepositoryProtocol
-    private let concertRepository: ConcertRepositoryProtocol
-    private let setlistRepository: SetlistRepositoryProtocol
-    private let artistRepository: ArtistRepositoryProtocol
+    private var cancellables = Set<AnyCancellable>()
+    private let repository: OfflineConcertRepositoryProtocol
 
-    init(concert: FullConcertVisit, bffClient: BFFClient, concertRepository: ConcertRepositoryProtocol, setlistRepository: SetlistRepositoryProtocol, photoRepository: PhotoRepositoryProtocol, artistRepository: ArtistRepositoryProtocol) {
+    init(concert: Concert, repository: OfflineConcertRepositoryProtocol) {
         self.concert = concert
-        self.artist = concert.artist
-
-        self.client = bffClient
-        self.photoRepository = photoRepository
-        self.setlistRepository = setlistRepository
-        self.concertRepository = concertRepository
-        self.artistRepository = artistRepository
-
-        Task {
-            try? await loadImages()
-            do {
-                async let setlistTask: Void = loadSetlist()
-                async let supportActsTask: Void = loadSupportActs()
-
-                _ = try? await (supportActsTask, setlistTask)
-                isLoading = false
-            } catch {
-                isLoading = false
-                HapticManager.shared.error()
-                print(error)
-            }
-        }
-    }
-    
-    func loadImages() async throws {
-        let photos: [ConcertPhoto] = try await photoRepository.fetchPhotos(for: concert.id)
-        
-        let urls = photos.compactMap { URL(string: $0.publicUrl) }.enumerated().map { (index, url) in
-            ConcertImage(url: url, id: url.absoluteString, index: index)
-        }
-        
-        imageUrls = urls
-    }
-
-    func loadSetlist() async throws {
-        let setlistItems: [SetlistItem] = try await setlistRepository.getSetlistItems(with: concert.id)
-
-        self.setlistItems = setlistItems
-        self.concert.setlistItems = setlistItems
-    }
-
-    func loadSupportActs() async throws {
-        guard let supportActs = concert.supportActsIds else { return }
-        var loadedSupoprtActs: [Artist] = []
-        for id in supportActs {
-            let supportAct: Artist = try await artistRepository.getArtist(with: id)
-            loadedSupoprtActs.append(supportAct)
-        }
-
-        self.supportActs = loadedSupoprtActs
-        self.concert.supportActs = loadedSupoprtActs
+        self.repository = repository
     }
 
     func createCalendarEntry(store: EKEventStore) -> EKEvent {
@@ -95,8 +39,8 @@ class ConcertDetailViewModel {
         event.startDate = concert.date
         event.endDate = endDate
         event.notes = concert.notes
-        if let venue = concert.venue, let latitude = venue.latitude, let longitude = venue.longitude {
-            event.structuredLocation = EKStructuredLocation(mapItem: MKMapItem(location: CLLocation(latitude: latitude, longitude: longitude), address: MKAddress(fullAddress: venue.formattedAddress, shortAddress: nil)))
+        if let venue = concert.venue {
+            event.structuredLocation = EKStructuredLocation(mapItem: MKMapItem(location: CLLocation(latitude: venue.latitude, longitude: venue.longitude), address: MKAddress(fullAddress: venue.formattedAddress, shortAddress: nil)))
         } else {
             event.location = concert.venue?.formattedAddress
         }
@@ -106,99 +50,21 @@ class ConcertDetailViewModel {
     }
     
     func applyUpdate(_ update: ConcertUpdate) async {
-        let startTime = Date()
-
-        let (changes, optimizedDTO) = concert.detectChanges(from: update)
-
-        guard changes.hasAnyChanges else {
-            logInfo("No changes detected", category: .concert)
-            return
-        }
-
-        logInfo("Changes: \(changes.changedFields.joined(separator: ", "))", category: .concert)
-
-        if changes.hasBasicChanges || changes.hasTravelChanges || changes.hasTicketChanges {
-            do {
-                if optimizedDTO.isEmpty {
-                    logDebug("No concert fields to update", category: .concert)
-                } else {
-                    try await concertRepository.updateConcert(
-                        id: concert.id,
-                        concert: optimizedDTO
-                    )
-                    logSuccess("Concert updated", category: .concert)
-                }
-            } catch {
-                logError("Update failed", error: error, category: .concert)
-                HapticManager.shared.error()
-                return
-            }
-        }
-
-        if changes.hasSetlistChanges, let items = update.setlistItems {
-            do {
-                if let currentSetlistItems = setlistItems {
-                    let currentIDs = Set(currentSetlistItems.map(\.id))
-                    let newIDs = Set(items.compactMap(\.existingItemid))
-                    
-                    let idsToDelete = currentIDs.subtracting(newIDs)
-                    
-                    for id in idsToDelete {
-                        try await setlistRepository.deleteSetlistItem(id)
-                        logSuccess("Setlist updated. Removed item with id \(id)", category: .setlist)
-                    }
-                }
-                
-                try await updateSetlistItems(items)
-
-                logSuccess("Setlist updated", category: .setlist)
-            } catch {
-                logError("Setlist update failed", error: error, category: .setlist)
-                HapticManager.shared.error()
-            }
-        }
-
-        // 5. Reload
-        await reloadConcertData()
-
-        let duration = Date().timeIntervalSince(startTime)
-        logSuccess("Update completed in \(String(format: "%.2f", duration))s", category: .concert)
-    }
-
-    // Helper für Setlist Updates
-    private func updateSetlistItems(_ items: [TempCeateSetlistItem]) async throws {
-        let dtos = items.map { UpdateSetlistItemDTO(concertId: concert.id, item: $0) }
-
-        try await withThrowingTaskGroup(of: Void.self) { group in
-            for dto in dtos {
-                group.addTask {
-                    try await self.setlistRepository.updateSetlistItem(dto)
-                }
-            }
-            try await group.waitForAll()
-        }
-    }
-
-    // Helper für Reload
-    private func reloadConcertData() async {
         do {
-            async let concertFetch = concertRepository.getConcert(id: concert.id)
-            async let setlistFetch = setlistRepository.getSetlistItems(with: concert.id)
-
-            let (fetchedConcert, fetchedSetlist) = try await (concertFetch, setlistFetch)
-
-            self.concert = fetchedConcert
-            self.concert.setlistItems = fetchedSetlist
-            self.setlistItems = fetchedSetlist
+            try repository.updateConcert(concert, with: update)
             HapticManager.shared.success()
         } catch {
-            HapticManager.shared.error()
-            logError("Reload failed", error: error, category: .concert)
+            logError("Update did not work")
         }
     }
+
     func deleteConcert() async throws {
-        try await concertRepository.deleteConcert(id: concert.id)
-        HapticManager.shared.success()
+        do {
+            try repository.deleteConcert(concert)
+            HapticManager.shared.success()
+        } catch {
+            logError("Deleting did not work")
+        }
     }
 
     @MainActor
@@ -269,3 +135,96 @@ class ConcertDetailViewModel {
         return formatter.string(from: date)
     }
 }
+
+//
+//@Observable
+//class ConcertDetailViewModel_OFFLINEFIRST {
+//
+//    var concert: Concert  // Now Core Data object!
+//    var comments: [Comment] = []
+//    var isLoading = false
+//    var errorMessage: String?
+//
+//    // Sharing
+//    var sharedWith: [ConcertShare] = []
+//    var canComment: Bool {
+//        concert.isOwner || concert.isShared
+//    }
+//
+//    private let repository: OfflineConcertRepositoryProtocol
+//    private let sharingManager: SharingManager
+//    private var cancellables = Set<AnyCancellable>()
+//
+//    init(
+//        concert: Concert,
+//        repository: OfflineConcertRepositoryProtocol,
+//        sharingManager: SharingManager
+//    ) {
+//        self.concert = concert
+//        self.repository = repository
+//        self.sharingManager = sharingManager
+//
+//        loadComments()
+//        observeChanges()
+//    }
+//
+//    private func observeChanges() {
+//        // Observe concert changes
+//        NotificationCenter.default.publisher(
+//            for: .NSManagedObjectContextObjectsDidChange
+//        )
+//        .sink { [weak self] _ in
+//            // Concert updated
+//            self?.objectWillChange.send()
+//        }
+//        .store(in: &cancellables)
+//    }
+//
+//    func loadComments() {
+//        // Fetch comments from Core Data
+//        guard let commentsSet = concert.comments as? Set<Comment> else { return }
+//        comments = Array(commentsSet).sorted { $0.createdAt > $1.createdAt }
+//    }
+//
+//    // MARK: - Update (Instant!)
+//
+//    func updateConcert(with dto: ConcertUpdateDTO) async {
+//        do {
+//            try repository.updateConcert(concert, with: dto)
+//            // UI updates automatically!
+//            // Sync happens in background!
+//        } catch {
+//            errorMessage = "Update failed: \(error.localizedDescription)"
+//        }
+//    }
+//
+//    // MARK: - Sharing
+//
+//    func shareConcert(with userId: String) async {
+//        isLoading = true
+//        defer { isLoading = false }
+//
+//        do {
+//            try await sharingManager.shareConcert(concert, with: userId, canComment: true)
+//        } catch {
+//            errorMessage = "Share failed: \(error.localizedDescription)"
+//        }
+//    }
+//
+//    func addComment(text: String) async {
+//        guard canComment else {
+//            errorMessage = "No permission to comment"
+//            return
+//        }
+//
+//        isLoading = true
+//        defer { isLoading = false }
+//
+//        do {
+//            try await sharingManager.addComment(to: concert, text: text)
+//            loadComments()  // Refresh
+//        } catch {
+//            errorMessage = "Comment failed: \(error.localizedDescription)"
+//        }
+//    }
+//}

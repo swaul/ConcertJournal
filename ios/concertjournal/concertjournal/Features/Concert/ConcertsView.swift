@@ -19,7 +19,7 @@ struct ConcertsView: View {
     @State private var viewModel: ConcertsViewModel? = nil
 
     @State private var chooseCreateFlowPresenting: Bool = false
-    @State private var concertToDelete: PartialConcertVisit? = nil
+    @State private var concertToDelete: Concert? = nil
     @State private var confirmationText: ConfirmationMessage? = nil
 
     @State var fullSizeTodaysConcert = true

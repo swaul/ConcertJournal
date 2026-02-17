@@ -104,7 +104,7 @@ struct Track: Codable {
     let album: SpotifyAlbum?
     let uri: String
 
-    struct Artist: Codable {
+    struct ArtistDTO: Codable {
         let id: String
         let name: String
     }

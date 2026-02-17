@@ -33,28 +33,28 @@ struct ConcertEditView: View {
     @State private var presentTicketEdit = false
     @State private var addSupportActPresenting = false
 
-    let concert: FullConcertVisit
-    
+    let concert: Concert
+
     let onSave: (ConcertUpdate) -> Void
 
-    init(concert: FullConcertVisit, onSave: @escaping (ConcertUpdate) -> Void) {
+    init(concert: Concert, onSave: @escaping (ConcertUpdate) -> Void) {
         _title = State(initialValue: concert.title ?? "")
         _date = State(initialValue: concert.date)
         _openingTime = State(initialValue: concert.openingTime ?? .now)
         _notes = State(initialValue: concert.notes ?? "")
-        _rating = State(initialValue: concert.rating ?? 0)
+        _rating = State(initialValue: Int(concert.rating == -1 ? 0 : concert.rating))
         _venueName = State(initialValue: concert.venue?.name ?? "")
         _venue = State(initialValue: concert.venue)
         _travel = State(initialValue: concert.travel)
         _ticket = State(initialValue: concert.ticket)
-        if let setlistItems = concert.setlistItems {
-            let tempSetlistItems = setlistItems.map { TempCeateSetlistItem(setlistItem: $0) }
+        if !concert.setlistItemsArray.isEmpty {
+            let tempSetlistItems = concert.setlistItemsArray.map { TempCeateSetlistItem(setlistItem: $0) }
             _setlistItems = State(initialValue: tempSetlistItems)
         } else {
             _setlistItems = State(initialValue: [])
         }
-        if let supportActs = concert.supportActs {
-            _supportActs = State(initialValue: supportActs)
+        if !concert.supportActsArray.isEmpty {
+            _supportActs = State(initialValue: concert.supportActsArray)
         } else {
             _supportActs = State(initialValue: [])
         }
@@ -203,8 +203,8 @@ struct ConcertEditView: View {
                             ConcertUpdate(
                                 id: concert.id,
                                 title: title,
-                                date: date.supabseDateString,
-                                openingTime: correctedOpeningTime().supabseDateString,
+                                date: date,
+                                openingTime: correctedOpeningTime(),
                                 notes: notes,
                                 venue: venue,
                                 city: venue?.city,
@@ -488,18 +488,18 @@ struct ConcertEditView: View {
 }
 
 struct ConcertUpdate {
-    let id: String
-    let title: String
-    let date: String
-    let openingTime: String?
-    let notes: String
+    let id: UUID
+    let title: String?
+    let date: Date
+    let openingTime: Date?
+    let notes: String?
     let venue: Venue?
     let city: String?
-    let rating: Int
+    let rating: Int?
     
     let travel: Travel?
     let ticket: Ticket?
     let supportActs: [Artist]?
     let setlistItems: [TempCeateSetlistItem]?
-    let photos: [Photo]
+    let photos: [ConcertPhoto]
 }

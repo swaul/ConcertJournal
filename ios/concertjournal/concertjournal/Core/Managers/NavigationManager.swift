@@ -15,12 +15,12 @@ enum NavigationRoute: Hashable {
     case search
 
     // Concert Related
-    case concertDetail(PartialConcertVisit)
+    case concertDetail(Concert)
     case createConcert
     case createConcertFromTicket(ExtendedTicketInfo?)
     case ticketScan
     case createConcertFromImport(ImportedConcert)
-    case editConcert(FullConcertVisit)
+    case editConcert(Concert)
 
     // Artist Related
     case selectArtist
@@ -28,7 +28,7 @@ enum NavigationRoute: Hashable {
 
     // Venue Related
     case selectVenue
-    case venueDetail(Venue)
+    case venueDetail(VenueDTO)
 
     // Setlist
     case createSetlist(concertId: String)

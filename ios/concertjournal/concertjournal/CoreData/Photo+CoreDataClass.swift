@@ -1,0 +1,17 @@
+//
+//  Photo+CoreDataClass.swift
+//  concertjournal
+//
+//  Created by Paul Kühnel on 16.02.26.
+//
+//
+
+public import Foundation
+public import CoreData
+
+public typealias PhotoCoreDataClassSet = NSSet
+
+@objc(Photo)
+public class Photo: NSManagedObject {
+
+}

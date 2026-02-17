@@ -47,6 +47,7 @@ enum LogCategory: String {
     case premium = "Premium"
     case ui = "UI"
     case supabase = "Supabase"
+    case sync = "Sync"
     case bff = "BFF"
     case `import` = "import"
 }

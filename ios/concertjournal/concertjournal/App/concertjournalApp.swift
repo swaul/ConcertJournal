@@ -100,7 +100,6 @@ struct ConcertJournalApp: App {
                         isLoading = false
                     }
                 }
-                dependencies.concertRepository.reset()
             }
             .onOpenURL { url in
                 logInfo("Received URL: \(url.absoluteString)", category: .auth)

@@ -9,8 +9,8 @@ import Foundation
 import Supabase
 
 protocol SetlistRepositoryProtocol {
-    func getSetlistItems(with concertId: String) async throws -> [SetlistItem]
-    func createSetlistItem(_ item: CreateSetlistItemDTO) async throws -> SetlistItem
+    func getSetlistItems(with concertId: String) async throws -> [SetlistItemDTO]
+    func createSetlistItem(_ item: CreateSetlistItemDTO) async throws -> SetlistItemDTO
     func updateSetlistItem(_ item: UpdateSetlistItemDTO) async throws
     func deleteSetlistItem(_ itemId: String) async throws
 }
@@ -23,17 +23,17 @@ class BFFSetlistRepository: SetlistRepositoryProtocol {
         self.client = client
     }
     
-    func getSetlistItems(with concertId: String) async throws -> [SetlistItem] {
+    func getSetlistItems(with concertId: String) async throws -> [SetlistItemDTO] {
         try await client.get("/setlist/\(concertId)")
     }
     
-    func createSetlistItem(_ item: CreateSetlistItemDTO) async throws -> SetlistItem {
+    func createSetlistItem(_ item: CreateSetlistItemDTO) async throws -> SetlistItemDTO {
         try await client.post("/setlist/\(item.concertVisitId)/songs", body: item)
     }
     
     func updateSetlistItem(_ item: UpdateSetlistItemDTO) async throws {
         if let id = item.id {
-            let _: SetlistItem = try await client.patch("/setlist/\(id)", body: item)
+            let _: SetlistItemDTO = try await client.patch("/setlist/\(id)", body: item)
         } else {
             _ = try await createSetlistItem(item.createSetlistItem)
         }

@@ -29,7 +29,7 @@ struct MainAppView: View {
             }
 
             Tab(value: NavigationRoute.search, role: .search) {
-                SearchView(viewModel: SearchViewModel(concertRepository: dependencies.concertRepository))
+                SearchView()
             }
         }
         .tabBarMinimizeBehavior(.onScrollDown)

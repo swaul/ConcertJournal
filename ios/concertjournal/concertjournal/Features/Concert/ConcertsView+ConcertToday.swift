@@ -12,7 +12,7 @@ struct ConcertTodayView: View {
 
     @Environment(\.dependencies) var dependencies
 
-    let concert: PartialConcertVisit
+    let concert: Concert
 
     @Binding var fullSizeTodaysConcert: Bool
 

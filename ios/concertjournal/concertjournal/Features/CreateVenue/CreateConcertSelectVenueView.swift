@@ -16,7 +16,7 @@ struct CreateConcertSelectVenueView: View {
     @Binding var isPresented: Bool
     
     let onSelect: (Venue) -> Void
-    
+
     @State var selectedVenue: MKMapItem? = nil
     
     @FocusState var searchFeildFocused

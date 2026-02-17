@@ -12,7 +12,7 @@ struct CreateConcertTicket: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dependencies) private var dependencies
 
-    init(artist: Artist? = nil, ticketInfo: Ticket? = nil, onSave: @escaping (Ticket) -> Void) {
+    init(artist: ArtistDTO? = nil, ticketInfo: TicketDTO? = nil, onSave: @escaping (TicketDTO) -> Void) {
         self.artist = artist
         self.onSave = onSave
 
@@ -35,9 +35,9 @@ struct CreateConcertTicket: View {
         }
     }
 
-    let artist: Artist?
+    let artist: ArtistDTO?
 
-    var onSave: (Ticket) -> Void
+    var onSave: (TicketDTO) -> Void
 
     @State private var ticketCategory: TicketCategory
     @State private var ticketType: TicketType
@@ -316,7 +316,7 @@ struct CreateConcertTicket: View {
     }
 
     private func saveTicketInfo() {
-        let ticket = Ticket(ticketType: ticketType,
+        let ticket = TicketDTO(ticketType: ticketType,
             ticketCategory: ticketCategory,
             ticketPrice: ExpensesParser.parse(ticketPrice),
                             seatBlock: seatBlock.nilIfEmpty?.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -330,7 +330,7 @@ struct CreateConcertTicket: View {
 }
 
 #Preview {
-    CreateConcertTicket(artist: Artist(artist: .taylorSwift), onSave: { _ in })
+    CreateConcertTicket(artist: ArtistDTO(artist: .taylorSwift), onSave: { _ in })
 }
 
 extension String {

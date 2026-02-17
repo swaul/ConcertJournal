@@ -10,7 +10,7 @@ import Foundation
 struct ExpensesParser {
 
     /// Parse price strings like "38,99 €", "€ 49.99", "$150", "25.50 EUR"
-    static func parse(_ input: String) -> Price? {
+    static func parse(_ input: String) -> PriceDTO? {
         let cleaned = input.replacingOccurrences(of: " ", with: "")
             .trimmingCharacters(in: .whitespaces)
 
@@ -22,7 +22,7 @@ struct ExpensesParser {
         // Extract currency
         let currency = extractCurrency(from: cleaned)
 
-        return Price(value: value, currency: currency)
+        return PriceDTO(value: value, currency: currency)
     }
 
     private static func extractValue(from string: String) -> Decimal? {

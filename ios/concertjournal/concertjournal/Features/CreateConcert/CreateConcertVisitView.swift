@@ -16,10 +16,10 @@ struct NewConcertVisit: Identifiable, Equatable {
     var notes: String = ""
     var rating: Int?
 
-    var supportActs: [Artist] = []
-    var ticket: Ticket? = nil
-    var travel: Travel? = nil
-    var venue: Venue? = nil
+    var supportActs: [ArtistDTO] = []
+    var ticket: TicketDTO? = nil
+    var travel: TravelDTO? = nil
+    var venue: VenueDTO? = nil
     var setlistItems: [TempCeateSetlistItem] = []
 
     init(importeConcert: ImportedConcert) {
@@ -578,20 +578,20 @@ struct CreateConcertVisitView: View {
             if let ticket = draft.ticket {
                 VStack(alignment: .leading) {
                     
-                    Text(ticket.ticketType.label)
+                    Text(ticket.ticketTypeEnum.label)
                         .font(.cjTitle)
                         .frame(maxWidth: .infinity, alignment: .center)
                     
-                    ticket.ticketCategory.color
+                    ticket.ticketCategoryEnum.color
                         .clipShape(RoundedRectangle(cornerRadius: 20))
                         .frame(maxWidth: .infinity)
                         .frame(height: 80)
                         .overlay {
-                            Text(ticket.ticketCategory.label)
+                            Text(ticket.ticketCategoryEnum.label)
                                 .font(.cjTitleF)
                         }
                     
-                    switch ticket.ticketType {
+                    switch ticket.ticketTypeEnum {
                     case .seated:
                         Grid {
                             GridRow {

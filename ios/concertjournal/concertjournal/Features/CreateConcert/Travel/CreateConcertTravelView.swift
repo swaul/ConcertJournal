@@ -9,7 +9,7 @@ import SwiftUI
 
 public struct CreateConcertTravelView: View {
 
-    init(travel: Travel?, onSave: @escaping (Travel?) -> Void) {
+    init(travel: TravelDTO?, onSave: @escaping (TravelDTO?) -> Void) {
         self.onSave = onSave
 
         if let selectedTravelType = travel?.travelType {
@@ -48,7 +48,7 @@ public struct CreateConcertTravelView: View {
         }
     }
 
-    var onSave: ((Travel?) -> Void)?
+    var onSave: ((TravelDTO?) -> Void)?
 
     @State private var selectedTravelType: TravelType? = nil
     @State private var animatedSelectTravelType: TravelType? = nil
@@ -181,7 +181,7 @@ public struct CreateConcertTravelView: View {
         let hotelExpenses = spentTheNight ? ExpensesParser.parse(hotelExpensesText) : nil
 
         // Create Travel object
-        let travel = Travel(
+        let travel = TravelDTO(
             travelType: selectedTravelType,
             travelDuration: travelDuration,
             travelDistance: travelDistance,
