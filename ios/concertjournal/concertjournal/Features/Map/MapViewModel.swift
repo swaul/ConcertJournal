@@ -29,6 +29,10 @@ class MapViewModel {
         setupFetchedResultsController()
     }
 
+    func refresh() {
+        updateConcerts()
+    }
+
     private func setupFetchedResultsController() {
         let request: NSFetchRequest<Concert> = Concert.fetchRequest()
 
@@ -69,8 +73,14 @@ class MapViewModel {
     }
 
     private func updateConcerts() {
-        let concerts = fetchedResultsController?.fetchedObjects ?? []
-        self.concerts = concerts.sorted(by: { $0.date < $1.date })
+        var concerts = fetchedResultsController?.fetchedObjects ?? []
+        concerts.sort(by: { $0.date < $1.date })
+
+        let locations = Self.groupConcertsByLocation(concerts)
+        guard locations != self.concertLocations else { return }
+
+        self.concerts = concerts
+        concertLocations = locations
     }
 
     static func groupConcertsByLocation(_ concerts: [Concert]) -> [ConcertMapItem] {

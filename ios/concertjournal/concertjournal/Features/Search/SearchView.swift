@@ -13,14 +13,40 @@ struct SearchView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.navigationManager) private var navigationManager
     
-    @State var viewModel = SearchViewModel()
+    @State var viewModel: SearchViewModel?
 
     @State private var filterPresented = false
-    
+
     var body: some View {
         @Bindable var navigationManager = navigationManager
-        
+
         NavigationStack(path: $navigationManager.path) {
+            Group {
+                if let viewModel {
+                    viewWithViewModel(viewModel: viewModel)
+                } else {
+                    LoadingView()
+                }
+            }
+            .background {
+                Color.background
+                    .ignoresSafeArea()
+            }
+            .task {
+                guard viewModel == nil else { return }
+                viewModel = SearchViewModel()
+            }
+            .navigationDestination(for: NavigationRoute.self) { route in
+                navigationDestination(for: route)
+            }
+            .navigationTitle("Durchsuchen")
+        }
+    }
+
+    @ViewBuilder
+    func viewWithViewModel(viewModel: SearchViewModel) -> some View {
+        @Bindable var viewModel = viewModel
+
             ScrollView {
                 VStack {
                     ForEach(viewModel.concertsToDisaplay, id: \.id) { concert in
@@ -58,16 +84,11 @@ struct SearchView: View {
             .scrollBounceBehavior(.basedOnSize)
             .scrollClipDisabled()
             .searchable(text: $viewModel.searchText)
-            .navigationTitle("Durchsuchen")
             .sheet(isPresented: $filterPresented) {
                 FilterSheetView(filters: viewModel.concertFilter,
                                 availableArtists: viewModel.availableArtists,
                                 availableCities: viewModel.availableCities)
             }
-            .navigationDestination(for: NavigationRoute.self) { route in
-                navigationDestination(for: route)
-            }
-        }
     }
     
     @ViewBuilder

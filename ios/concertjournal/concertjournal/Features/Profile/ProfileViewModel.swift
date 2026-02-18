@@ -37,6 +37,8 @@ final class ProfileViewModel {
                 loadingState = .loaded
                 fillView(with: user)
             }
+        } catch let error as UserError {
+            loadingState = .loaded
         } catch {
             loadingState = .error
             print("ERROR LOADING USER DATA")

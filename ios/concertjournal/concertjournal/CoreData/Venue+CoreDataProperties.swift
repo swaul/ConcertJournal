@@ -21,14 +21,27 @@ extension Venue {
     @NSManaged public var id: UUID
     @NSManaged public var city: String?
     @NSManaged public var name: String
-    @NSManaged public var serverId: String
+    @NSManaged public var serverId: String?
     @NSManaged public var formattedAddress: String
     @NSManaged public var latitude: Double
     @NSManaged public var longitude: Double
     @NSManaged public var appleMapsId: String?
+    @NSManaged public var syncStatus: String?
 
 }
 
 extension Venue : Identifiable {
 
+}
+
+extension Venue {
+    func toDTO() -> VenueDTO {
+        VenueDTO(id: serverId ?? id.uuidString,
+                 name: name,
+                 city: city,
+                 formattedAddress: formattedAddress,
+                 latitude: latitude == 0 ? nil : latitude,
+                 longitude: longitude == 0 ? nil : longitude,
+                 appleMapsId: appleMapsId)
+    }
 }

@@ -7,11 +7,19 @@
 
 import SwiftUI
 
+protocol ArtistChip {
+    var imageUrl: String? { get }
+    var name: String { get }
+}
+
+extension Artist: ArtistChip { }
+extension ArtistDTO: ArtistChip { }
+
 struct ArtistChipView: View {
 
     @Environment(\.dependencies) private var dependencies
 
-    let artist: Artist
+    let artist: any ArtistChip
     let removeable: Bool
 
     let onRemove: () -> Void

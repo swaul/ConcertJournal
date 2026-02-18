@@ -29,9 +29,16 @@ public struct ArtistDTO: Codable, Hashable, Identifiable {
         imageUrl = artist.firstImageURL?.absoluteString
         spotifyArtistId = artist.id
     }
-    
+
     init(name: String, imageUrl: String? = nil, spotifyArtistId: String?) {
         self.id = UUID().uuidString
+        self.name = name
+        self.imageUrl = imageUrl
+        self.spotifyArtistId = spotifyArtistId
+    }
+
+    init(id: String, name: String, imageUrl: String? = nil, spotifyArtistId: String? = nil) {
+        self.id = id
         self.name = name
         self.imageUrl = imageUrl
         self.spotifyArtistId = spotifyArtistId

@@ -16,6 +16,7 @@ struct NewConcertVisit: Identifiable, Equatable {
     var notes: String = ""
     var rating: Int?
 
+    var artist: ArtistDTO? = nil
     var supportActs: [ArtistDTO] = []
     var ticket: TicketDTO? = nil
     var travel: TravelDTO? = nil
@@ -93,6 +94,7 @@ struct CreateConcertVisitView: View {
 
     @State private var draft: NewConcertVisit
     @State private var presentConfirmation: ConfirmationMessage? = nil
+    @State private var presentErrorSheet: ErrorMessage? = nil
 
     @State private var openingTime = Date.now
     @State private var rating: Int = 0
@@ -112,7 +114,7 @@ struct CreateConcertVisitView: View {
 
     @State private var savingConcertPresenting: Bool = false
 
-    let possibleArtist: Artist?
+    let possibleArtist: ArtistDTO?
 
     init(importedConcert: ImportedConcert? = nil, ticketInfo: ExtendedTicketInfo? = nil) {
         if let importedConcert {
@@ -180,14 +182,15 @@ struct CreateConcertVisitView: View {
         .task {
             guard viewModel == nil else { return }
             self.viewModel = CreateConcertVisitViewModel(artist: possibleArtist,
-                                                         artistRepository: dependencies.artistRepository,
-                                                         concertRepository: dependencies.concertRepository,
-                                                         userSessionManager: dependencies.userSessionManager,
-                                                         photoRepository: dependencies.photoRepository,
-                                                         setlistRepository: dependencies.setlistRepository)
+                                                         repository: dependencies.offlineConcertRepository,
+                                                         photoRepository: dependencies.offlinePhotoRepsitory)
         }
         .adaptiveSheet(item: $presentConfirmation) { message in
             ConfirmationView(message: message)
+                .interactiveDismissDisabled()
+        }
+        .adaptiveSheet(item: $presentErrorSheet) { error in
+            ErrorSheetView(message: error)
                 .interactiveDismissDisabled()
         }
         .navigationTitle("New Concert")
@@ -218,6 +221,8 @@ struct CreateConcertVisitView: View {
                     self.selectArtistPresenting = false
                 } completion: {
                     withAnimation {
+                        draft.artist = artist
+                        draft.artistName = artist.name
                         viewModel?.artist = artist
                     }
                 }
@@ -274,20 +279,17 @@ struct CreateConcertVisitView: View {
     }
     
     private func save() {
+        guard let viewModel else { return }
         Task {
             do {
                 savingConcertPresenting = true
 
-                // Konzert erstellen (wirft Error nur bei kritischen Fehlern)
-                let response = try await viewModel?.createVisit(from: draft, selectedImages: selectedImages)
-
-                // Konzerte neu laden
-                try await dependencies.concertRepository.reloadConcerts()
+                try viewModel.createVisit(from: draft, selectedImages: selectedImages)
 
                 savingConcertPresenting = false
 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                    showConfirmation(with: response)
+                    showConfirmation()
                 }
             } catch {
                 savingConcertPresenting = false
@@ -299,30 +301,16 @@ struct CreateConcertVisitView: View {
         }
     }
 
-    private func showConfirmation(with response: CreationResponse?) {
-        guard let response else { return }
-
-        if response.success {
-            // Alles perfekt gelaufen
-            HapticManager.shared.success()
-            presentConfirmation = ConfirmationMessage(message: "Konzert erfolgreich erstellt! 🎉") {
-                navigationManager.popToRoot()
-            }
-        } else {
-            // Konzert erstellt, aber mit Warnungen
-            HapticManager.shared.success()
-
-            let warningMessage = "Konzert erfolgreich erstellt! 🎉\nAber ein paar dinge sind leider schief gelaufen:"
-
-            let additionalInfos = AdditionalInfo(infos: response.problems)
-            presentConfirmation = ConfirmationMessage(message: warningMessage, additionalInfos: additionalInfos) {
-                navigationManager.popToRoot()
-            }
+    private func showConfirmation() {
+        // Alles perfekt gelaufen
+        HapticManager.shared.success()
+        presentConfirmation = ConfirmationMessage(message: "Konzert erfolgreich erstellt! 🎉") {
+            navigationManager.popToRoot()
         }
     }
 
     private func showErrorAlert(error: Error) {
-        presentConfirmation = ConfirmationMessage(
+        presentErrorSheet = ErrorMessage(
             message: "Konzert konnte nicht erstellt werden. Bitte versuche es später nochmal."
         )
     }
@@ -578,20 +566,20 @@ struct CreateConcertVisitView: View {
             if let ticket = draft.ticket {
                 VStack(alignment: .leading) {
                     
-                    Text(ticket.ticketTypeEnum.label)
+                    Text(ticket.ticketType.label)
                         .font(.cjTitle)
                         .frame(maxWidth: .infinity, alignment: .center)
                     
-                    ticket.ticketCategoryEnum.color
+                    ticket.ticketCategory.color
                         .clipShape(RoundedRectangle(cornerRadius: 20))
                         .frame(maxWidth: .infinity)
                         .frame(height: 80)
                         .overlay {
-                            Text(ticket.ticketCategoryEnum.label)
+                            Text(ticket.ticketCategory.label)
                                 .font(.cjTitleF)
                         }
                     
-                    switch ticket.ticketTypeEnum {
+                    switch ticket.ticketType{
                     case .seated:
                         Grid {
                             GridRow {

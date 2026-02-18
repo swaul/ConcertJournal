@@ -41,6 +41,7 @@ extension Concert {
     @NSManaged public var venue: Venue?
     @NSManaged public var travel: Travel?
     @NSManaged public var ticket: Ticket?
+    @NSManaged public var images: NSSet?
 
 }
 
@@ -81,5 +82,23 @@ extension Concert {
     func removeSupportAct(_ artist: Artist) {
         let supportActs = self.mutableSetValue(forKey: "supportActs")
         supportActs.remove(artist)
+    }
+}
+
+// MARK: - Photos
+extension Concert {
+    var imagesArray: [Photo] {
+        let set = images as? Set<Photo> ?? []
+        return set.sorted { $0.createdAt < $1.createdAt }
+    }
+
+    func addImage(_ image: Photo) {
+        let images = self.mutableSetValue(forKey: "images")
+        images.add(image)
+    }
+
+    func removeImage(_ image: Photo) {
+        let images = self.mutableSetValue(forKey: "images")
+        images.remove(image)
     }
 }

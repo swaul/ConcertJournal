@@ -13,8 +13,8 @@ protocol ConcertRepositoryProtocol {
     func fetchConcerts() async throws -> [PartialConcertVisit]
     func fetchConcertsWithArtist(artistId: String) async throws -> [ConcertDetails]
     func getConcert(id: UUID) async throws -> FullConcertVisit
-    func createConcert(_ concert: NewConcertDTO) async throws -> CreateConcertResponse
-    func updateConcert(id: UUID, concert: ConcertVisitUpdateDTO) async throws
+//    func createConcert(_ concert: NewConcertDTO) async throws -> CreateConcertResponse
+//    func updateConcert(id: UUID, concert: ConcertVisitUpdateDTO) async throws
     func deleteConcert(id: UUID) async throws
 }
 
@@ -49,15 +49,15 @@ class BFFConcertRepository: ConcertRepositoryProtocol {
         return try await client.get("/concerts/\(id)")
     }
     
-    func createConcert(_ concert: NewConcertDTO) async throws -> CreateConcertResponse {
-        logInfo("Creating concert with title: \(concert.title)", category: .repository)
-        return try await client.post("/concerts", body: concert)
-    }
+//    func createConcert(_ concert: CreateConcertDTO) async throws -> CreateConcertResponse {
+//        logInfo("Creating concert with title: \(concert.title)", category: .repository)
+//        return try await client.post("/concerts", body: concert)
+//    }
     
-    func updateConcert(id: UUID, concert: ConcertVisitUpdateDTO) async throws {
-        logInfo("Updating concert with id: \(id)", category: .repository)
-        return try await client.put("/concerts/\(id)", body: concert)
-    }
+//    func updateConcert(id: UUID, concert: ConcertVisitUpdateDTO) async throws {
+//        logInfo("Updating concert with id: \(id)", category: .repository)
+//        return try await client.put("/concerts/\(id)", body: concert)
+//    }
 
     func deleteConcert(id: UUID) async throws {
         logInfo("Deleting concert with id: \(id)", category: .repository)
@@ -330,7 +330,7 @@ extension Concert {
 
         // Setlist Changes
         if let updateSetlistItems = update.setlistItems {
-            let currentSetlistIds = Set(self.setlistItemsArray.map { $0.id?.uuidString })
+            let currentSetlistIds = Set(self.setlistItemsArray.map { $0.id.uuidString })
             let updateSetlistIds = Set(updateSetlistItems.compactMap { $0.id })
 
             if currentSetlistIds != updateSetlistIds {

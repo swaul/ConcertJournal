@@ -75,8 +75,17 @@ class BFFClient {
             }
             throw BFFError.httpError(httpResponse.statusCode)
         }
-        
-        return try JSONDecoder().decode(T.self, from: data)
+
+        do {
+            let result: T = try JSONDecoder().decode(T.self, from: data)
+
+            return result
+        } catch let error as DecodingError {
+            logError("Decoding error", error: error)
+            throw error
+        } catch {
+            throw error
+        }
     }
 
     func requestSpotify<T: Decodable>(
@@ -134,8 +143,8 @@ class BFFClient {
         try await request(method: .post, path: path, body: body)
     }
 
-    func put(_ path: String, body: Encodable?) async throws {
-        let _: EmptyResponse = try await request(
+    func put<T: Decodable>(_ path: String, body: Encodable?) async throws -> T {
+       try await request(
             method: .put,
             path: path,
             body: body

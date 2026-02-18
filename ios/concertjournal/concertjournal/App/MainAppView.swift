@@ -36,6 +36,7 @@ struct MainAppView: View {
         .onChange(of: navigationManager.selectedTab) { oldValue, newValue in
             print(newValue)
         }
+        .tint(dependencies.colorThemeManager.appTint)
 #if DEBUG
         .sheet(isPresented: $showDebugLogs) {
             DebugLogView()

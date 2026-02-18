@@ -18,7 +18,7 @@ extension Photo {
         return NSFetchRequest<Photo>(entityName: "Photo")
     }
 
-    @NSManaged public var createdAt: Date?
+    @NSManaged public var createdAt: Date
     @NSManaged public var id: UUID
     @NSManaged public var localPath: String?
     @NSManaged public var serverId: String?

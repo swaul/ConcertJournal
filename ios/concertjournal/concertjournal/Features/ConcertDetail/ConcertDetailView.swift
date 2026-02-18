@@ -12,9 +12,15 @@ import EventKitUI
 import SpotifyiOS
 
 struct ConcertImage: Identifiable {
-    let url: URL
+    let image: UIImage?
+    let urlString: String?
     let id: String
     let index: Int
+
+    var url: URL? {
+        guard let urlString else { return nil }
+        return URL(string: urlString)
+    }
 }
 
 struct ConcertDetailView: View {
@@ -54,7 +60,9 @@ struct ConcertDetailView: View {
             }
         }
         .task {
-            viewModel = ConcertDetailViewModel(concert: concert, repository: dependencies.offlineConcertRepository)
+            viewModel = ConcertDetailViewModel(concert: concert,
+                                               repository: dependencies.offlineConcertRepository,
+                                               photoRepository: dependencies.offlinePhotoRepsitory)
         }
     }
 
@@ -80,8 +88,8 @@ struct ConcertDetailView: View {
                         .frame(maxWidth: .infinity)
                         .zIndex(100)
 
-                    if let supportActs = viewModel.concert.supportActsArray {
-                        supportActsSection(supportActs: supportActs)
+                    if !viewModel.concert.supportActsArray.isEmpty {
+                        supportActsSection(supportActs: viewModel.concert.supportActsArray)
                     }
 
                     if let venue = viewModel.concert.venue {
@@ -104,12 +112,12 @@ struct ConcertDetailView: View {
                         .padding(.horizontal, 20)
                     }
 
-                    if let setlistItems = viewModel.setlistItems, !setlistItems.isEmpty {
+                    if !viewModel.concert.setlistItemsArray.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
                             sectionHeader(title: "Setlist", icon: "music.note.list")
 
                             VStack(spacing: 12) {
-                                ForEach(setlistItems, id: \.spotifyTrackId) { item in
+                                ForEach(viewModel.concert.setlistItemsArray, id: \.spotifyTrackId) { item in
                                     makeSetlistItemView(with: item)
                                 }
 
@@ -122,8 +130,8 @@ struct ConcertDetailView: View {
                         .padding(.horizontal, 20)
                     }
 
-                    if !viewModel.imageUrls.isEmpty {
-                        imageSection(images: viewModel.imageUrls)
+                    if !viewModel.photos.isEmpty {
+                        imageSection(images: viewModel.photos)
                     }
 
                     Color.clear.frame(height: 40)
@@ -139,7 +147,6 @@ struct ConcertDetailView: View {
             .coordinateSpace(name: CoordinateSpace.named("ScrollView"))
             .frame(width: UIScreen.screenWidth)
         }
-        .background(Color.background)
         .ignoresSafeArea()
         .frame(width: UIScreen.screenWidth)
         .toolbar {
@@ -211,7 +218,7 @@ struct ConcertDetailView: View {
         }
         .fullScreenCover(item: $selectedImage) { item in
             FullscreenImagePagerView(
-                imageUrls: viewModel.concert.imageUrls,
+                imageUrls: viewModel.photos,
                 startIndex: item.index
             )
         }
@@ -586,7 +593,7 @@ struct ConcertDetailView: View {
 
     // MARK: - Setlist Item
     @ViewBuilder
-    func makeSetlistItemView(with item: SetlistItemDTO) -> some View {
+    func makeSetlistItemView(with item: SetlistItem) -> some View {
         Button {
             HapticManager.shared.impact(.light)
             guard let spotifyTrackId = item.spotifyTrackId, !spotifyTrackId.isEmpty else { return }
@@ -671,51 +678,50 @@ struct ConcertDetailView: View {
     // MARK: - Ticket Section
     @ViewBuilder
     func ticketSection(ticket: Ticket) -> some View {
-        guard let ticketCategory = ticket.ticketCategoryEnum else { return EmptyView() }
-        VStack(spacing: 16) {
-            // Ticket Type Header
-            VStack(spacing: 12) {
-                HStack {
-                    Image(systemName: ticket.ticketTypeEnum.icon)
-                        .font(.title2)
-                    Text(ticket.ticketTypeEnum.label)
-                        .font(.cjTitle)
-                }
-                .foregroundStyle(.white)
-
-                Text(ticketCategory.label)
-                    .font(.system(size: 28, weight: .bold))
+        if let ticketCategory = ticket.ticketCategoryEnum, let ticketType = ticket.ticketTypeEnum {
+            VStack(spacing: 16) {
+                // Ticket Type Header
+                VStack(spacing: 12) {
+                    HStack {
+                        Image(systemName: ticketType.icon)
+                            .font(.title2)
+                        Text(ticketType.label)
+                            .font(.cjTitle)
+                    }
                     .foregroundStyle(.white)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 24)
-            .background(
-                ZStack {
-                    LinearGradient(
-                        colors: [
-                            ticketCategory.color,
-                            ticketCategory.color.opacity(0.8)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
 
-                    // Decorative circles
-                    Circle()
-                        .fill(.white.opacity(0.1))
-                        .frame(width: 100, height: 100)
-                        .offset(x: -50, y: -30)
-
-                    Circle()
-                        .fill(.white.opacity(0.1))
-                        .frame(width: 80, height: 80)
-                        .offset(x: 70, y: 40)
+                    Text(ticketCategory.label)
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundStyle(.white)
                 }
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-            .shadow(color: ticketCategory.color.opacity(0.4), radius: 12, x: 0, y: 6)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 24)
+                .background(
+                    ZStack {
+                        LinearGradient(
+                            colors: [
+                                ticketCategory.color,
+                                ticketCategory.color.opacity(0.8)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
 
-            if let ticketType = ticket.ticketTypeEnum {
+                        // Decorative circles
+                        Circle()
+                            .fill(.white.opacity(0.1))
+                            .frame(width: 100, height: 100)
+                            .offset(x: -50, y: -30)
+
+                        Circle()
+                            .fill(.white.opacity(0.1))
+                            .frame(width: 80, height: 80)
+                            .offset(x: 70, y: 40)
+                    }
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .shadow(color: ticketCategory.color.opacity(0.4), radius: 12, x: 0, y: 6)
+
                 // Seat Information
                 switch ticketType {
                 case .seated:
@@ -746,69 +752,69 @@ struct ConcertDetailView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                     }
                 }
-            }
 
-            // Ticket Price
-            if let ticketPrice = ticket.ticketPrice {
-                HStack(spacing: 16) {
-                    ZStack {
-                        Circle()
-                            .fill(dependencies.colorThemeManager.appTint.opacity(0.15))
-                            .frame(width: 50, height: 50)
+                // Ticket Price
+                if let ticketPrice = ticket.ticketPrice {
+                    HStack(spacing: 16) {
+                        ZStack {
+                            Circle()
+                                .fill(dependencies.colorThemeManager.appTint.opacity(0.15))
+                                .frame(width: 50, height: 50)
 
-                        Image(systemName: "eurosign.circle.fill")
-                            .font(.title3)
-                            .foregroundStyle(dependencies.colorThemeManager.appTint)
+                            Image(systemName: "eurosign.circle.fill")
+                                .font(.title3)
+                                .foregroundStyle(dependencies.colorThemeManager.appTint)
+                        }
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Ticketpreis")
+                                .font(.cjBody)
+                                .foregroundStyle(.secondary)
+
+                            Text(ticketPrice.formatted)
+                                .font(.cjTitle)
+                                .foregroundStyle(.primary)
+                                .conditionalRedacted(localHidePrices)
+                        }
+
+                        Spacer()
                     }
+                    .padding(16)
+                    .background(.ultraThinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+                    .contentShape(Rectangle())
+                    .contextMenu {
+                        Button {
+                            HapticManager.shared.impact(.light)
+                            localHidePrices.toggle()
+                        } label: {
+                            Label(localHidePrices ? "Preise anzeigen" : "Preise ausblenden",
+                                  systemImage: localHidePrices ? "eye" : "eye.slash")
+                        }
+                    }
+                }
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Ticketpreis")
+                // Ticket Notes
+                if let notes = ticket.notes, !notes.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "note.text")
+                                .font(.caption)
+                            Text("Notizen")
+                                .font(.cjCaption)
+                        }
+                        .foregroundStyle(.secondary)
+
+                        Text(notes)
                             .font(.cjBody)
-                            .foregroundStyle(.secondary)
-
-                        Text(ticketPrice.formatted)
-                            .font(.cjTitle)
                             .foregroundStyle(.primary)
-                            .conditionalRedacted(localHidePrices)
                     }
-
-                    Spacer()
+                    .padding(16)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.ultraThinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
-                .padding(16)
-                .background(.ultraThinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
-                .contentShape(Rectangle())
-                .contextMenu {
-                    Button {
-                        HapticManager.shared.impact(.light)
-                        localHidePrices.toggle()
-                    } label: {
-                        Label(localHidePrices ? "Preise anzeigen" : "Preise ausblenden",
-                              systemImage: localHidePrices ? "eye" : "eye.slash")
-                    }
-                }
-            }
-
-            // Ticket Notes
-            if let notes = ticket.notes, !notes.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "note.text")
-                            .font(.caption)
-                        Text("Notizen")
-                            .font(.cjCaption)
-                    }
-                    .foregroundStyle(.secondary)
-
-                    Text(notes)
-                        .font(.cjBody)
-                        .foregroundStyle(.primary)
-                }
-                .padding(16)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(.ultraThinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
             }
         }
     }
@@ -826,20 +832,35 @@ struct ConcertDetailView: View {
                             HapticManager.shared.impact(.light)
                             selectedImage = image
                         } label: {
-                            AsyncImage(url: image.url) { image in
-                                image
+                            if let localImage = image.image {
+                                // ✅ Instant: from disk, no network
+                                Image(uiImage: localImage)
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
                                     .frame(width: 240, height: 320)
                                     .clipped()
-                            } placeholder: {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .fill(Color.gray.opacity(0.2))
-                                    ProgressView()
-                                        .tint(dependencies.colorThemeManager.appTint)
+                            } else if let serverUrl = image.url {
+                                // ⬆️ Uploaded: load from server
+                                AsyncImage(url: serverUrl) { phase in
+                                    switch phase {
+                                    case .success(let image):
+                                        image
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                            .frame(width: 240, height: 320)
+                                            .clipped()
+                                    case .failure:
+                                        photoPlaceholder(icon: "exclamationmark.triangle")
+                                    case .empty:
+                                        photoPlaceholder(icon: "photo")
+                                            .overlay { ProgressView() }
+                                    @unknown default:
+                                        photoPlaceholder(icon: "photo")
+                                    }
                                 }
-                                .frame(width: 240, height: 320)
+                            } else {
+                                // Broken state
+                                photoPlaceholder(icon: "photo")
                             }
                         }
                         .buttonStyle(ImageCardButtonStyle())
@@ -852,6 +873,15 @@ struct ConcertDetailView: View {
             .scrollClipDisabled()
             .scrollTargetBehavior(.viewAligned)
         }
+    }
+
+    private func photoPlaceholder(icon: String) -> some View {
+        Rectangle()
+            .fill(Color(.systemGray5))
+            .overlay {
+                Image(systemName: icon)
+                    .foregroundStyle(.secondary)
+            }
     }
 
     @ViewBuilder
@@ -874,7 +904,7 @@ struct ConcertDetailView: View {
         Task {
             do {
                 guard try await eventStore.requestWriteOnlyAccessToEvents() else { return }
-                calendarEvent = viewModel.createCalendarEntry(store: eventStore)
+                calendarEvent = viewModel?.createCalendarEntry(store: eventStore)
                 showCalendarSheet = true
             } catch {
                 print("could not open calendar thingy. Reason:", error)

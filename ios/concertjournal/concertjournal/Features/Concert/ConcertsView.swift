@@ -92,18 +92,14 @@ struct ConcertsView: View {
                     LoadingView()
                 }
             }
+            .frame(maxWidth: .infinity)
             .background(Color.background)
             .task {
                 if viewModel == nil {
-                    guard let userId = dependencies.supabaseClient.currentUserId?.uuidString else {
-                        return
-                    }
-
-                    viewModel = ConcertsViewModel(
-                        concertRepository: dependencies.concertRepository,
-                        userManager: dependencies.userSessionManager,
-                        userId: userId
-                    )
+                    viewModel = ConcertsViewModel(repository: dependencies.offlineConcertRepository,
+                                                  syncManager: dependencies.syncManager)
+                } else {
+                    viewModel?.updateConcerts()
                 }
             }
             .adaptiveSheet(isPresented: $chooseCreateFlowPresenting) {

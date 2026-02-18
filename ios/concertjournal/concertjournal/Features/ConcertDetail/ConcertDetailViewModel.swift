@@ -22,12 +22,25 @@ class ConcertDetailViewModel {
     
     var isLoading: Bool = true
 
+    var photos: [ConcertImage] = []
+
     private var cancellables = Set<AnyCancellable>()
     private let repository: OfflineConcertRepositoryProtocol
+    private let photoRepository: OfflinePhotoRepositoryProtocol
 
-    init(concert: Concert, repository: OfflineConcertRepositoryProtocol) {
+    init(concert: Concert, repository: OfflineConcertRepositoryProtocol, photoRepository: OfflinePhotoRepositoryProtocol) {
         self.concert = concert
         self.repository = repository
+        self.photoRepository = photoRepository
+
+        loadImages()
+    }
+
+    func loadImages() {
+        for (index, image) in concert.imagesArray.enumerated() {
+            let photo = photoRepository.loadImage(for: image)
+            photos.append(ConcertImage(image: photo, urlString: image.serverUrl, id: image.id.uuidString, index: index))
+        }
     }
 
     func createCalendarEntry(store: EKEventStore) -> EKEvent {

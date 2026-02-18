@@ -9,7 +9,7 @@ import Foundation
 import Supabase
 
 protocol VenueRepositoryProtocol {
-    func createVenue(_ venue: CreateVenueDTO) async throws -> String
+    func createVenue(_ venue: VenueDTO) async throws -> String
 }
 
 class BFFVenueRepository: VenueRepositoryProtocol {
@@ -20,11 +20,15 @@ class BFFVenueRepository: VenueRepositoryProtocol {
         self.client = client
     }
     
-    func createVenue(_ venue: CreateVenueDTO) async throws -> String {
+    func createVenue(_ venue: VenueDTO) async throws -> String {
         struct Response: Codable {
             let id: String
         }
         let response: Response = try await client.post("/venues", body: venue)
         return response.id
     }
+}
+
+struct IDResponse: Codable {
+    let id: String
 }

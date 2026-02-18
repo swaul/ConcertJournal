@@ -15,7 +15,7 @@ struct CreateConcertSelectVenueView: View {
 
     @Binding var isPresented: Bool
     
-    let onSelect: (Venue) -> Void
+    let onSelect: (VenueDTO) -> Void
 
     @State var selectedVenue: MKMapItem? = nil
     
@@ -33,7 +33,7 @@ struct CreateConcertSelectVenueView: View {
             .navigationTitle("Venue auswählen")
             .task {
                 guard viewModel == nil else { return }
-                viewModel = VenueSearchViewModel(venueRepository: dependencies.venueRepository)
+                viewModel = VenueSearchViewModel()
             }
         }
     }
@@ -76,7 +76,7 @@ struct CreateConcertSelectVenueView: View {
                         HapticManager.shared.buttonTap()
                         Task {
                             do {
-                                let savedVenue = try await viewModel.saveVenue(venue: venue)
+                                let savedVenue = try await viewModel.parseVenue(venue: venue)
                                 isPresented = false
                                 onSelect(savedVenue)
                             } catch {

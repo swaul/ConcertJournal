@@ -56,7 +56,7 @@ class CreateSetlistViewModel: Hashable, Equatable, Identifiable {
     private let spotifyRepository: SpotifyRepositoryProtocol
     private let setlistRepository: SetlistRepositoryProtocol
 
-    init(currentSelection: [TempCeateSetlistItem], artist: Artist? = nil, spotifyRepository: SpotifyRepositoryProtocol, setlistRepository: SetlistRepositoryProtocol) {
+    init(currentSelection: [TempCeateSetlistItem], artist: ArtistDTO? = nil, spotifyRepository: SpotifyRepositoryProtocol, setlistRepository: SetlistRepositoryProtocol) {
         self.id = UUID()
         self.spotifyRepository = spotifyRepository
         self.setlistRepository = setlistRepository

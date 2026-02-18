@@ -37,3 +37,17 @@ extension Travel {
         return TravelType(rawValue: travelType)
     }
 }
+
+extension Travel {
+
+    func toDTO() -> TravelDTO? {
+        TravelDTO(
+            travelType: travelTypeEnum,
+            travelDuration: travelDuration,
+            travelDistance: travelDistance,
+            arrivedAt: arrivedAt,
+            travelExpenses: travelExpenses?.toDTO(),
+            hotelExpenses: hotelExpenses?.toDTO()
+        )
+    }
+}

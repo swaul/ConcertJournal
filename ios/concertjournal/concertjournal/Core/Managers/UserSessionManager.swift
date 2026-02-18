@@ -12,6 +12,7 @@ protocol UserSessionManagerProtocol {
     var providerRefreshToken: String? { get }
 
     var userSessionChanged: AnyPublisher<User?, Never> { get }
+    var state: UserSessionState { get }
 
     func start() async throws
     func loadUser() async throws -> User
@@ -44,7 +45,7 @@ enum UserError: Error, LocalizedError {
 
 // MARK: - Session State
 
-enum UserSessionState {
+enum UserSessionState: Equatable {
     case loggedOut
     case initializing
     case loggedIn(User)
@@ -112,8 +113,10 @@ final class UserSessionManager: UserSessionManagerProtocol {
         // Get current session
         let currentSession: Session?
         if let session {
+            logSuccess("Session found!", category: .auth)
             currentSession = session
         } else {
+            logInfo("Trying to establish session", category: .auth)
             currentSession = try? await client.auth.session
         }
 
@@ -196,7 +199,6 @@ final class UserSessionManager: UserSessionManagerProtocol {
             let user = try await client.auth.user()
             self.user = user
             state = .loggedIn(user)
-            userSessionChangedSubject.send(user)
             return user
         } catch {
             state = .loggedOut
@@ -208,8 +210,12 @@ final class UserSessionManager: UserSessionManagerProtocol {
 
     /// Updates the current session
     private func update(session: Session?) async throws {
+        logInfo("Updating UserSessionManager with userId: \(session?.user.id.uuidString ?? "No session")", category: .auth)
         self.session = session
         self.user = session?.user
+        if let userId = session?.user.id {
+            UserDefaults.standard.set(userId.uuidString, forKey: "currentUserId")
+        }
 
         if let user = session?.user {
             state = .loggedIn(user)

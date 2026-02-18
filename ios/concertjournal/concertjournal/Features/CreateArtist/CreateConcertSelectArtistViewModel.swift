@@ -32,8 +32,12 @@ class CreateConcertSelectArtistViewModel {
 
     func searchArtists(with text: String) {
         Task {
-            let result = try await spotifyRepository.searchArtists(query: text, limit: 10, offset: 0)
-            artistsResponse = result
+            do {
+                let result = try await spotifyRepository.searchArtists(query: text, limit: 10, offset: 0)
+                artistsResponse = result
+            } catch {
+                logError("Searching artist failed", error: error, category: .network)
+            }
         }
     }
 

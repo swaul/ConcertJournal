@@ -26,21 +26,3 @@ public struct VenueDTO: Codable, Equatable, Hashable {
         case appleMapsId = "apple_maps_id"
     }
 }
-
-public struct CreateVenueDTO: Encodable {
-    var name: String
-    var city: String?
-    var formattedAddress: String
-    var latitude: Double?
-    var longitude: Double?
-    var appleMapsId: String?
-
-    enum CodingKeys: String, CodingKey {
-        case name
-        case city
-        case formattedAddress = "formatted_address"
-        case latitude
-        case longitude
-        case appleMapsId = "apple_maps_id"
-    }
-}

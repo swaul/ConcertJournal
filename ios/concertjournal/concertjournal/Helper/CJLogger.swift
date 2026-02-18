@@ -66,7 +66,7 @@ struct LogEntry {
     }
 
     var formattedMessage: String {
-        "\(level.rawValue) \(category.rawValue) - \(message)"
+        "CJLog: \(level.rawValue) \(category.rawValue) - \(message)"
     }
 }
 
@@ -110,7 +110,7 @@ final class CJLogger {
 
         let logger = Logger(subsystem: subsystem, category: category.rawValue)
         let fileName = (file as NSString).lastPathComponent
-        let formattedMessage = "[\(fileName):\(line)] \(function) - \(message)"
+        let formattedMessage = "- CJLOG [\(fileName):\(line)] \(function) - \(message)"
 
         // Log to OSLog
         logger.log(level: level.osLogType, "\(level.rawValue) \(formattedMessage)")

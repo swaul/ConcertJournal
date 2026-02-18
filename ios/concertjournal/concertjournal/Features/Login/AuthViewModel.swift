@@ -30,10 +30,6 @@ final class AuthViewModel {
     ) {
         self.supabaseClient = supabaseClient
         self.userSessionManager = userSessionManager
-
-        Task {
-            await refreshSessionState()
-        }
     }
 
     // MARK: - Email Authentication
@@ -188,7 +184,7 @@ struct CreatePlaylistButton: View {
         .padding(6)
         .background { Color.black }
         .clipShape(RoundedRectangle(cornerRadius: 20))
-        .disabled(viewModel.isLoading || viewModel.setlistItems?.isEmpty == true)
+        .disabled(viewModel.isLoading)
         .alert("Playlist Created", isPresented: $showingSuccess) {
             Button("OK") { }
 

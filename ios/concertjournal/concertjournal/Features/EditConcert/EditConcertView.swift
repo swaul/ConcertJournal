@@ -20,11 +20,11 @@ struct ConcertEditView: View {
     @State private var notes: String
     @State private var rating: Int
     @State private var venueName: String
-    @State private var supportActs: [Artist]
-    @State private var travel: Travel?
-    @State private var ticket: Ticket?
+    @State private var supportActs: [ArtistDTO]
+    @State private var travel: TravelDTO?
+    @State private var ticket: TicketDTO?
 
-    @State private var venue: Venue?
+    @State private var venue: VenueDTO?
     @State private var setlistItems: [TempCeateSetlistItem]
 
     @State private var selectVenuePresenting = false
@@ -44,9 +44,9 @@ struct ConcertEditView: View {
         _notes = State(initialValue: concert.notes ?? "")
         _rating = State(initialValue: Int(concert.rating == -1 ? 0 : concert.rating))
         _venueName = State(initialValue: concert.venue?.name ?? "")
-        _venue = State(initialValue: concert.venue)
-        _travel = State(initialValue: concert.travel)
-        _ticket = State(initialValue: concert.ticket)
+        _venue = State(initialValue: concert.venue?.toDTO())
+        _travel = State(initialValue: concert.travel?.toDTO())
+        _ticket = State(initialValue: concert.ticket?.toDTO())
         if !concert.setlistItemsArray.isEmpty {
             let tempSetlistItems = concert.setlistItemsArray.map { TempCeateSetlistItem(setlistItem: $0) }
             _setlistItems = State(initialValue: tempSetlistItems)
@@ -54,7 +54,7 @@ struct ConcertEditView: View {
             _setlistItems = State(initialValue: [])
         }
         if !concert.supportActsArray.isEmpty {
-            _supportActs = State(initialValue: concert.supportActsArray)
+            _supportActs = State(initialValue: concert.supportActsArray.map { $0.toDTO() })
         } else {
             _supportActs = State(initialValue: [])
         }
@@ -422,7 +422,7 @@ struct ConcertEditView: View {
                         .padding(.horizontal)
                 }
 
-                if let ticketPrice = concert.ticketPrice {
+                if let ticketPrice = concert.ticket?.ticketPrice {
                     HStack {
                         Text("Ticketpreis:")
                             .font(.cjHeadline)
@@ -460,7 +460,7 @@ struct ConcertEditView: View {
             }
         }
         .sheet(isPresented: $presentTicketEdit) {
-            CreateConcertTicket(artist: concert.artist, ticketInfo: ticket) { editedTicket in
+            CreateConcertTicket(artist: concert.artist.toDTO(), ticketInfo: ticket) { editedTicket in
                 self.ticket = editedTicket
                 presentTicketEdit = false
             }
@@ -493,13 +493,13 @@ struct ConcertUpdate {
     let date: Date
     let openingTime: Date?
     let notes: String?
-    let venue: Venue?
+    let venue: VenueDTO?
     let city: String?
     let rating: Int?
     
-    let travel: Travel?
-    let ticket: Ticket?
-    let supportActs: [Artist]?
+    let travel: TravelDTO?
+    let ticket: TicketDTO?
+    let supportActs: [ArtistDTO]?
     let setlistItems: [TempCeateSetlistItem]?
     let photos: [ConcertPhoto]
 }

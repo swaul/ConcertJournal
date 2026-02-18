@@ -1,8 +1,6 @@
 //
-//  ContentView.swift
+//  ConcertsViewModel.swift
 //  concertjournal
-//
-//  Created by Paul Kühnel on 19.12.25.
 //
 
 import SwiftUI
@@ -10,7 +8,7 @@ import CoreData
 import Combine
 
 @Observable
-class ConcertsViewModel {
+class ConcertsViewModel: NSObject, NSFetchedResultsControllerDelegate {
 
     // MARK: - State
 
@@ -26,7 +24,6 @@ class ConcertsViewModel {
 
     private let repository: OfflineConcertRepositoryProtocol
     private let syncManager: SyncManager
-    private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Core Data
 
@@ -37,8 +34,9 @@ class ConcertsViewModel {
         self.repository = repository
         self.syncManager = syncManager
 
+        super.init()
+
         setupFetchedResultsController()
-        observeCoreDataChanges()
 
         // Auto-sync on init
         Task {
@@ -51,13 +49,11 @@ class ConcertsViewModel {
     private func setupFetchedResultsController() {
         let request: NSFetchRequest<Concert> = Concert.fetchRequest()
 
-        // Filter out deleted
         request.predicate = NSPredicate(
             format: "syncStatus != %@",
             SyncStatus.deleted.rawValue
         )
 
-        // Sort by date
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \Concert.date, ascending: false)
         ]
@@ -69,49 +65,45 @@ class ConcertsViewModel {
             cacheName: nil
         )
 
-        try? fetchedResultsController?.performFetch()
+        // ✅ Delegate setzen – so werden UI-Updates automatisch getriggert
+        fetchedResultsController?.delegate = self
 
-        // Initial load
+        try? fetchedResultsController?.performFetch()
         updateConcerts()
     }
 
-    private func observeCoreDataChanges() {
-        // Listen to Core Data changes
-        NotificationCenter.default.publisher(
-            for: .NSManagedObjectContextObjectsDidChange,
-            object: coreData.viewContext
-        )
-        .sink { [weak self] _ in
-            self?.updateConcerts()
-        }
-        .store(in: &cancellables)
+    // MARK: - NSFetchedResultsControllerDelegate
+
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        updateConcerts()
     }
 
-    private func updateConcerts() {
-        let concerts = fetchedResultsController?.fetchedObjects ?? []
-            let now = Date.now
+    // MARK: - Update from FRC
 
+    func updateConcerts() {
+        let concerts = fetchedResultsController?.fetchedObjects ?? []
+        let now = Date.now
         let calendar = Calendar.current
+
         concertToday = concerts.first(where: { calendar.isDateInToday($0.date) })
+
         let concertsWithoutToday = concerts.filter {
             guard let todayId = concertToday?.id else { return true }
             return $0.id != todayId
         }
 
-        let futureConcerts = concertsWithoutToday.filter { $0.date > now }
-        let pastConcerts = concertsWithoutToday.filter { $0.date <= now }
+        let future = concertsWithoutToday.filter { $0.date > now }
+        let past   = concertsWithoutToday.filter { $0.date <= now }
 
         withAnimation {
-            self.futureConcerts = futureConcerts.sorted(by: { $0.date < $1.date })
-            self.pastConcerts = pastConcerts
+            self.futureConcerts = future.sorted(by: { $0.date < $1.date })
+            self.pastConcerts   = past
         }
     }
 
-    // MARK: - Actions (Always Instant!)
+    // MARK: - Actions
 
     func loadConcerts() {
-        // ✅ Already loaded from Core Data via FetchedResultsController!
-        // Just trigger a background sync
         Task {
             await autoSync()
         }
@@ -132,7 +124,7 @@ class ConcertsViewModel {
     func deleteConcert(_ concert: Concert) async {
         do {
             try repository.deleteConcert(concert)
-            // UI updates automatically via FetchedResultsController!
+            // UI aktualisiert sich automatisch via FRC Delegate
         } catch {
             errorMessage = "Delete failed: \(error.localizedDescription)"
         }
@@ -141,7 +133,6 @@ class ConcertsViewModel {
     // MARK: - Auto Sync
 
     private func autoSync() async {
-        // Check if should sync
         guard shouldAutoSync() else { return }
 
         do {
@@ -153,7 +144,6 @@ class ConcertsViewModel {
     }
 
     private func shouldAutoSync() -> Bool {
-        // Sync max every 5 minutes
         let lastSync = UserDefaults.standard.object(forKey: "lastAutoSync") as? Date ?? .distantPast
         return Date().timeIntervalSince(lastSync) > 300
     }

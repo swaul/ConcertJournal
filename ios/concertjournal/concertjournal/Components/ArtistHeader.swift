@@ -9,8 +9,8 @@ import SwiftUI
 
 struct ArtistHeader: View {
     
-    let artist: Artist
-    
+    let artist: any ArtistChip
+
     var body: some View {
         ZStack {
             Group {

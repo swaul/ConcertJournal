@@ -56,3 +56,13 @@ extension Price {
         }
     }
 }
+
+extension Price {
+
+    func toDTO() -> PriceDTO {
+        PriceDTO(
+            value: Decimal(value),
+            currency: currency
+        )
+    }
+}

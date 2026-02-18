@@ -44,3 +44,21 @@ extension Ticket {
         TicketCategory(rawValue: ticketCategory)
     }
 }
+
+extension Ticket {
+
+    func toDTO() -> TicketDTO? {
+        guard let ticketType = ticketTypeEnum else { return nil }
+
+        return TicketDTO(
+            ticketType: ticketType,
+            ticketCategory: ticketCategoryEnum ?? .regular,
+            ticketPrice: ticketPrice?.toDTO(),
+            seatBlock: seatBlock,
+            seatRow: seatRow,
+            seatNumber: seatNumber,
+            standingPosition: standingPosition,
+            notes: notes
+        )
+    }
+}

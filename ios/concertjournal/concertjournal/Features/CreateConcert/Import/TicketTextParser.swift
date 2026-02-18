@@ -155,22 +155,13 @@ class TicketTextParser {
         let bestMatch = result.mapItems.first
 
         if let bestMatch, let name = bestMatch.name {
-            let venue = CreateVenueDTO(name: name,
+            return VenueDTO(id: UUID().uuidString,
+                            name: name,
                                        city: bestMatch.addressRepresentations?.cityName,
                                        formattedAddress: bestMatch.addressRepresentations?.fullAddress(includingRegion: false, singleLine: true) ?? "",
                                        latitude: bestMatch.location.coordinate.latitude,
                                        longitude: bestMatch.location.coordinate.longitude,
                                        appleMapsId: bestMatch.identifier?.rawValue)
-
-            let createdVenueId = try await venueRepository.createVenue(venue)
-
-            return VenueDTO(id: createdVenueId,
-                         name: name,
-                         city: venue.city,
-                         formattedAddress: venue.formattedAddress,
-                         latitude: venue.latitude,
-                         longitude: venue.longitude,
-                         appleMapsId: venue.appleMapsId)
         } else {
             return nil
         }

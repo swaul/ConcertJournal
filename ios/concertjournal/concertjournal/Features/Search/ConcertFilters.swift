@@ -292,8 +292,7 @@ extension ConcertFilters {
         // Apply rating filter
         if ratingFilter != .all {
             filtered = filtered.filter { concert in
-                guard let rating = concert.rating else { return false }
-                return rating >= ratingFilter.rawValue
+                return concert.rating >= ratingFilter.rawValue
             }
         }
 

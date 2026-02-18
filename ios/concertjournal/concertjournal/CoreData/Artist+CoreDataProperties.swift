@@ -32,3 +32,14 @@ extension Artist {
 extension Artist : Identifiable {
 
 }
+
+extension Artist {
+
+    func toDTO() -> ArtistDTO {
+        ArtistDTO(id: serverId ?? id.uuidString,
+            name: name,
+            imageUrl: imageUrl,
+            spotifyArtistId: spotifyArtistId
+        )
+    }
+}

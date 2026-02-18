@@ -56,7 +56,7 @@ struct TravelDTO: Identifiable, Equatable, Codable {
 }
 
 public enum TravelType: String, Codable, CaseIterable, Identifiable {
-    var id: String {
+    public var id: String {
         rawValue
     }
 

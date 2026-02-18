@@ -8,10 +8,10 @@
 import SwiftUI
 
 struct CreateConcertSelectArtistView: View {
-    
+
     @Environment(\.dependencies) private var dependencies
 
-    init(isPresented: Binding<Bool>, didSelectArtist: @escaping (Artist) -> Void) {
+    init(isPresented: Binding<Bool>, didSelectArtist: @escaping (ArtistDTO) -> Void) {
         self.didSelectArtist = didSelectArtist
         self._isPresented = isPresented
     }
@@ -19,8 +19,8 @@ struct CreateConcertSelectArtistView: View {
     @State var viewModel: CreateConcertSelectArtistViewModel? = nil
 
     @Binding var isPresented: Bool
-    
-    var didSelectArtist: (Artist) -> Void?
+
+    var didSelectArtist: (ArtistDTO) -> Void?
 
     @State var artistName: String = ""
     @State var hasText: Bool = false
@@ -28,11 +28,11 @@ struct CreateConcertSelectArtistView: View {
     @State var didSearch: Bool = false
 
     @State var selectedArtist: String? = nil
-    
+
     @FocusState var textFieldFocused: Bool
-    
+
     @Namespace var selection
-    
+
     var body: some View {
         NavigationStack {
             Group {
@@ -107,6 +107,7 @@ struct CreateConcertSelectArtistView: View {
                 .onSubmit {
                     HapticManager.shared.navigationTap()
                     viewModel.searchArtists(with: artistName)
+                    didSearch = true
                     textFieldFocused = false
                 }
                 .onChange(of: artistName) { _, newValue in
@@ -158,7 +159,7 @@ struct CreateConcertSelectArtistView: View {
             .clipShape(.circle)
             .frame(width: 80, height: 80)
             .padding()
-            
+
             VStack(alignment: .leading, spacing: 8) {
                 Text(artist.name)
                     .font(.cjBody)
@@ -168,7 +169,7 @@ struct CreateConcertSelectArtistView: View {
             }
             .padding(.vertical)
             .padding(.trailing)
-            
+
             Spacer()
         }
         .selectedGlass(selected: selectedArtist == artist.id)
@@ -202,8 +203,8 @@ struct CreateConcertSelectArtistView: View {
             Text(artist.name)
                 .font(.cjBody)
                 .bold()
-            .padding(.vertical)
-            .padding(.trailing)
+                .padding(.vertical)
+                .padding(.trailing)
 
             Spacer()
         }
@@ -212,17 +213,12 @@ struct CreateConcertSelectArtistView: View {
 
 
     private func selectArtist(viewModel: CreateConcertSelectArtistViewModel) {
-        do {
-            if let artist = viewModel.artistsResponse.first(where: { $0.id == selectedArtist }) {
-                let savedArtist = try dependencies.offlineConcertRepository.presaveArtist(ArtistDTO(artist: artist))
-                didSelectArtist(savedArtist)
-                isPresented = false
-            } else if let artist = viewModel.currentArtists.first(where: { $0.id.uuidString == selectedArtist }) {
-                didSelectArtist(artist)
-                isPresented = false
-            }
-        } catch {
-            logError("Selecting artist failed", error: error)
+        if let artist = viewModel.artistsResponse.first(where: { $0.id == selectedArtist }) {
+            didSelectArtist(ArtistDTO(artist: artist))
+            isPresented = false
+        } else if let artist = viewModel.currentArtists.first(where: { $0.id.uuidString == selectedArtist }) {
+            didSelectArtist(artist.toDTO())
+            isPresented = false
         }
     }
 }

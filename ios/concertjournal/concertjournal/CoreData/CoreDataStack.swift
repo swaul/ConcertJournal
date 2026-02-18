@@ -8,42 +8,36 @@
 import CoreData
 import Combine
 
-@MainActor
-class CoreDataStack: ObservableObject {
+class CoreDataStack {
 
-    static let shared = CoreDataStack()
+    static var shared = CoreDataStack()
 
-    // Publisher for data changes
     let didChange = PassthroughSubject<Void, Never>()
 
-    // Persistent Container
-    lazy var persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "ConcertJournal")
+    let persistentContainer: NSPersistentContainer
 
-        container.loadPersistentStores { storeDescription, error in
+    init() {
+        persistentContainer = NSPersistentContainer(name: "CJModels")
+
+        persistentContainer.loadPersistentStores { _, error in
             if let error = error as NSError? {
-                fatalError("Unresolved error \(error), \(error.userInfo)")
+                fatalError("Core Data failed to load: \(error), \(error.userInfo)")
             }
-
-            // Enable automatic merging
-            container.viewContext.automaticallyMergesChangesFromParent = true
-            container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+            logSuccess("Loaded Persistent Stores successfully")
         }
 
-        return container
-    }()
+        persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
+        persistentContainer.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+    }
 
-    // Main context (UI thread)
     var viewContext: NSManagedObjectContext {
         return persistentContainer.viewContext
     }
 
-    // Background context (for sync)
     func newBackgroundContext() -> NSManagedObjectContext {
         return persistentContainer.newBackgroundContext()
     }
 
-    // Save context
     func save() {
         let context = viewContext
 

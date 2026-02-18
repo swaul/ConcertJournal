@@ -5,14 +5,15 @@
 //  Dependency Container - hier werden alle Dependencies erstellt und verwaltet
 //
 
+import Combine
 import SwiftUI
 import Supabase
 
 class DependencyContainer {
-    
+
     // BFF Client
     let bffClient: BFFClient
-    let coreDataStack: CoreDataStack
+    let coreData = CoreDataStack.shared
 
     // Managers (bleiben lokal)
     let supabaseClient: SupabaseClientManager
@@ -21,30 +22,32 @@ class DependencyContainer {
     let storageService: StorageServiceProtocol
     let syncManager: SyncManager
 
-    // ✅ BFF Repositories
+    // BFF Repositories
     let offlineConcertRepository: OfflineConcertRepositoryProtocol
+    let offlinePhotoRepsitory: OfflinePhotoRepositoryProtocol
     let concertRepository: ConcertRepositoryProtocol
     let artistRepository: ArtistRepositoryProtocol
     let venueRepository: VenueRepositoryProtocol
     let setlistRepository: SetlistRepositoryProtocol
     let photoRepository: PhotoRepositoryProtocol
     let spotifyRepository: SpotifyRepositoryProtocol
-    
+
     // Local repositories
     let faqRepository: FAQRepositoryProtocol
     let localizationRepository: LocalizationRepository
-    
+
+    private var cancellables = Set<AnyCancellable>()
+
     init() {
         // BFF Client
         self.bffClient = BFFClient(baseURL: "https://concertjournal-bff.vercel.app")
-        self.coreDataStack = CoreDataStack()
 
         // Managers
         self.supabaseClient = SupabaseClientManager()
         self.userSessionManager = UserSessionManager(client: supabaseClient.client)
         self.colorThemeManager = ColorThemeManager()
         self.storageService = StorageService(supabaseClient: supabaseClient)
-        self.syncManager = SyncManager(apiClient: bffClient, coreData: coreDataStack)
+        self.syncManager = SyncManager(apiClient: bffClient, userSessionManager: userSessionManager)
 
         // ✅ BFF Client needs auth token
         self.bffClient.getAuthToken = { [weak supabaseClient] in
@@ -53,19 +56,38 @@ class DependencyContainer {
             }
             return session.accessToken
         }
-        
+
         // ✅ BFF Repositories
         self.offlineConcertRepository = OfflineConcertRepository(syncManager: syncManager)
+        self.offlinePhotoRepsitory = OfflinePhotoRepository()
         self.concertRepository = BFFConcertRepository(client: bffClient)
         self.artistRepository = BFFArtistRepository(client: bffClient)
         self.venueRepository = BFFVenueRepository(client: bffClient)
         self.setlistRepository = BFFSetlistRepository(client: bffClient)
         self.photoRepository = PhotoRepository(supabaseClient: supabaseClient, storageService: storageService)
         self.spotifyRepository = SpotifyRepository(userSessionManager: userSessionManager)
-        
+
         // Local repositories (stay unchanged)
         self.faqRepository = FAQRepository(supabaseClient: supabaseClient)
         self.localizationRepository = LocalizationRepository(supabaseClient: supabaseClient)
+
+        bindToAuthState()
+    }
+
+    func bindToAuthState() {
+        userSessionManager.userSessionChanged
+            .sink { [weak self] user in
+                if let self, user != nil {
+                    self.startFullSync()
+                }
+            }
+            .store(in: &cancellables)
+    }
+
+    func startFullSync() {
+        Task {
+            try? await syncManager.fullSync()
+        }
     }
 }
 // MARK: - Environment Key für Dependency Injection

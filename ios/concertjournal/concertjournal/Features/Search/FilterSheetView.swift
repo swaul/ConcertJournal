@@ -375,7 +375,7 @@ struct FilterChipView: View {
         .padding(.vertical, 6)
         .background(
             Capsule()
-                .fill(Color(uiColor: .systemBackground))
+                .fill(Color.background)
         )
         .background(
             Capsule()

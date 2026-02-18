@@ -29,15 +29,19 @@ struct MapView: View {
             @Bindable var navigationManager = navigationManager
 
             Group {
-                if let viewModel, !viewModel.isLoading {
+                if let viewModel {
                     map(viewModel: viewModel)
                 } else {
                     LoadingView()
                 }
             }
             .task {
-                guard viewModel == nil else { return }
-                viewModel = MapViewModel(concertRepository: dependencies.concertRepository)
+                guard viewModel == nil else {
+                    viewModel?.refresh()
+                    return
+                }
+
+                viewModel = MapViewModel()
             }
         }
     }
@@ -48,7 +52,8 @@ struct MapView: View {
             ForEach(viewModel.concertLocations) { item in
                 Annotation(item.venueName, coordinate: item.coordinates) {
                     Text("\(item.concerts.count)")
-                        .font(.cjBody)
+                        .font(.cjTitle)
+                        .foregroundStyle(dependencies.colorThemeManager.appTint)
                         .bold()
                         .frame(minWidth: 10)
                         .padding()
@@ -72,10 +77,6 @@ struct MapView: View {
                         }
                 }
             }
-        }
-        .onChange(of: viewModel.concertLocations) { _, newValue in
-            position = .region(MKCoordinateRegion(center: Self.centerCoordinate(of: newValue),
-                                                  span: MKCoordinateSpan(latitudeDelta: 0.5, longitudeDelta: 0.5)))
         }
         .toolbar {
             if let defaultPosition {
@@ -106,7 +107,6 @@ struct MapView: View {
                 .presentationDetents([.height(330), .large], selection: $selectedDetent)
                 .presentationDragIndicator(.visible)
                 .presentationBackgroundInteraction(.enabled)
-                .interactiveDismissDisabled()
         }
         .onChange(of: selectedDetent) { _, newValue in
             let height: CGFloat
@@ -117,7 +117,7 @@ struct MapView: View {
                 height = 0
             }
 
-            withAnimation {
+            withAnimation(.easeInOut(duration: 0.8).delay(0.3)) {
                 detentHeight = height
             }
         }
@@ -139,7 +139,7 @@ struct MapView: View {
                     .bold()
                     .font(.cjTitle)
                     .padding()
-                    .glassEffect()
+                    .rectangleGlass()
                 Spacer()
                 Button {
                     withAnimation(.easeInOut(duration: 0.2)) {
@@ -163,7 +163,7 @@ struct MapView: View {
                         } label: {
                             HStack {
                                 VStack {
-                                    Text(concert.date.supabseDateString)
+                                    Text(concert.date.shortDateOnlyString)
                                         .font(.cjCaption)
                                         .foregroundStyle(.secondary)
                                         .frame(width: 60)
@@ -207,6 +207,7 @@ struct MapView: View {
                     .padding(.bottom)
                 }
             }
+            .scrollBounceBehavior(.basedOnSize)
         }
     }
 
@@ -219,24 +220,17 @@ struct MapView: View {
             )
         )
     }
-
-    static func centerCoordinate(of items: [ConcertMapItem]) -> CLLocationCoordinate2D {
-        let latitudes = items.map { $0.coordinates.latitude }
-        let longitudes = items.map { $0.coordinates.longitude }
-
-        return CLLocationCoordinate2D(
-            latitude: latitudes.reduce(0, +) / Double(latitudes.count),
-            longitude: longitudes.reduce(0, +) / Double(longitudes.count)
-        )
-    }
 }
 
 struct ConcertMapItem: Identifiable, Equatable {
     static func == (lhs: ConcertMapItem, rhs: ConcertMapItem) -> Bool {
-        lhs.id == rhs.id
+        lhs.venueName == rhs.venueName
     }
-    
-    let id = UUID()
+
+    var id: String {
+        venueName
+    }
+
     let venueName: String
     let coordinates: CLLocationCoordinate2D
     let concerts: [Concert]
