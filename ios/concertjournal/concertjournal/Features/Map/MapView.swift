@@ -24,6 +24,8 @@ struct MapView: View {
     @State private var selectedDetent: PresentationDetent = .height(330)
     @State private var detentHeight: CGFloat = 330
 
+    @State private var triggerWobble: Bool = false
+    
     var body: some View {
         NavigationStack {
             @Bindable var navigationManager = navigationManager
@@ -37,7 +39,6 @@ struct MapView: View {
             }
             .task {
                 guard viewModel == nil else {
-                    viewModel?.refresh()
                     return
                 }
 
@@ -51,20 +52,14 @@ struct MapView: View {
         Map(position: $position) {
             ForEach(viewModel.concertLocations) { item in
                 Annotation(item.venueName, coordinate: item.coordinates) {
-                    Text("\(item.concerts.count)")
-                        .font(.cjTitle)
-                        .foregroundStyle(dependencies.colorThemeManager.appTint)
-                        .bold()
-                        .frame(minWidth: 10)
-                        .padding()
-                        .glassEffect(in: Circle())
+                    ConcertMapPin(concert: item, triggerWobble: $triggerWobble)
                         .onTapGesture {
                             let targetRegion = region(for: item)
                             pendingItem = item
-
+                            
                             if let currentRegion = position.region,
                                currentRegion.isApproximatelyEqual(to: targetRegion) {
-
+                                
                                 withAnimation(.easeInOut(duration: 0.3)) {
                                     selectedItem = item
                                     pendingItem = nil
@@ -94,6 +89,7 @@ struct MapView: View {
             }
         }
         .onMapCameraChange(frequency: .onEnd) {
+            triggerWobble.toggle()
             if let pendingItem {
                 withAnimation(.easeInOut(duration: 0.35).delay(0.2)) {
                     selectedItem = pendingItem
@@ -234,9 +230,87 @@ struct ConcertMapItem: Identifiable, Equatable {
     let venueName: String
     let coordinates: CLLocationCoordinate2D
     let concerts: [Concert]
+    let artists: [Artist]
 
     var title: String {
         concerts.count == 1 ? concerts.first!.title ?? concerts.first!.artist.name : "\(concerts.count) Konzerte"
+    }
+}
+
+struct ConcertMapPin: View {
+    @Environment(\.dependencies) var dependencies
+
+    let concert: ConcertMapItem
+    @State private var showArtists = false
+    @Binding var triggerWobble: Bool
+    
+    // Positionen im Kreis um den Pin herum
+    func offset(for index: Int, total: Int) -> CGSize {
+        let angle = (2 * .pi / Double(total)) * Double(index) - .pi / 2
+        let radius: Double = 50
+        return CGSize(
+            width: cos(angle) * radius,
+            height: sin(angle) * radius
+        )
+    }
+    
+    var body: some View {
+        ZStack {
+            // Kleine Artist-Bilder rundherum
+            ForEach(Array(concert.artists.enumerated()), id: \.offset) { index, artist in
+                ArtistBubble(artist: artist)
+                    .offset(showArtists ? offset(for: index, total: concert.artists.count) : .zero)
+                    .scaleEffect(showArtists ? 1 : 0.3)
+                    .opacity(showArtists ? 1 : 0)
+                    .animation(
+                        .spring(response: 0.4, dampingFraction: 0.6)
+                        .delay(Double(index) * 0.08), // Staffelung wie beim Mac
+                        value: showArtists
+                    )
+                    .keyframeAnimator(initialValue: 1.0, trigger: triggerWobble) { view, scale in
+                        view.scaleEffect(scale)
+                    } keyframes: { _ in
+                        SpringKeyframe(1.15, duration: 0.15)
+                        SpringKeyframe(0.95, duration: 0.15)
+                        SpringKeyframe(1.0, duration: 0.2)
+                    }
+            }
+            
+            Text("\(concert.concerts.count)")
+                .font(.cjTitle)
+                .foregroundStyle(dependencies.colorThemeManager.appTint)
+                .bold()
+                .frame(minWidth: 10)
+                .padding()
+                .glassEffect(in: Circle())
+        }
+        .onAppear {
+            withAnimation {
+                showArtists = true
+            }
+        }
+    }
+}
+
+struct ArtistBubble: View {
+    @Environment(\.dependencies) var dependencies
+
+    let artist: Artist
+    
+    var imageUrl: URL? {
+        URL(string: artist.imageUrl ?? "")
+    }
+    
+    var body: some View {
+        AsyncImage(url: imageUrl) { image in
+            image.resizable()
+        } placeholder: {
+            Circle().fill(.gray.opacity(0.3))
+        }
+        .frame(width: 40, height: 40)
+        .clipShape(Circle())
+        .overlay(Circle().stroke(dependencies.colorThemeManager.appTint.opacity(0.2), lineWidth: 2))
+        .shadow(radius: 3)
     }
 }
 

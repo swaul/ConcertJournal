@@ -12,7 +12,7 @@ import Foundation
 import MapKit
 
 @Observable
-class MapViewModel {
+class MapViewModel: NSObject, NSFetchedResultsControllerDelegate  {
 
     private let coreData = CoreDataStack.shared
     private var fetchedResultsController: NSFetchedResultsController<Concert>?
@@ -25,11 +25,13 @@ class MapViewModel {
     var errorMessage: String?
     var concertLocations: [ConcertMapItem] = []
 
-    init() {
+    override init() {
+        super.init()
+
         setupFetchedResultsController()
     }
-
-    func refresh() {
+    
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         updateConcerts()
     }
 
@@ -54,22 +56,12 @@ class MapViewModel {
             cacheName: nil
         )
 
+        fetchedResultsController?.delegate = self
+
         try? fetchedResultsController?.performFetch()
 
         // Initial load
         updateConcerts()
-    }
-
-    private func observeCoreDataChanges() {
-        // Listen to Core Data changes
-        NotificationCenter.default.publisher(
-            for: .NSManagedObjectContextObjectsDidChange,
-            object: coreData.viewContext
-        )
-        .sink { [weak self] _ in
-            self?.updateConcerts()
-        }
-        .store(in: &cancellables)
     }
 
     private func updateConcerts() {
@@ -108,7 +100,8 @@ class MapViewModel {
             return ConcertMapItem(
                 venueName: venue.name,
                 coordinates: CLLocationCoordinate2D(latitude: lat, longitude: lon),
-                concerts: concerts
+                concerts: concerts,
+                artists: Array(Set(concerts.compactMap { $0.artist }))
             )
         }
     }

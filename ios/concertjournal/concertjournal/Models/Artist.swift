@@ -9,7 +9,7 @@ import Foundation
 import Supabase
 import CoreData
 
-public struct ArtistDTO: Codable, Hashable, Identifiable {
+public struct ArtistDTO: Sendable, nonisolated Codable, Hashable, Identifiable {
 
     public let id: String
     let name: String

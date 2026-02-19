@@ -65,7 +65,6 @@ class ConcertsViewModel: NSObject, NSFetchedResultsControllerDelegate {
             cacheName: nil
         )
 
-        // ✅ Delegate setzen – so werden UI-Updates automatisch getriggert
         fetchedResultsController?.delegate = self
 
         try? fetchedResultsController?.performFetch()

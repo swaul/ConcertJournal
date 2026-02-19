@@ -122,7 +122,7 @@ class SyncManager {
 
         try await context.perform {
             for serverConcert in response.concerts {
-                try self.mergeConcertFromServerSync(serverConcert, context: context)
+                Task { try await self.mergeConcertFromServerSync(serverConcert, context: context) }
             }
             for deletedId in response.deleted {
                 self.deleteConcertFromServerSync(deletedId, context: context)
@@ -185,6 +185,33 @@ class SyncManager {
         }
 
         guard var payload else { return }
+        
+        if payload.artistServerId == nil {
+            logInfo("Concert in sync has artist \"\(payload.artist.name)\" which does not exist on the server", category: .sync)
+            logInfo("Creating \"\(payload.artist.name)\"", category: .sync)
+            let serverArtist: ArtistDTO = try await apiClient.post("/artists", body: CreateArtistDTO(artist: payload.artist))
+            logSuccess("Successfully created \"\(payload.artist.name)\"", category: .sync)
+            payload.artistServerId = serverArtist.id
+        }
+        if let venue = payload.venue, payload.venueServerId == nil {
+            logInfo("Concert in sync has venue \"\(venue.name)\" which does not exist on the server", category: .sync)
+            logInfo("Creating \"\(venue.name)\"", category: .sync)
+            let serverVenue: IDResponse = try await apiClient.post("/venues", body: venue)
+            logSuccess("Successfully created \"\(venue.name)\"", category: .sync)
+            payload.venueServerId = serverVenue.id
+        }
+        if payload.supportActServerIds?.count != payload.supportActs?.count {
+            logInfo("Concert in sync has support acts \"\(payload.supportActs?.map { $0.name } ?? [])\" which do not exist on the server", category: .sync)
+            logInfo("Creating \"\(payload.supportActs?.map { $0.name } ?? [])\"", category: .sync)
+            var supportActsIds = [String]()
+            for artist in payload.supportActs ?? [] {
+                let serverArtist: ArtistDTO = try await apiClient.post("/artists", body: CreateArtistDTO(artist: artist))
+                supportActsIds.append(serverArtist.id)
+            }
+            logSuccess("Successfully created \"\(payload.supportActs?.map { $0.name } ?? [])\"", category: .sync)
+
+            payload.supportActServerIds = supportActsIds
+        }
 
         if let serverId = payload.serverId {
             // Update
@@ -193,32 +220,6 @@ class SyncManager {
         } else {
             logInfo("Creating Concert \"\(payload.title ?? payload.artist.name)\"", category: .sync)
             // Create
-            if payload.artistServerId == nil {
-                logInfo("Concert in sync has artist \"\(payload.artist.name)\" which does not exist on the server", category: .sync)
-                logInfo("Creating \"\(payload.artist.name)\"", category: .sync)
-                let serverArtist: ArtistDTO = try await apiClient.post("/artists", body: CreateArtistDTO(artist: payload.artist))
-                logSuccess("Successfully created \"\(payload.artist.name)\"", category: .sync)
-                payload.artistServerId = serverArtist.id
-            }
-            if let venue = payload.venue, payload.venueServerId == nil {
-                logInfo("Concert in sync has venue \"\(venue.name)\" which does not exist on the server", category: .sync)
-                logInfo("Creating \"\(venue.name)\"", category: .sync)
-                let serverVenue: IDResponse = try await apiClient.post("/venues", body: venue)
-                logSuccess("Successfully created \"\(venue.name)\"", category: .sync)
-                payload.venueServerId = serverVenue.id
-            }
-            if payload.supportActServerIds?.count != payload.supportActs?.count {
-                logInfo("Concert in sync has support acts \"\(payload.supportActs?.map { $0.name } ?? [])\" which do not exist on the server", category: .sync)
-                logInfo("Creating \"\(payload.supportActs?.map { $0.name } ?? [])\"", category: .sync)
-                var supportActsIds = [String]()
-                for artist in payload.supportActs ?? [] {
-                    let serverArtist: ArtistDTO = try await apiClient.post("/artists", body: CreateArtistDTO(artist: artist))
-                    supportActsIds.append(serverArtist.id)
-                }
-                logSuccess("Successfully created \"\(payload.supportActs?.map { $0.name } ?? [])\"", category: .sync)
-
-                payload.supportActServerIds = supportActsIds
-            }
 
             let response: ServerConcert = try await apiClient.post("/sync/concerts", body: payload)
             await context.perform {
@@ -264,15 +265,15 @@ class SyncManager {
 
     // MARK: - Merge (upsert)
 
-    private func mergeConcertFromServerSync(_ serverConcert: ServerConcert, context: NSManagedObjectContext) throws {
+    private func mergeConcertFromServerSync(_ serverConcert: ServerConcert, context: NSManagedObjectContext) async throws {
         let request: NSFetchRequest<Concert> = Concert.fetchRequest()
         request.predicate = NSPredicate(format: "serverId == %@", serverConcert.id)
         request.fetchLimit = 1
 
         if let existing = try context.fetch(request).first {
-            updateConcertSync(existing, with: serverConcert, context: context)
+            await updateConcertSync(existing, with: serverConcert, context: context)
         } else {
-            createConcertSync(serverConcert, context: context)
+            await createConcertSync(serverConcert, context: context)
         }
     }
 
@@ -287,7 +288,7 @@ class SyncManager {
 
     // MARK: - Update existing Concert
 
-    private func updateConcertSync(_ concert: Concert, with server: ServerConcert, context: NSManagedObjectContext) {
+    private func updateConcertSync(_ concert: Concert, with server: ServerConcert, context: NSManagedObjectContext) async {
         if concert.syncStatus == SyncStatus.pending.rawValue,
            let serverModified = server.updatedAt,
            let localModified = concert.locallyModifiedAt,
@@ -297,35 +298,39 @@ class SyncManager {
             return
         }
 
-        concert.title       = server.title
-        concert.date        = server.date
-        concert.openingTime = server.openingTime
-        concert.notes       = server.notes
-        concert.rating      = Int16(server.rating ?? 0)
-        concert.city        = server.city
-
-        if let artistId = server.artistId {
-            concert.artist = fetchOrCreateArtistSync(serverId: artistId, context: context)
+        do {
+            concert.title       = server.title
+            concert.date        = server.date
+            concert.openingTime = server.openingTime
+            concert.notes       = server.notes
+            concert.rating      = Int16(server.rating ?? 0)
+            concert.city        = server.city
+            
+            if let artistId = server.artistId {
+                concert.artist = try await fetchOrCreateArtistSync(serverId: artistId, context: context)
+            }
+            
+            if let venueId = server.venueId {
+                concert.venue = try await fetchOrCreateVenueSync(serverId: venueId, context: context)
+            } else {
+                concert.venue = nil
+            }
+            
+            concert.travel = buildTravelSync(from: server, existing: concert.travel, context: context)
+            concert.ticket = buildTicketSync(from: server, existing: concert.ticket, context: context)
+            try await updateSupportActsSync(concert: concert, serverIds: server.supportActsIds ?? [], context: context)
+            
+            concert.serverModifiedAt = server.updatedAt
+            concert.syncStatus       = SyncStatus.synced.rawValue
+            concert.lastSyncedAt     = Date()
+        } catch {
+            print("error", error)
         }
-
-        if let venueId = server.venueId {
-            concert.venue = fetchOrCreateVenueSync(serverId: venueId, context: context)
-        } else {
-            concert.venue = nil
-        }
-
-        concert.travel = buildTravelSync(from: server, existing: concert.travel, context: context)
-        concert.ticket = buildTicketSync(from: server, existing: concert.ticket, context: context)
-        updateSupportActsSync(concert: concert, serverIds: server.supportActsIds ?? [], context: context)
-
-        concert.serverModifiedAt = server.updatedAt
-        concert.syncStatus       = SyncStatus.synced.rawValue
-        concert.lastSyncedAt     = Date()
     }
 
     // MARK: - Create new Concert
 
-    private func createConcertSync(_ server: ServerConcert, context: NSManagedObjectContext) {
+    private func createConcertSync(_ server: ServerConcert, context: NSManagedObjectContext) async {
         let concert = Concert(context: context)
         concert.id       = UUID()
         concert.serverId = server.id
@@ -337,28 +342,34 @@ class SyncManager {
         concert.rating      = Int16(server.rating ?? 0)
         concert.city        = server.city
 
-        if let artistId = server.artistId {
-            concert.artist = fetchOrCreateArtistSync(serverId: artistId, context: context)
+        do {
+            if let artistId = server.artistId {
+                concert.artist = try await fetchOrCreateArtistSync(serverId: artistId, context: context)
+            }
+            
+            if let venueId = server.venueId {
+                concert.venue = try await fetchOrCreateVenueSync(serverId: venueId, context: context)
+            }
+            
+            try await updateSupportActsSync(concert: concert, serverIds: server.supportActsIds ?? [], context: context)
+            
+            
+            concert.travel = buildTravelSync(from: server, existing: nil, context: context)
+            concert.ticket = buildTicketSync(from: server, existing: nil, context: context)
+            
+            let currentUserId = Self.getCurrentUserIdStatic()
+            concert.ownerId  = server.userId
+            concert.isOwner  = server.userId == currentUserId
+            concert.canEdit  = concert.isOwner
+            
+            concert.syncStatus        = SyncStatus.synced.rawValue
+            concert.lastSyncedAt      = Date()
+            concert.serverModifiedAt  = server.updatedAt
+            concert.locallyModifiedAt = Date()
+            concert.syncVersion       = 1
+        } catch {
+            logError("Could not sync concert", error: error)
         }
-
-        if let venueId = server.venueId {
-            concert.venue = fetchOrCreateVenueSync(serverId: venueId, context: context)
-        }
-
-        concert.travel = buildTravelSync(from: server, existing: nil, context: context)
-        concert.ticket = buildTicketSync(from: server, existing: nil, context: context)
-        updateSupportActsSync(concert: concert, serverIds: server.supportActsIds ?? [], context: context)
-
-        let currentUserId = Self.getCurrentUserIdStatic()
-        concert.ownerId  = server.userId
-        concert.isOwner  = server.userId == currentUserId
-        concert.canEdit  = concert.isOwner
-
-        concert.syncStatus        = SyncStatus.synced.rawValue
-        concert.lastSyncedAt      = Date()
-        concert.serverModifiedAt  = server.updatedAt
-        concert.locallyModifiedAt = Date()
-        concert.syncVersion       = 1
     }
 
     // MARK: - Travel Builder
@@ -454,18 +465,18 @@ class SyncManager {
         concert: Concert,
         serverIds: [String],
         context: NSManagedObjectContext
-    ) {
+    ) async throws {
         (concert.supportActs as? Set<Artist>)?.forEach { concert.removeSupportAct($0) }
 
         for serverId in serverIds {
-            let artist = fetchOrCreateArtistSync(serverId: serverId, context: context)
+            let artist = try await fetchOrCreateArtistSync(serverId: serverId, context: context)
             concert.addSupportAct(artist)
         }
     }
 
     // MARK: - Artist Sync
 
-    private func fetchOrCreateArtistSync(serverId: String, context: NSManagedObjectContext) -> Artist {
+    private func fetchOrCreateArtistSync(serverId: String, context: NSManagedObjectContext) async throws -> Artist {
         let request: NSFetchRequest<Artist> = Artist.fetchRequest()
         request.predicate = NSPredicate(format: "serverId == %@", serverId)
         request.fetchLimit = 1
@@ -474,16 +485,23 @@ class SyncManager {
             return existing
         }
 
+        let loadedArtist: ArtistDTO = try await apiClient.get("/artists/\(serverId)")
+
         let artist = Artist(context: context)
         artist.id = UUID()
         artist.serverId = serverId
         artist.syncStatus = SyncStatus.pending.rawValue
+        
+        artist.name = loadedArtist.name
+        artist.imageUrl = loadedArtist.imageUrl
+        artist.spotifyArtistId = loadedArtist.spotifyArtistId
+        
         return artist
     }
 
     // MARK: - Venue Sync
 
-    private func fetchOrCreateVenueSync(serverId: String, context: NSManagedObjectContext) -> Venue {
+    private func fetchOrCreateVenueSync(serverId: String, context: NSManagedObjectContext) async throws -> Venue {
         let request: NSFetchRequest<Venue> = Venue.fetchRequest()
         request.predicate = NSPredicate(format: "serverId == %@", serverId)
         request.fetchLimit = 1
@@ -492,10 +510,20 @@ class SyncManager {
             return existing
         }
 
+        let loadedVenue: VenueDTO = try await apiClient.get("/venues/\(serverId)")
+
         let venue = Venue(context: context)
         venue.id = UUID()
         venue.serverId = serverId
         venue.syncStatus = SyncStatus.pending.rawValue
+        
+        venue.name = loadedVenue.name
+        venue.city = loadedVenue.city
+        venue.formattedAddress = loadedVenue.formattedAddress
+        venue.latitude = loadedVenue.latitude ?? 0
+        venue.longitude = loadedVenue.longitude ?? 0
+        venue.appleMapsId = loadedVenue.appleMapsId
+        
         return venue
     }
 

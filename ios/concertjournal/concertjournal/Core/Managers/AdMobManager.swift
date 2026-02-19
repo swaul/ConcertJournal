@@ -66,20 +66,6 @@ class AdMobManager {
 
             // Preload ads
             await loadInterstitialAd()
-//            self.loadRewardedAd()
-
-            // Request ATT Permission (App Tracking Transparency)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                self.requestTrackingPermission()
-            }
-        }
-    }
-
-    private func requestTrackingPermission() {
-        if #available(iOS 14, *) {
-            ATTrackingManager.requestTrackingAuthorization { status in
-                logInfo("Tracking permission: \(status.rawValue)", category: .ads)
-            }
         }
     }
 

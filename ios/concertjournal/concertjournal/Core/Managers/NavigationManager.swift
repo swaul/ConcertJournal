@@ -13,6 +13,7 @@ enum NavigationRoute: Hashable {
     case concerts
     case map
     case search
+    case buddies
 
     // Concert Related
     case concertDetail(Concert)
@@ -208,6 +209,7 @@ extension NavigationRoute: Identifiable {
         case .featurePage: return "featurePage"
         case .completion: return "completion"
         case .search: return "search"
+        case .buddies: return "buddies"
         }
     }
 }

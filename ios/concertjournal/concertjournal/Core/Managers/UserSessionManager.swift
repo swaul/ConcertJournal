@@ -88,7 +88,7 @@ final class UserSessionManager: UserSessionManagerProtocol {
     }
 
     let userSessionChangedSubject = PassthroughSubject<User?, Never>()
-
+    
     // MARK: - Private Properties
 
     private let client: SupabaseClient

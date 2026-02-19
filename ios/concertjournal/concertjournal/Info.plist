@@ -12,6 +12,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>concertjournal</string>
+				<string>concertjournal://buddy/</string>
 			</array>
 		</dict>
 	</array>

@@ -24,7 +24,10 @@ struct ProfileView: View {
     @State private var showSaveButton: Bool = false
     @FocusState private var nameTextFieldFocused
 
-    // Computed shorthand
+    var isOffline: Bool {
+        !dependencies.networkMonitor.isConnected
+    }
+    
     private var isLoggedIn: Bool {
         if case .loggedIn = dependencies.userSessionManager.state { return true }
         return false
@@ -95,8 +98,10 @@ struct ProfileView: View {
                 VStack {
                     // ── Nutzer-Sektion ────────────────────────────────
                     Group {
-                        if isLoggedIn {
-                            loggedInUserSection(viewModel: viewModel)
+                        if isOffline {
+                            offlineView()
+                        } else if isLoggedIn, let profile = viewModel.profile {
+                            loggedInUserSection(profile: profile)
                         } else {
                             notLoggedInSection()
                         }
@@ -160,67 +165,35 @@ struct ProfileView: View {
             }
             .scrollIndicators(.hidden)
             .scrollBounceBehavior(.basedOnSize)
+            .safeAreaInset(edge: .top) {
+                if isOffline {
+                    HStack(spacing: 8) {
+                        Image(systemName: "wifi.slash")
+                        Text("Offline – Änderungen werden nicht gespeichert")
+                            .font(.cjFootnote)
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(.orange, in: .rect)
+                }
+            }
         }
     }
 
     // MARK: - Logged-in User Section
 
     @ViewBuilder
-    func loggedInUserSection(viewModel: ProfileViewModel) -> some View {
+    func loggedInUserSection(profile: Profile) -> some View {
         HStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(.gray.opacity(0.2))
-                Image(systemName: "person.fill")
-                    .font(.system(size: 28, weight: .semibold))
-                    .foregroundStyle(.secondary)
-            }
+            AvatarView(url: URL(string: profile.avatarURL ?? ""), name: profile.displayName ?? "", size: 64)
             .frame(width: 64, height: 64)
 
             VStack(alignment: .leading, spacing: 4) {
-                ZStack {
-                    if viewModel.saveDisplayNameState == .loading {
-                        ProgressView()
-                    }
-
-                    HStack {
-                        let binding = Binding {
-                            viewModel.displayName
-                        } set: { newValue in
-                            viewModel.displayName = newValue
-                        }
-
-                        TextField("", text: binding)
-                            .font(.cjTitle2)
-                            .fontWeight(.semibold)
-                            .submitLabel(.done)
-                            .focused($nameTextFieldFocused)
-                            .onChange(of: viewModel.displayName) { _, newValue in
-                                withAnimation {
-                                    showSaveButton = viewModel.initialDisplayName != newValue
-                                }
-                            }
-                            .onSubmit {
-                                viewModel.saveDisplayName()
-                                withAnimation { showSaveButton = false }
-                                nameTextFieldFocused = false
-                            }
-
-                        if showSaveButton {
-                            Button {
-                                HapticManager.shared.buttonTap()
-                                viewModel.saveDisplayName()
-                                withAnimation { showSaveButton = false }
-                                nameTextFieldFocused = false
-                            } label: {
-                                Text("Speichern").font(.cjBody)
-                            }
-                            .buttonStyle(.glassProminent)
-                        }
-                    }
-                }
-
-                if let email = viewModel.email {
+                Text(profile.displayName ?? "")
+                    .font(.cjTitle2)
+                    .fontWeight(.semibold)
+                if let email = profile.email {
                     Text(email)
                         .font(.cjBody)
                         .foregroundStyle(.secondary)
@@ -274,5 +247,29 @@ struct ProfileView: View {
             .padding(.top, 4)
         }
         .padding(.vertical, 8)
+    }
+    
+    // MARK: - Offline
+    
+    @ViewBuilder
+    func offlineView() -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: "wifi.slash")
+                .font(.system(size: 48))
+                .foregroundStyle(.secondary)
+            Text("Keine Internetverbindung")
+                .font(.cjTitle2)
+                .fontWeight(.semibold)
+            Text("Das Profil kann gerade nicht geladen werden.")
+                .font(.cjBody)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            Button("Erneut versuchen") {
+                Task { await viewModel?.load() }
+            }
+            .buttonStyle(.glassProminent)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

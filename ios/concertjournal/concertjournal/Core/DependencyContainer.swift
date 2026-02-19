@@ -9,6 +9,7 @@ import Combine
 import SwiftUI
 import Supabase
 
+@Observable
 class DependencyContainer {
 
     // BFF Client
@@ -20,8 +21,10 @@ class DependencyContainer {
     let userSessionManager: UserSessionManagerProtocol
     let colorThemeManager: ColorThemeManager
     let storageService: StorageServiceProtocol
+    let networkMonitor: NetworkMonitor
     let syncManager: SyncManager
-
+    let appState: AppState
+    
     // BFF Repositories
     let offlineConcertRepository: OfflineConcertRepositoryProtocol
     let offlinePhotoRepsitory: OfflinePhotoRepositoryProtocol
@@ -36,6 +39,8 @@ class DependencyContainer {
     let faqRepository: FAQRepositoryProtocol
     let localizationRepository: LocalizationRepository
 
+    var needsSetup: Bool = false
+
     private var cancellables = Set<AnyCancellable>()
 
     init() {
@@ -47,8 +52,10 @@ class DependencyContainer {
         self.userSessionManager = UserSessionManager(client: supabaseClient.client)
         self.colorThemeManager = ColorThemeManager()
         self.storageService = StorageService(supabaseClient: supabaseClient)
+        self.networkMonitor = NetworkMonitor()
         self.syncManager = SyncManager(apiClient: bffClient, userSessionManager: userSessionManager)
-
+        self.appState = AppState()
+        
         // ✅ BFF Client needs auth token
         self.bffClient.getAuthToken = { [weak supabaseClient] in
             guard let session = try? await supabaseClient?.client.auth.session else {
@@ -79,9 +86,19 @@ class DependencyContainer {
             .sink { [weak self] user in
                 if let self, user != nil {
                     self.startFullSync()
+                    self.checkIfUserNeedsSetup(user: user)
                 }
             }
             .store(in: &cancellables)
+    }
+    
+    private func checkIfUserNeedsSetup(user: User?) {
+        guard let user = user else { return }
+        let needsSetup = user.userMetadata["setup_completed"] != true
+        if needsSetup {
+            logInfo("User has not setup his profile yet")
+            self.needsSetup = needsSetup
+        }
     }
 
     func startFullSync() {

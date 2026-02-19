@@ -25,11 +25,10 @@ struct ConcertJournalApp: App {
     }
 
     @State private var navigationManager = NavigationManager()
-
+    @State private var dependencyContainer = DependencyContainer()
+    
     var body: some Scene {
         WindowGroup {
-            let dependencyContainer = DependencyContainer()
-
             RootView(navigationManager: navigationManager)
                 .preferredColorScheme(.dark)
                 .withDependencies(dependencyContainer)
@@ -45,6 +44,14 @@ struct PasswordResetRequest: Identifiable {
     let type: String
 }
 
+struct BuddyCode: Identifiable {
+    var id: String {
+        code
+    }
+    
+    let code: String
+}
+
 // MARK: - Root View
 // Einzige Entscheidung: Onboarding abgeschlossen? → App. Fertig.
 // Login ist optional und wird vom Profil aus gesteuert.
@@ -58,6 +65,8 @@ struct RootView: View {
 
     @State private var passwordResetItem: PasswordResetRequest? = nil
     @State private var importConcertItem: ExtractedConcertInfo? = nil
+    
+    @State private var showBuddySheetWithCode: BuddyCode? = nil
 
     var body: some View {
         Group {
@@ -88,11 +97,17 @@ struct RootView: View {
                 handlePasswordReset(url: url)
             } else if url.host == "import-concert" {
                 handleConcertImport()
+            } else if url.host == "buddy", let code = url.pathComponents.last {
+                dependencies.appState.pendingBuddyCode = code
+                showBuddySheetWithCode = BuddyCode(code: code)
             }
         }
         .task {
             // Session wiederherstellen – falls der User bereits eingeloggt war
             try? await dependencies.userSessionManager.start()
+        }
+        .sheet(item: $showBuddySheetWithCode) { item in
+            BuddyQuickAddSheet(code: item)
         }
         .sheet(item: $passwordResetItem) { item in
             PasswordResetView(passwordResetRequest: item)
