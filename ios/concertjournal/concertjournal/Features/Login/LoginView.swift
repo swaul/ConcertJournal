@@ -312,7 +312,7 @@ struct LoginView: View, KeyboardReadable {
             if showLoading {
                 VStack {
                     ProgressView().padding()
-                    Text(TextKey.loadingData.localized).font(.cjTitle)
+                    Text(TextKey.stateLoading.localized).font(.cjTitle)
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 250)

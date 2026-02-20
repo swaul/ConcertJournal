@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Localization Scripts – Tutorial</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0d0f14;
+    --surface:   #141720;
+    --surface2:  #1c2030;
+    --border:    #252a3a;
+    --accent:    #5b8af0;
+    --accent2:   #a78bfa;
+    --green:     #34d399;
+    --yellow:    #fbbf24;
+    --red:       #f87171;
+    --muted:     #4a5068;
+    --text:      #c9d1e8;
+    --text-dim:  #6b7494;
+    --text-bright: #eef0f8;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── Layout ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 32px 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-logo {
+    padding: 0 24px 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+
+  .sidebar-logo .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .sidebar-logo h1 {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-bright);
+    line-height: 1.2;
+  }
+
+  .nav-section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 8px 24px 4px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 24px;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    cursor: pointer;
+  }
+
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+
+  .nav-item.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: rgba(91, 138, 240, 0.08);
+  }
+
+  .nav-item .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .nav-item.active .dot { background: var(--accent); }
+  .nav-item.done .dot  { background: var(--green); }
+  .nav-item.done { color: var(--text-dim); }
+
+  /* ── Main ── */
+  .main {
+    padding: 60px 72px;
+    max-width: 860px;
+  }
+
+  /* ── Sections ── */
+  .section {
+    margin-bottom: 80px;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .section.visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  .section-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .section h2 {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text-bright);
+    margin-bottom: 16px;
+    line-height: 1.2;
+  }
+
+  .section p {
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.7;
+    margin-bottom: 16px;
+    max-width: 640px;
+  }
+
+  .section p:last-child { margin-bottom: 0; }
+
+  /* ── Code blocks ── */
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 20px 0;
+    position: relative;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .code-header .dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .code-header .dots span {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+  .code-header .dots span:nth-child(1) { background: var(--red); }
+  .code-header .dots span:nth-child(2) { background: var(--yellow); }
+  .code-header .dots span:nth-child(3) { background: var(--green); }
+
+  .code-header .file-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .copy-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--accent); }
+  .copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+  pre {
+    padding: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    overflow-x: auto;
+    color: var(--text);
+  }
+
+  .kw  { color: var(--accent2); }
+  .cmd { color: var(--accent); font-weight: 500; }
+  .str { color: var(--green); }
+  .cmt { color: var(--muted); font-style: italic; }
+  .num { color: var(--yellow); }
+  .out { color: var(--text-dim); }
+  .ok  { color: var(--green); }
+  .err { color: var(--red); }
+  .pth { color: var(--yellow); }
+
+  /* ── File tree ── */
+  .file-tree {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 2;
+    margin: 20px 0;
+  }
+
+  .file-tree .folder { color: var(--accent); }
+  .file-tree .file   { color: var(--text); }
+  .file-tree .note   { color: var(--muted); }
+
+  /* ── Callouts ── */
+  .callout {
+    display: flex;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: 8px;
+    margin: 20px 0;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .callout.info    { background: rgba(91, 138, 240, 0.1); border: 1px solid rgba(91, 138, 240, 0.25); }
+  .callout.success { background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.25); }
+  .callout.warn    { background: rgba(251, 191, 36, 0.1);  border: 1px solid rgba(251, 191, 36, 0.25); }
+
+  .callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .callout-body { color: var(--text); }
+  .callout-body strong { color: var(--text-bright); }
+
+  /* ── Flag table ── */
+  .flag-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 14px;
+  }
+
+  .flag-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .flag-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  .flag-table tr:last-child td { border-bottom: none; }
+
+  .flag-table .flag-cell {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .flag-table .desc-cell { color: var(--text); }
+
+  /* ── Step progress ── */
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 24px 0;
+  }
+
+  .step {
+    display: flex;
+    gap: 20px;
+    position: relative;
+  }
+
+  .step-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .step-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    transition: all 0.2s;
+    z-index: 1;
+  }
+
+  .step.done .step-num {
+    background: rgba(52, 211, 153, 0.15);
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .step-line {
+    width: 2px;
+    flex: 1;
+    min-height: 20px;
+    background: var(--border);
+    margin: 4px 0;
+  }
+
+  .step:last-child .step-line { display: none; }
+
+  .step-body {
+    padding-top: 4px;
+    padding-bottom: 28px;
+    flex: 1;
+  }
+
+  .step-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 6px;
+  }
+
+  .step-desc {
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    line-height: 1.6;
+  }
+
+  /* ── Check button ── */
+  .mark-done-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-top: 4px;
+  }
+  .mark-done-btn:hover { border-color: var(--green); color: var(--green); }
+  .step.done .mark-done-btn {
+    border-color: var(--green);
+    color: var(--green);
+    background: rgba(52,211,153,0.08);
+  }
+
+  /* ── inline code ── */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: var(--accent);
+  }
+
+  /* ── Divider ── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 60px 0;
+  }
+
+  /* ── Output preview ── */
+  .output-preview {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.8;
+    margin: 16px 0;
+    color: var(--text-dim);
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="tag">Concert Journal</div>
+      <h1>Localization<br>Scripts</h1>
+    </div>
+
+    <span class="nav-section-label">Setup</span>
+    <a class="nav-item active" href="#voraussetzungen" onclick="setActive(this)">
+      <span class="dot"></span> Voraussetzungen
+    </a>
+    <a class="nav-item" href="#struktur" onclick="setActive(this)">
+      <span class="dot"></span> Dateistruktur
+    </a>
+    <a class="nav-item" href="#config" onclick="setActive(this)">
+      <span class="dot"></span> Config anpassen
+    </a>
+
+    <span class="nav-section-label" style="margin-top:12px">Scripts</span>
+    <a class="nav-item" href="#sync" onclick="setActive(this)">
+      <span class="dot"></span> sync-locales.js
+    </a>
+    <a class="nav-item" href="#generate" onclick="setActive(this)">
+      <span class="dot"></span> generate-textkey.js
+    </a>
+
+    <span class="nav-section-label" style="margin-top:12px">Workflow</span>
+    <a class="nav-item" href="#workflow" onclick="setActive(this)">
+      <span class="dot"></span> Neuen String hinzufügen
+    </a>
+    <a class="nav-item" href="#flags" onclick="setActive(this)">
+      <span class="dot"></span> Alle Flags
+    </a>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- ── Section 0: Voraussetzungen ── -->
+    <section class="section" id="voraussetzungen">
+      <div class="section-number">Setup · 01</div>
+      <h2>Voraussetzungen</h2>
+      <p>Die Scripts laufen mit Node.js — kein npm install, keine Dependencies. Du brauchst nur Node.js auf deinem Mac.</p>
+
+      <div class="steps">
+        <div class="step" id="step-node">
+          <div class="step-left">
+            <div class="step-num">1</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">Node.js prüfen</div>
+            <div class="step-desc">Öffne das Terminal und prüf ob Node.js installiert ist:</div>
+            <div class="code-block">
+              <div class="code-header">
+                <div class="dots"><span></span><span></span><span></span></div>
+                <span class="file-label">Terminal</span>
+                <button class="copy-btn" onclick="copyCode(this, 'node --version')">copy</button>
+              </div>
+              <pre><span class="cmd">node</span> --version</pre>
+            </div>
+            <div class="step-desc">Du solltest so etwas sehen: <code>v20.11.0</code> (irgendwas ab v16 reicht).</div>
+            <div class="callout warn">
+              <span class="callout-icon">⚠️</span>
+              <div class="callout-body">
+                <strong>Nicht installiert?</strong> Geh auf <strong>nodejs.org</strong> → "LTS" downloaden und installieren. Danach Terminal neu starten.
+              </div>
+            </div>
+            <button class="mark-done-btn" onclick="markDone('step-node', this)">✓ Erledigt</button>
+          </div>
+        </div>
+
+        <div class="step" id="step-terminal">
+          <div class="step-left">
+            <div class="step-num">2</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">Terminal öffnen</div>
+            <div class="step-desc">In Xcode gibt es ein eingebautes Terminal, oder du nutzt die macOS Terminal App. Beide funktionieren.</div>
+            <div class="callout info">
+              <span class="callout-icon">💡</span>
+              <div class="callout-body">
+                Schnell ins Terminal: <strong>Cmd + Leertaste</strong> → "Terminal" tippen → Enter.
+              </div>
+            </div>
+            <button class="mark-done-btn" onclick="markDone('step-terminal', this)">✓ Erledigt</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── Section 1: Dateistruktur ── -->
+    <section class="section" id="struktur">
+      <div class="section-number">Setup · 02</div>
+      <h2>Dateistruktur</h2>
+      <p>Entpack das ZIP und leg den <code>scripts</code> Ordner neben deinen <code>concertjournal</code> Ordner. So sollte es aussehen:</p>
+
+      <div class="file-tree">
+        <div><span class="folder">📁 concertjournal/</span>  <span class="note">&lt;— dein Xcode-Projekt</span></div>
+        <div>&nbsp;&nbsp;<span class="folder">📁 concertjournal/</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">📄 de-DE.json</span>  <span class="note">&lt;— deine Source-Sprache</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">📄 en-US.json</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">📄 fr-FR.json</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="folder">📁 Localization/</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">📄 TextKey.swift</span>  <span class="note">&lt;— wird generiert</span></div>
+        <div>&nbsp;&nbsp;<span class="folder">📁 ...</span></div>
+        <div><span class="folder">📁 scripts/</span>  <span class="note">&lt;— Scripts hier ablegen</span></div>
+        <div>&nbsp;&nbsp;<span class="file">📄 localization.config.json</span></div>
+        <div>&nbsp;&nbsp;<span class="file">📄 sync-locales.js</span></div>
+        <div>&nbsp;&nbsp;<span class="file">📄 generate-textkey.js</span></div>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon">💡</span>
+        <div class="callout-body">
+          Der <code>scripts</code> Ordner muss <strong>nicht</strong> im Xcode-Projekt sein — er liegt einfach daneben. Xcode sieht ihn gar nicht.
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── Section 2: Config ── -->
+    <section class="section" id="config">
+      <div class="section-number">Setup · 03</div>
+      <h2>Config anpassen</h2>
+      <p>Öffne <code>localization.config.json</code> und prüf die zwei wichtigsten Pfade:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <span class="file-label">localization.config.json</span>
+          <button class="copy-btn" onclick="copyCode(this, '')">copy</button>
+        </div>
+        <pre>{
+  <span class="str">"sourceLocale"</span>: <span class="str">"de-DE"</span>,
+
+  <span class="cmt">// Pfad zu dem Ordner mit den JSON-Dateien</span>
+  <span class="cmt">// relativ zu dem Ordner wo die Scripts liegen</span>
+  <span class="str">"localesDir"</span>: <span class="str">"../concertjournal/concertjournal"</span>,
+
+  <span class="cmt">// Wohin TextKey.swift geschrieben wird</span>
+  <span class="str">"outputSwiftFile"</span>: <span class="str">"../concertjournal/concertjournal/Localization/TextKey.swift"</span>,
+
+  <span class="str">"targetLocales"</span>: [<span class="str">"en-US"</span>, <span class="str">"fr-FR"</span>],
+  ...
+}</pre>
+      </div>
+
+      <div class="callout warn">
+        <span class="callout-icon">⚠️</span>
+        <div class="callout-body">
+          <strong>Wichtig:</strong> Die Pfade sind <em>relativ</em> zum <code>scripts</code> Ordner. Wenn deine Struktur anders aussieht, entsprechend anpassen.
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── Section 3: sync ── -->
+    <section class="section" id="sync">
+      <div class="section-number">Scripts · 01</div>
+      <h2>sync-locales.js</h2>
+      <p>Dieses Script hält alle Sprach-JSON-Dateien in sync mit deiner Source-Sprache (<code>de-DE.json</code>). Neue Keys werden angelegt, bestehende Übersetzungen nie überschrieben.</p>
+
+      <div class="steps">
+        <div class="step" id="step-cd">
+          <div class="step-left">
+            <div class="step-num">1</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">In den scripts Ordner navigieren</div>
+            <div class="step-desc">Ersetze <code>/pfad/zu/</code> mit dem tatsächlichen Pfad zu deinem Projekt:</div>
+            <div class="code-block">
+              <div class="code-header">
+                <div class="dots"><span></span><span></span><span></span></div>
+                <span class="file-label">Terminal</span>
+                <button class="copy-btn" onclick="copyCode(this, 'cd /pfad/zu/scripts')">copy</button>
+              </div>
+              <pre><span class="cmd">cd</span> <span class="pth">/pfad/zu/scripts</span></pre>
+            </div>
+            <div class="callout info">
+              <span class="callout-icon">💡</span>
+              <div class="callout-body">Tipp: Im Finder den <code>scripts</code> Ordner öffnen → Rechtsklick → <strong>"In Terminal öffnen"</strong>. Dann bist du automatisch im richtigen Verzeichnis.</div>
+            </div>
+            <button class="mark-done-btn" onclick="markDone('step-cd', this)">✓ Erledigt</button>
+          </div>
+        </div>
+
+        <div class="step" id="step-dryrun">
+          <div class="step-left">
+            <div class="step-num">2</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">Erst: Dry-run (nur anschauen)</div>
+            <div class="step-desc">Mit <code>--dry-run</code> siehst du was passieren würde, ohne dass irgendwas geschrieben wird:</div>
+            <div class="code-block">
+              <div class="code-header">
+                <div class="dots"><span></span><span></span><span></span></div>
+                <span class="file-label">Terminal</span>
+                <button class="copy-btn" onclick="copyCode(this, 'node sync-locales.js --dry-run')">copy</button>
+              </div>
+              <pre><span class="cmd">node</span> sync-locales.js --dry-run</pre>
+            </div>
+            <div class="output-preview">
+<span class="text-dim">📖  Source: de-DE.json  (385 keys)</span>
+
+<span class="out">  [dry-run] en-US.json  —  385 kept</span>
+<span class="out">  [dry-run] fr-FR.json  —  +3 new  |  382 kept</span>
+<span class="out">    + action.share</span>
+<span class="out">    + concert.archived</span>
+<span class="out">    + error.share_failed</span>
+
+<span class="out">(dry run – no files written)</span>
+            </div>
+            <button class="mark-done-btn" onclick="markDone('step-dryrun', this)">✓ Erledigt</button>
+          </div>
+        </div>
+
+        <div class="step" id="step-sync-run">
+          <div class="step-left">
+            <div class="step-num">3</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">Sync ausführen</div>
+            <div class="step-desc">Wenn der Dry-run gut aussieht, ohne Flag ausführen:</div>
+            <div class="code-block">
+              <div class="code-header">
+                <div class="dots"><span></span><span></span><span></span></div>
+                <span class="file-label">Terminal</span>
+                <button class="copy-btn" onclick="copyCode(this, 'node sync-locales.js')">copy</button>
+              </div>
+              <pre><span class="cmd">node</span> sync-locales.js</pre>
+            </div>
+            <div class="output-preview">
+<span class="text-dim">📖  Source: de-DE.json  (385 keys)</span>
+
+<span class="ok">  ✅  en-US.json  —  385 kept</span>
+<span class="ok">  ✅  fr-FR.json  —  +3 new  |  382 kept</span>
+
+<span class="ok">✔  Sync complete.</span>
+            </div>
+            <div class="callout success">
+              <span class="callout-icon">✅</span>
+              <div class="callout-body">
+                <strong>Was passiert jetzt?</strong> Alle JSON-Dateien in <code>localesDir</code> wurden aktualisiert. Neue Keys haben leere Werte <code>""</code> – bereit zum Übersetzen.
+              </div>
+            </div>
+            <button class="mark-done-btn" onclick="markDone('step-sync-run', this)">✓ Erledigt</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── Section 4: generate ── -->
+    <section class="section" id="generate">
+      <div class="section-number">Scripts · 02</div>
+      <h2>generate-textkey.js</h2>
+      <p>Generiert <code>TextKey.swift</code> aus der <code>de-DE.json</code>. Für jeden Key wird ein Swift <code>case</code> angelegt. Das File wird direkt in dein Xcode-Projekt geschrieben.</p>
+
+      <div class="steps">
+        <div class="step" id="step-gen-preview">
+          <div class="step-left">
+            <div class="step-num">1</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">Preview in Terminal ausgeben</div>
+            <div class="step-desc">Mit <code>--dry-run</code> siehst du den generierten Swift-Code direkt im Terminal:</div>
+            <div class="code-block">
+              <div class="code-header">
+                <div class="dots"><span></span><span></span><span></span></div>
+                <span class="file-label">Terminal</span>
+                <button class="copy-btn" onclick="copyCode(this, 'node generate-textkey.js --dry-run')">copy</button>
+              </div>
+              <pre><span class="cmd">node</span> generate-textkey.js --dry-run</pre>
+            </div>
+            <div class="output-preview">
+<span class="out">enum TextKey: String {</span>
+<span class="out"></span>
+<span class="out">    // MARK: - Actions</span>
+<span class="out">    case cancel          = "action.cancel"</span>
+<span class="out">    case save            = "action.save"</span>
+<span class="out">    case delete          = "action.delete"</span>
+<span class="out">    ...</span>
+<span class="out">}</span>
+            </div>
+            <button class="mark-done-btn" onclick="markDone('step-gen-preview', this)">✓ Erledigt</button>
+          </div>
+        </div>
+
+        <div class="step" id="step-gen-run">
+          <div class="step-left">
+            <div class="step-num">2</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">TextKey.swift generieren</div>
+            <div class="step-desc">Schreibt die Datei direkt an den in der Config angegebenen Pfad:</div>
+            <div class="code-block">
+              <div class="code-header">
+                <div class="dots"><span></span><span></span><span></span></div>
+                <span class="file-label">Terminal</span>
+                <button class="copy-btn" onclick="copyCode(this, 'node generate-textkey.js')">copy</button>
+              </div>
+              <pre><span class="cmd">node</span> generate-textkey.js</pre>
+            </div>
+            <div class="output-preview">
+<span class="ok">✅  Generated TextKey.swift</span>
+<span class="out">    385 cases  →  ../concertjournal/concertjournal/Localization/TextKey.swift</span>
+            </div>
+            <div class="callout warn">
+              <span class="callout-icon">⚠️</span>
+              <div class="callout-body">
+                <strong>Achtung:</strong> Das Script überschreibt <code>TextKey.swift</code> vollständig. Manuell hinzugefügte Cases oder Kommentare gehen verloren — beides sollte immer über die JSON kommen.
+              </div>
+            </div>
+            <button class="mark-done-btn" onclick="markDone('step-gen-run', this)">✓ Erledigt</button>
+          </div>
+        </div>
+
+        <div class="step" id="step-xcode">
+          <div class="step-left">
+            <div class="step-num">3</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-body">
+            <div class="step-title">In Xcode prüfen</div>
+            <div class="step-desc">Wechsel zu Xcode — da sollte ein gelbes Ausrufezeichen erscheinen dass sich die Datei geändert hat. Einfach bestätigen. Dann kurz bauen (<code>Cmd + B</code>) um sicherzugehen dass alles kompiliert.</div>
+            <div class="callout info">
+              <span class="callout-icon">💡</span>
+              <div class="callout-body">
+                Falls Xcode die Änderung nicht automatisch erkennt: Rechtsklick auf <code>TextKey.swift</code> im Projekt-Navigator → <strong>"Reload from Disk"</strong>.
+              </div>
+            </div>
+            <button class="mark-done-btn" onclick="markDone('step-xcode', this)">✓ Erledigt</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── Section 5: Workflow ── -->
+    <section class="section" id="workflow">
+      <div class="section-number">Workflow · 01</div>
+      <h2>Neuen String hinzufügen</h2>
+      <p>Das ist der komplette Ablauf wenn du einen neuen localisierten String brauchst:</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-left"><div class="step-num">1</div><div class="step-line"></div></div>
+          <div class="step-body">
+            <div class="step-title">Key in de-DE.json hinzufügen</div>
+            <div class="step-desc">Immer zuerst in der Source-Sprache:</div>
+            <div class="code-block">
+              <div class="code-header">
+                <div class="dots"><span></span><span></span><span></span></div>
+                <span class="file-label">de-DE.json</span>
+              </div>
+              <pre><span class="str">"action.share"</span>: <span class="str">"Teilen"</span>,
+<span class="str">"error.share_failed"</span>: <span class="str">"Teilen fehlgeschlagen"</span>,</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-left"><div class="step-num">2</div><div class="step-line"></div></div>
+          <div class="step-body">
+            <div class="step-title">Sync + Generate ausführen</div>
+            <div class="code-block">
+              <div class="code-header">
+                <div class="dots"><span></span><span></span><span></span></div>
+                <span class="file-label">Terminal</span>
+                <button class="copy-btn" onclick="copyCode(this, 'node sync-locales.js && node generate-textkey.js')">copy</button>
+              </div>
+              <pre><span class="cmd">node</span> sync-locales.js <span class="kw">&amp;&amp;</span> <span class="cmd">node</span> generate-textkey.js</pre>
+            </div>
+            <div class="step-desc">Beide Commands in einer Zeile — erst sync, dann generate.</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-left"><div class="step-num">3</div><div class="step-line"></div></div>
+          <div class="step-body">
+            <div class="step-title">In Swift verwenden</div>
+            <div class="step-desc">Der neue Key ist sofort verfügbar:</div>
+            <div class="code-block">
+              <div class="code-header">
+                <div class="dots"><span></span><span></span><span></span></div>
+                <span class="file-label">SomeView.swift</span>
+              </div>
+              <pre><span class="kw">Text</span>(TextKey.share.localized)
+<span class="kw">Text</span>(TextKey.shareFailed.localized)</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-left"><div class="step-num">4</div><div class="step-line"></div></div>
+          <div class="step-body">
+            <div class="step-title">Andere Sprachen übersetzen</div>
+            <div class="step-desc">In <code>en-US.json</code> (und anderen Sprachen) wurde ein leerer Eintrag angelegt. Einfach ausfüllen:</div>
+            <div class="code-block">
+              <div class="code-header">
+                <div class="dots"><span></span><span></span><span></span></div>
+                <span class="file-label">en-US.json</span>
+              </div>
+              <pre><span class="str">"action.share"</span>: <span class="str">"Share"</span>,
+<span class="str">"error.share_failed"</span>: <span class="str">"Sharing failed"</span>,</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── Section 6: Flags ── -->
+    <section class="section" id="flags">
+      <div class="section-number">Referenz · 01</div>
+      <h2>Alle Flags</h2>
+
+      <p style="margin-bottom:6px"><strong style="color:var(--text-bright)">sync-locales.js</strong></p>
+      <table class="flag-table">
+        <tr>
+          <th>Flag</th>
+          <th>Beschreibung</th>
+          <th>Beispiel</th>
+        </tr>
+        <tr>
+          <td class="flag-cell">(kein Flag)</td>
+          <td class="desc-cell">Synct alle Sprachen aus <code>targetLocales</code></td>
+          <td class="flag-cell">node sync-locales.js</td>
+        </tr>
+        <tr>
+          <td class="flag-cell">--dry-run</td>
+          <td class="desc-cell">Zeigt Änderungen ohne zu schreiben</td>
+          <td class="flag-cell">... --dry-run</td>
+        </tr>
+        <tr>
+          <td class="flag-cell">--locale &lt;id&gt;</td>
+          <td class="desc-cell">Synct nur eine bestimmte Sprache</td>
+          <td class="flag-cell">... --locale en-US</td>
+        </tr>
+      </table>
+
+      <p style="margin-bottom:6px; margin-top:28px"><strong style="color:var(--text-bright)">generate-textkey.js</strong></p>
+      <table class="flag-table">
+        <tr>
+          <th>Flag</th>
+          <th>Beschreibung</th>
+          <th>Beispiel</th>
+        </tr>
+        <tr>
+          <td class="flag-cell">(kein Flag)</td>
+          <td class="desc-cell">Schreibt TextKey.swift an den konfigurierten Pfad</td>
+          <td class="flag-cell">node generate-textkey.js</td>
+        </tr>
+        <tr>
+          <td class="flag-cell">--dry-run</td>
+          <td class="desc-cell">Gibt generierten Swift-Code auf stdout aus</td>
+          <td class="flag-cell">... --dry-run</td>
+        </tr>
+      </table>
+
+      <div class="callout info" style="margin-top:32px">
+        <span class="callout-icon">💡</span>
+        <div class="callout-body">
+          <strong>Kurzform für beide auf einmal:</strong><br>
+          <code style="margin-top:6px; display:inline-block">node sync-locales.js &amp;&amp; node generate-textkey.js</code>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // ── Intersection Observer für fade-in ──
+  const sections = document.querySelectorAll('.section');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) e.target.classList.add('visible');
+    });
+  }, { threshold: 0.08 });
+  sections.forEach(s => observer.observe(s));
+
+  // ── Active nav link on scroll ──
+  function setActive(el) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  const navItems = document.querySelectorAll('.nav-item');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 120) current = s.id;
+    });
+    navItems.forEach(item => {
+      item.classList.remove('active');
+      if (item.getAttribute('href') === '#' + current) item.classList.add('active');
+    });
+  }, { passive: true });
+
+  // ── Copy button ──
+  function copyCode(btn, text) {
+    // If text not passed, grab from the pre element
+    if (!text) {
+      const pre = btn.closest('.code-block').querySelector('pre');
+      text = pre.innerText;
+    }
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  // ── Mark step as done ──
+  function markDone(stepId, btn) {
+    const step = document.getElementById(stepId);
+    step.classList.toggle('done');
+    const isDone = step.classList.contains('done');
+    btn.textContent = isDone ? '✓ Erledigt' : '○ Rückgängig';
+
+    // also mark nav item if section complete
+    const sectionEl = step.closest('.section');
+    const allSteps = sectionEl ? sectionEl.querySelectorAll('.step') : [];
+    const allDone = [...allSteps].every(s => s.classList.contains('done'));
+    if (sectionEl) {
+      const sectionId = sectionEl.id;
+      const navItem = document.querySelector(`.nav-item[href="#${sectionId}"]`);
+      if (navItem) navItem.classList.toggle('done', allDone);
+    }
+  }
+</script>
+</body>
+</html>

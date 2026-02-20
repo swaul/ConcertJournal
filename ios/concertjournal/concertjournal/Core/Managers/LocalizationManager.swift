@@ -131,7 +131,7 @@ final class LocalizationManager {
                 // Von Supabase Storage herunterladen
                 let data = try await supabaseClient.client
                     .storage
-                    .from("localizations")
+                    .from("translations")
                     .download(path: "\(language).json")
                 
                 let file = localizationDir.appendingPathComponent("\(language).json")

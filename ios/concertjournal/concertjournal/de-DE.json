@@ -304,7 +304,7 @@
   "camera.recognized": "Erkannte Informationen",
   "camera.scan_ticket_desc": "Fotografiere dein Konzert-Ticket oder wähle ein Foto aus deiner Galerie",
   "state.loading": "Laden...",
-  "state.loading_data": "Loading",
+  "state.loading_data": "Lade Daten",
   "state.query_running": "Abfrage läuft...",
   "state.error_generic": "Etwas ist schiefgelaufen",
   "state.error_something_wrong": "Da hat wohl etwas nicht geklappt..",

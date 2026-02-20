@@ -144,7 +144,7 @@ struct BuddiesView: View {
                     Text("\(viewModel.incomingRequests.count) neue Anfrage\(viewModel.incomingRequests.count == 1 ? "" : "n")")
                         .font(.cjHeadline)
                         .foregroundStyle(.primary)
-                    Text(TextKey.buddiesTapToReply.localized)
+                    Text(TextKey.tapToReply.localized)
                         .font(.cjFootnote)
                         .foregroundStyle(.secondary)
                 }
@@ -170,10 +170,10 @@ struct BuddiesView: View {
                 .font(.system(size: 52))
                 .foregroundStyle(.secondary)
                 .padding(.top, 40)
-            Text(TextKey.buddiesNone.localized)
+            Text(TextKey.none.localized)
                 .font(.cjTitle2)
                 .fontWeight(.semibold)
-            Text(TextKey.buddiesShareCode.localized)
+            Text(TextKey.shareCode.localized)
                 .font(.cjBody)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -217,7 +217,7 @@ private struct MyCodeCard: View {
         VStack(spacing: 0) {
             // Header
             HStack {
-                Label(TextKey.buddiesMyCode.localized, systemImage: "qrcode")
+                Label(TextKey.myCode.localized, systemImage: "qrcode")
                     .font(.cjHeadline)
                 Spacer()
                 Button {
@@ -289,7 +289,7 @@ private struct MyCodeCard: View {
                             .frame(width: 200, height: 200)
                     }
                     
-                    Text(TextKey.buddiesLetFriendScan.localized)
+                    Text(TextKey.letFriendScan.localized)
                         .font(.cjFootnote)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -301,11 +301,11 @@ private struct MyCodeCard: View {
                         if viewModel.isRegeneratingCode {
                             HStack(spacing: 6) {
                                 ProgressView().scaleEffect(0.8)
-                                Text(TextKey.loading.localized)
+                                Text(TextKey.stateLoading.localized)
                                     .font(.cjFootnote)
                             }
                         } else {
-                            Label(TextKey.generateNewCode, systemImage: "arrow.clockwise")
+                            Label(TextKey.generateNewCode.localized, systemImage: "arrow.clockwise")
                                 .font(.cjFootnote)
                         }
                     }
@@ -363,7 +363,7 @@ private struct BuddyRow: View {
         }
         .contextMenu {
             Button(role: .destructive) { onRemove() } label: {
-                Label(TextKey.endFriendship, systemImage: "person.fill.xmark")
+                Label(TextKey.endFriendship.localized, systemImage: "person.fill.xmark")
             }
         }
     }
@@ -384,7 +384,7 @@ private struct RequestsSheet: View {
                     VStack(spacing: 12) {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 48)).foregroundStyle(.green)
-                        Text(TextKey.buddiesNoRequests.localized)
+                        Text(TextKey.noRequests.localized)
                             .font(.cjBody).foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -392,11 +392,11 @@ private struct RequestsSheet: View {
                     ScrollView {
                         VStack(spacing: 20) {
                             if !viewModel.incomingRequests.isEmpty {
-                                requestSection(title: TextKey.buddiesIncoming.localized, icon: "arrow.down.circle.fill",
+                                requestSection(title: TextKey.incoming.localized, icon: "arrow.down.circle.fill",
                                                iconColor: .green, requests: viewModel.incomingRequests)
                             }
                             if !viewModel.outgoingRequests.isEmpty {
-                                requestSection(title: TextKey.buddiesOutgoing.localized, icon: "arrow.up.circle.fill",
+                                requestSection(title: TextKey.outgoing.localized, icon: "arrow.up.circle.fill",
                                                iconColor: .orange, requests: viewModel.outgoingRequests)
                             }
                         }
@@ -405,7 +405,7 @@ private struct RequestsSheet: View {
                     .scrollIndicators(.hidden)
                 }
             }
-            .navigationTitle(TextKey.navRequests.localized)
+            .navigationTitle(TextKey.requests.localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -452,7 +452,7 @@ private struct RequestRow: View {
                 }
             } else {
                 HStack(spacing: 8) {
-                    Text(TextKey.buddiesOutgoing.localized)
+                    Text(TextKey.outgoing.localized)
                         .font(.cjFootnote)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 10)
@@ -554,7 +554,7 @@ private struct AddBuddySheet: View {
                 }
                 .padding(.top)
             }
-            .navigationTitle(TextKey.navBuddyAdd.localized)
+            .navigationTitle(TextKey.buddyAdd.localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -579,7 +579,7 @@ private struct AddBuddySheet: View {
             VStack(spacing: 14) {
                 Image(systemName: "person.text.rectangle")
                     .font(.system(size: 44)).foregroundStyle(.secondary)
-                Text(TextKey.buddiesCodeHint.localized)
+                Text(TextKey.codeHint.localized)
                     .font(.cjBody).foregroundStyle(.secondary)
                     .multilineTextAlignment(.center).padding(.horizontal, 32)
             }
@@ -588,7 +588,7 @@ private struct AddBuddySheet: View {
         case .searching:
             VStack(spacing: 12) {
                 ProgressView()
-                Text(TextKey.buddiesSearchUser.localized)
+                Text(TextKey.searchUser.localized)
                     .font(.cjBody).foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -597,7 +597,7 @@ private struct AddBuddySheet: View {
             VStack(spacing: 12) {
                 Image(systemName: "person.fill.questionmark")
                     .font(.system(size: 44)).foregroundStyle(.secondary)
-                Text(TextKey.buddiesCodeNotFound.localized)
+                Text(TextKey.codeNotFound.localized)
                     .font(.cjBody).foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

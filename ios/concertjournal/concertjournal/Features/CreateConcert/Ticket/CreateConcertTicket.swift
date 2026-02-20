@@ -107,7 +107,7 @@ struct CreateConcertTicket: View {
                             .transition(.move(edge: .trailing))
                         }
 
-                        Text(TextKey.fieldNotes.localized)
+                        Text(TextKey.notes.localized)
                             .font(.cjHeadline)
                             .padding(.horizontal)
                             .padding(.top)
@@ -245,7 +245,7 @@ struct CreateConcertTicket: View {
                 .padding(.top)
             HStack {
                 VStack {
-                    Text(TextKey.fieldBlock.localized)
+                    Text(TextKey.block.localized)
                         .frame(maxWidth: .infinity)
                         .font(.cjHeadline)
                     TextField("", text: $seatBlock, prompt: Text("C").font(.cjTitle))
@@ -262,7 +262,7 @@ struct CreateConcertTicket: View {
                 .padding(4)
 
                 VStack {
-                    Text(TextKey.fieldRow.localized)
+                    Text(TextKey.row.localized)
                         .frame(maxWidth: .infinity)
                         .font(.cjHeadline)
                     TextField("", text: $seatRow, prompt: Text("8").font(.cjTitle))
@@ -279,7 +279,7 @@ struct CreateConcertTicket: View {
                 .padding(4)
 
                 VStack {
-                    Text(TextKey.fieldSeat.localized)
+                    Text(TextKey.seat.localized)
                         .frame(maxWidth: .infinity)
                         .font(.cjHeadline)
                     TextField("", text: $seatNumber, prompt: Text("29").font(.cjTitle))

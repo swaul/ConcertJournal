@@ -83,7 +83,7 @@ public struct CreateConcertTravelView: View {
                                 }
                             }
                         } label: {
-                            Text(TextKey.ticketSeatInfo.localized)
+                            Text(TextKey.seatInfo.localized)
                                 .font(.cjBody)
                                 .padding(4)
                         }
@@ -106,18 +106,18 @@ public struct CreateConcertTravelView: View {
                         }
                     }
 
-                    Text(TextKey.travelDurationQuestion.localized)
+                    Text(TextKey.durationQuestion.localized)
                         .font(.cjBody)
                         .padding(.top)
 
                     DurationValidatedTextField("z.B.: 3h 27m", text: $durationText)
 
-                    Text(TextKey.travelDistanceQuestion.localized)
+                    Text(TextKey.distanceQuestion.localized)
                         .font(.cjBody)
                         .padding(.top)
                     DistanceValidatedTextField("z.B.: 346,5km", text: $distanceText)
 
-                    Text(TextKey.fieldArrivalTime.localized)
+                    Text(TextKey.arrivalTime.localized)
                         .font(.cjBody)
                         .padding(.top)
                     DatePicker("", selection: $arrivedAt)

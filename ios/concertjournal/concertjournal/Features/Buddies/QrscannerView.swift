@@ -87,7 +87,7 @@ struct QRScannerView: View {
                 
                 // Hinweistext
                 VStack(spacing: 8) {
-                    Text(TextKey.cameraScanHint.localized)
+                    Text(TextKey.scanHint.localized)
                         .font(.cjBody)
                         .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
@@ -111,7 +111,7 @@ struct QRScannerView: View {
                 .font(.cjTitle2)
                 .fontWeight(.semibold)
             
-            Text(TextKey.cameraAccessDeniedDesc.localized)
+            Text(TextKey.accessDeniedDesc.localized)
                 .font(.cjBody)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

@@ -179,7 +179,7 @@ struct CreateConcertVisitView: View {
                         HapticManager.shared.buttonTap()
                         selectArtistPresenting = true
                     } label: {
-                        Text(TextKey.fieldSelectArtist.localized)
+                        Text(TextKey.selectArtist.localized)
                             .font(.cjBody)
                     }
                     .buttonStyle(.glassProminent)
@@ -515,20 +515,20 @@ struct CreateConcertVisitView: View {
                         }
                         if let travelDuration = travel.travelDuration {
                             let parsedDuration = DurationParser.format(travelDuration)
-                            Text(TextKey.travelDurationWas.localized(with: parsedDuration))
+                            Text(TextKey.durationWas.localized(with: parsedDuration))
                                 .font(.cjBody)
                         }
                         if let travelDistance = travel.travelDistance {
                             let parsedDistance = DistanceParser.format(travelDistance)
-                            Text(TextKey.travelDistanceWas.localized(with: parsedDistance))
+                            Text(TextKey.distanceWas.localized(with: parsedDistance))
                                 .font(.cjBody)
                         }
                         if let travelExpenses = travel.travelExpenses {
-                            Text(TextKey.travelCostWas.localized(with: travelExpenses.formatted))
+                            Text(TextKey.costWas.localized(with: travelExpenses.formatted))
                                 .font(.cjBody)
                         }
                         if let hotelExpenses = travel.hotelExpenses {
-                            Text(TextKey.travelHotelCost.localized(with: hotelExpenses.formatted))
+                            Text(TextKey.hotelCost.localized(with: hotelExpenses.formatted))
                                 .font(.cjBody)
                         }
                     }
@@ -639,7 +639,7 @@ struct CreateConcertVisitView: View {
                         HapticManager.shared.buttonTap()
                         presentTicketEdit = true
                     } label: {
-                        Text(TextKey.ticketInfoAdd.localized)
+                        Text(TextKey.infoAdd.localized)
                             .font(.cjBody)
                     }
                     .padding()
@@ -651,7 +651,7 @@ struct CreateConcertVisitView: View {
                     HapticManager.shared.buttonTap()
                     presentTicketEdit = true
                 } label: {
-                    Text(TextKey.ticketInfoAdd.localized)
+                    Text(TextKey.infoAdd.localized)
                         .font(.cjBody)
                 }
                 .padding()

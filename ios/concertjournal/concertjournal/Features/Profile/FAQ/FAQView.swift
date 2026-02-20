@@ -30,7 +30,7 @@ struct FAQView: View {
                 case .loading:
                     VStack(spacing: 12) {
                         ProgressView()
-                        Text(TextKey.loadingData.localized)
+                        Text(TextKey.stateLoading.localized)
                             .font(.cjBody)
                             .foregroundStyle(.secondary)
                     }

@@ -25,15 +25,15 @@ struct MainAppView: View {
         @Bindable var dependencyContainer = dependencies
 
         TabView(selection: $navigationManager.selectedTab) {
-            Tab(TextKey.navConcerts.localized, systemImage: "music.note.list", value: NavigationRoute.concerts) {
+            Tab(TextKey.concerts.localized, systemImage: "music.note.list", value: NavigationRoute.concerts) {
                 ConcertsView()
             }
 
-            Tab(TextKey.navMap.localized, systemImage: "map", value: NavigationRoute.map) {
+            Tab(TextKey.map.localized, systemImage: "map", value: NavigationRoute.map) {
                 MapView()
             }
             
-            Tab(TextKey.navBuddies.localized, systemImage: "person.2.fill", value: NavigationRoute.buddies) {
+            Tab(TextKey.buddies.localized, systemImage: "person.2.fill", value: NavigationRoute.buddies) {
                 BuddiesView()
             }
 
@@ -42,9 +42,6 @@ struct MainAppView: View {
             }
         }
         .tabBarMinimizeBehavior(.onScrollDown)
-        .onChange(of: navigationManager.selectedTab) { oldValue, newValue in
-            print(newValue)
-        }
         .tint(dependencies.colorThemeManager.appTint)
         .fullScreenCover(isPresented: $showSetup) {
             UserSetupView {
@@ -56,12 +53,12 @@ struct MainAppView: View {
         }
         .onAppear {
             showSetup = dependencies.needsSetup
-            print(TextKey.appName.localized)
+            print(TextKey.name.localized)
         }
         .onReceive(NotificationCenter.default.publisher(for: .iCloudKeychainUnavailable)) { _ in
             showICloudWarning = true
         }
-        .alert(TextKey.errorICloudWarning.localized, isPresented: $showICloudWarning) {
+        .alert(TextKey.icloudWarning.localized, isPresented: $showICloudWarning) {
             Button(TextKey.understood.localized) {}
             Button(TextKey.openSettings.localized) {
                 UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
@@ -72,10 +69,10 @@ struct MainAppView: View {
         .onReceive(NotificationCenter.default.publisher(for: .syncingProblem)) { _ in
             showDecryptionProblem = true
         }
-        .alert(TextKey.errorDecryptionFailed.localized, isPresented: $showDecryptionProblem) {
+        .alert(TextKey.decryptionFailed.localized, isPresented: $showDecryptionProblem) {
             Button(TextKey.understood.localized) {}
         } message: {
-            Text(TextKey.errorDecryptionDesc.localized)
+            Text(TextKey.decryptionDesc.localized)
         }
 #if DEBUG
         .sheet(isPresented: $showDebugLogs) {

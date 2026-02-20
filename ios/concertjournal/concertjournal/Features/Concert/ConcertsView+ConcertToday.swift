@@ -30,7 +30,7 @@ struct ConcertTodayView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "calendar.badge.clock")
                             .font(.title3)
-                        Text(TextKey.homeToday.localized)
+                        Text(TextKey.today.localized)
                             .font(.cjHeadline)
                     }
                     .foregroundStyle(.white)

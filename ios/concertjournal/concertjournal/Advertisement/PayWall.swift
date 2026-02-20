@@ -65,7 +65,7 @@ struct PaywallView: View {
                     dismiss()
                 }
             } message: {
-                Text(TextKey.premiumNowMember.localized)
+                Text(TextKey.nowMember.localized)
             }
             .alert(TextKey.errorGeneric.localized, isPresented: .constant(errorMessage != nil)) {
                 Button(TextKey.ok.localized) {
@@ -104,12 +104,12 @@ struct PaywallView: View {
                     .foregroundColor(.white)
             }
 
-            Text(TextKey.appName.localized)
+            Text(TextKey.name.localized)
                 .font(.custom("PlayfairDisplay-Bold", size: 32))
 
             PremiumBadge()
 
-            Text(TextKey.premiumUnlockAll.localized)
+            Text(TextKey.unlockAll.localized)
                 .font(.cjBody)
                 .foregroundColor(.secondary)
         }
