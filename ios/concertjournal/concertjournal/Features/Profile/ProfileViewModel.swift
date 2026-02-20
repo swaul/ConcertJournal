@@ -58,12 +58,19 @@ final class ProfileViewModel {
     }
     
     private func loadProfile(for user: User) async throws {
-        let profile: Profile = try await supabaseClient.client
+        let profiles: [Profile] = try await supabaseClient.client
             .from("profiles")
-            .select("*")
+            .select("""
+                display_name,
+                email,
+                avatar_url
+            """)
             .eq("id", value: user.id)
+            .limit(1)
             .execute()
             .value
+        
+        guard let profile = profiles.first else { return }
         
         self.profile = profile
     }

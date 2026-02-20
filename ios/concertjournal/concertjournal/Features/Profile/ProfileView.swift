@@ -145,6 +145,18 @@ struct ProfileView: View {
                     }
                     .accessibilityIdentifier("colorButton")
                     .buttonStyle(.glass)
+                    
+#if DEBUG
+                    Button("🛠 Setup zurücksetzen") {
+                        Task {
+                            let attrs = UserAttributes(data: ["setup_completed": .bool(false)])
+                            _ = try? await dependencies.supabaseClient.client.auth.update(user: attrs)
+                            dependencies.needsSetup = true
+                        }
+                    }
+                    .buttonStyle(.glass)
+                    .tint(.orange)
+#endif
 
                     // ── Account-Aktionen ──────────────────────────────
                     if isLoggedIn {

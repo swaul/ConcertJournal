@@ -11,6 +11,7 @@ protocol UserSessionManagerProtocol {
     var providerToken: String? { get }
     var providerRefreshToken: String? { get }
 
+    var profileChanged: AnyPublisher<Profile?, Never> { get }
     var userSessionChanged: AnyPublisher<User?, Never> { get }
     var state: UserSessionState { get }
 
@@ -69,6 +70,14 @@ final class UserSessionManager: UserSessionManagerProtocol {
         user?.id.uuidString
     }
 
+    var profileChanged: AnyPublisher<Profile?, Never> {
+        profileChangedSubject.eraseToAnyPublisher()
+    }
+    
+    let profileChangedSubject = PassthroughSubject<Profile?, Never>()
+    
+    var profile: Profile? = nil
+    
     var providerToken: String? {
         session?.providerToken
     }
@@ -220,12 +229,48 @@ final class UserSessionManager: UserSessionManagerProtocol {
         if let user = session?.user {
             state = .loggedIn(user)
             logInfo("User logged in: \(user.email ?? "unknown")", category: .auth)
+            try? await loadProfile(for: user.id)
         } else {
             state = .loggedOut
             logInfo("User logged out", category: .auth)
         }
 
         userSessionChangedSubject.send(self.user)
+    }
+    
+    var isLoadingProfile: Bool = false
+    
+    private func loadProfile(for id: UUID) async {
+        guard isLoadingProfile == false, profile == nil else { return }
+        
+        isLoadingProfile = true
+
+        do {
+            let profiles: [Profile] = try await client
+                .from("profiles")
+                .select("""
+                    display_name,
+                    email,
+                    avatar_url
+                """)
+                .eq("id", value: id)
+                .limit(1)
+                .execute()
+                .value
+            
+            guard let profile = profiles.first else {
+                isLoadingProfile = false
+                return
+            }
+            
+            self.profile = profile
+            profileChangedSubject.send(profile)
+            isLoadingProfile = false
+            logSuccess("Loaded profile successfully")
+        } catch {
+            logError("Loading Profile failed", error: error)
+            isLoadingProfile = false
+        }
     }
 
     struct SpotifyToken {

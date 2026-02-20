@@ -8,6 +8,7 @@
 import Combine
 import SwiftUI
 import Supabase
+import CoreData
 
 @Observable
 class DependencyContainer {
@@ -24,6 +25,7 @@ class DependencyContainer {
     let networkMonitor: NetworkMonitor
     let syncManager: SyncManager
     let appState: AppState
+    let buddyNotificationService: BuddyNotificationService
     
     // BFF Repositories
     let offlineConcertRepository: OfflineConcertRepositoryProtocol
@@ -37,7 +39,6 @@ class DependencyContainer {
 
     // Local repositories
     let faqRepository: FAQRepositoryProtocol
-    let localizationRepository: LocalizationRepository
 
     var needsSetup: Bool = false
 
@@ -55,6 +56,7 @@ class DependencyContainer {
         self.networkMonitor = NetworkMonitor()
         self.syncManager = SyncManager(apiClient: bffClient, userSessionManager: userSessionManager)
         self.appState = AppState()
+        self.buddyNotificationService = BuddyNotificationService(supabaseClient: supabaseClient)
         
         // ✅ BFF Client needs auth token
         self.bffClient.getAuthToken = { [weak supabaseClient] in
@@ -76,7 +78,6 @@ class DependencyContainer {
 
         // Local repositories (stay unchanged)
         self.faqRepository = FAQRepository(supabaseClient: supabaseClient)
-        self.localizationRepository = LocalizationRepository(supabaseClient: supabaseClient)
 
         bindToAuthState()
     }
@@ -84,12 +85,35 @@ class DependencyContainer {
     func bindToAuthState() {
         userSessionManager.userSessionChanged
             .sink { [weak self] user in
-                if let self, user != nil {
+                guard let self else { return }
+                if let user {
                     self.startFullSync()
                     self.checkIfUserNeedsSetup(user: user)
+                    ConcertEncryptionHelper.shared.currentUserId = user.id.uuidString.lowercased()
+                    self.checkiCloudKeychainOnLogin(user: user)
+                } else {
+                    ConcertEncryptionHelper.shared.currentUserId = nil
+                    nukeLocalData()
+                    UserDefaults.standard.removeObject(forKey: "lastSyncDate")
                 }
             }
             .store(in: &cancellables)
+        
+        userSessionManager.profileChanged
+            .sink { [weak self] profile in
+                guard let self, let profile else { return }
+                self.buddyNotificationService.currentUserName = profile.displayName
+            }
+            .store(in: &cancellables)
+    }
+    
+    func nukeLocalData() {
+        let storeURL = NSPersistentContainer.defaultDirectoryURL()
+            .appendingPathComponent("concertjournal.sqlite")
+        
+        try? FileManager.default.removeItem(at: storeURL)
+        try? FileManager.default.removeItem(at: storeURL.appendingPathExtension("shm"))
+        try? FileManager.default.removeItem(at: storeURL.appendingPathExtension("wal"))
     }
     
     private func checkIfUserNeedsSetup(user: User?) {
@@ -98,6 +122,22 @@ class DependencyContainer {
         if needsSetup {
             logInfo("User has not setup his profile yet")
             self.needsSetup = needsSetup
+        }
+    }
+    
+    func checkiCloudKeychainOnLogin(user: User?) {
+        guard let user, iCloudKeychainChecker.shared.shouldShowWarning() else { return }
+        
+        guard user.userMetadata["icloud_warning_seen"] != true else { return }
+        // Hinweis nur einmal zeigen
+        iCloudKeychainChecker.shared.markWarningAsShown()
+        
+        // An die UI weiterleiten – z.B. über einen Publisher oder Alert
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(
+                name: .iCloudKeychainUnavailable,
+                object: nil
+            )
         }
     }
 
@@ -126,4 +166,9 @@ extension View {
     func withDependencies(_ container: DependencyContainer) -> some View {
         self.environment(\.dependencies, container)
     }
+}
+
+extension Notification.Name {
+    static let iCloudKeychainUnavailable = Notification.Name("iCloudKeychainUnavailable")
+    static let syncingProblem = Notification.Name("SyncingProblem")
 }

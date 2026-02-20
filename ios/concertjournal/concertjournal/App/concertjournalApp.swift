@@ -29,7 +29,7 @@ struct ConcertJournalApp: App {
     
     var body: some Scene {
         WindowGroup {
-            RootView(navigationManager: navigationManager)
+            RootView(localizationManager: LocalizationManager(supabaseClient: dependencyContainer.supabaseClient), navigationManager: navigationManager)
                 .preferredColorScheme(.dark)
                 .withDependencies(dependencyContainer)
         }
@@ -60,6 +60,8 @@ struct RootView: View {
 
     @Environment(\.dependencies) var dependencies
 
+    @State var localizationManager: LocalizationManager
+
     @State private var onboardingManager = OnboardingManager()
     @State var navigationManager: NavigationManager
 
@@ -67,10 +69,14 @@ struct RootView: View {
     @State private var importConcertItem: ExtractedConcertInfo? = nil
     
     @State private var showBuddySheetWithCode: BuddyCode? = nil
+    
+    @State private var loadingLocalization: Bool = true
 
     var body: some View {
         Group {
-            if !onboardingManager.hasCompletedOnboarding {
+            if loadingLocalization {
+                LoadingView()
+            } else if !onboardingManager.hasCompletedOnboarding {
                 OnboardingView(manager: onboardingManager)
                     .transition(.move(edge: .leading).combined(with: .opacity))
             } else {
@@ -80,6 +86,12 @@ struct RootView: View {
             }
         }
         .animation(.easeInOut(duration: 0.35), value: onboardingManager.hasCompletedOnboarding)
+        .task {
+            loadingLocalization = true
+            await localizationManager.checkAndUpdateLocalizationIfNeeded()
+            TextManager.shared.configure(with: localizationManager)
+            loadingLocalization = false
+        }
         .onOpenURL { url in
             logInfo("Received URL: \(url.absoluteString)", category: .auth)
             guard url.scheme == "concertjournal" else { return }

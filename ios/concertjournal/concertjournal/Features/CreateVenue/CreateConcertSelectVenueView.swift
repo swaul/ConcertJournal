@@ -20,6 +20,8 @@ struct CreateConcertSelectVenueView: View {
     @State var selectedVenue: MKMapItem? = nil
     
     @FocusState var searchFeildFocused
+        
+    @State var searchFeildFocusedAnimated: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -43,13 +45,13 @@ struct CreateConcertSelectVenueView: View {
         @Bindable var viewModel = viewModel
         ScrollView {
             VStack(alignment: .leading) {
-                ForEach(viewModel.results, id: \.self) { venue in
+                ForEach(viewModel.results, id: \.identifier) { venue in
                     Button {
                         selectedVenue = venue
                     } label: {
                         VenueRow(venue: venue)
                     }
-                    .selectedGlass(selected: selectedVenue == venue, shape: RoundedRectangle(cornerRadius: 20))
+                    .selectedGlass(selected: selectedVenue?.identifier == venue.identifier, shape: RoundedRectangle(cornerRadius: 20))
                 }
             }
             .padding()
@@ -59,6 +61,11 @@ struct CreateConcertSelectVenueView: View {
                 ProgressView()
             }
         }
+        .onChange(of: searchFeildFocused, { oldValue, newValue in
+            withAnimation(.bouncy) {
+                searchFeildFocusedAnimated = newValue
+            }
+        })
         .safeAreaInset(edge: .bottom) {
             searchField(query: $viewModel.query)
                 .padding()
@@ -94,11 +101,26 @@ struct CreateConcertSelectVenueView: View {
 
     @ViewBuilder
     private func searchField(query: Binding<String>) -> some View {
-        TextField("Venue oder Ort", text: query)
-            .focused($searchFeildFocused)
-            .font(.cjBody)
-            .padding()
-            .glassEffect()
+        HStack {
+            TextField("Venue oder Ort", text: query)
+                .autocorrectionDisabled()
+                .focused($searchFeildFocused)
+                .font(.cjBody)
+                .padding()
+                .glassEffect()
+            
+            if searchFeildFocusedAnimated {
+                Button {
+                    HapticManager.shared.buttonTap()
+                    searchFeildFocused = false
+                } label: {
+                    Text("Fertig")
+                        .font(.cjBody)
+                }
+                .buttonStyle(.glass)
+                .transition(.move(edge: .trailing).combined(with: .opacity))
+            }
+        }
     }
 }
 

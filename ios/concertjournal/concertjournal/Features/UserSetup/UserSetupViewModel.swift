@@ -102,7 +102,11 @@ final class UserSetupViewModel {
             try await supabaseClient.client.auth.update(user: userAttributes)
             
             // 3. Profiles-Tabelle updaten
-            var profileUpdate: [String: AnyJSON] = ["display_name": .string(name)]
+            var profileUpdate: [String: AnyJSON] = [
+                "id": .string(userId),
+                "display_name": .string(name)
+            ]
+            
             if let url = avatarURL {
                 profileUpdate["avatar_url"] = .string(url)
             }

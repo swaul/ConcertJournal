@@ -15,34 +15,43 @@ class CreateConcertVisitViewModel: Hashable, Equatable {
     static func == (lhs: CreateConcertVisitViewModel, rhs: CreateConcertVisitViewModel) -> Bool {
         lhs.id == rhs.id
     }
-
+    
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
-
+    
     let id: String
     var artist: ArtistDTO?
-
+    
     private let repository: OfflineConcertRepositoryProtocol
     private let photoRepository: OfflinePhotoRepositoryProtocol
-
+    private let notificationService: BuddyNotificationService
+    
     init(artist: ArtistDTO? = nil,
          repository: OfflineConcertRepositoryProtocol,
-         photoRepository: OfflinePhotoRepositoryProtocol) {
+         photoRepository: OfflinePhotoRepositoryProtocol,
+         notificationService: BuddyNotificationService) {
         self.repository = repository
         self.photoRepository = photoRepository
-
+        self.notificationService = notificationService
+        
         self.artist = artist
         self.id = UUID().uuidString
     }
-
-    func createVisit(from new: NewConcertVisit, selectedImages: [UIImage] = []) throws {
+    
+    func createVisit(from new: NewConcertVisit, selectedImages: [UIImage] = []) async throws {
         guard let newConcert = CreateConcertDTO(newConcertVisit: new, images: selectedImages) else {
             throw CreateConcertError.couldNotCreateConcertDTO
         }
-
+        
         let concert = try repository.createConcert(newConcert)
-
+        
+        await notificationService.notifyBuddies(
+            attendees: new.buddyAttendees,
+            concertId: concert.id.uuidString.lowercased(),
+            concertTitle: new.artistName
+        )
+        
         for photo in selectedImages {
             _ = try photoRepository.savePhoto(photo, for: concert)
         }

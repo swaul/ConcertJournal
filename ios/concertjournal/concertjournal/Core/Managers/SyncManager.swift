@@ -14,9 +14,7 @@ class SyncManager {
     let apiClient: BFFClient
 
     private let userSessionManager: UserSessionManagerProtocol
-    var artistRepository: BFFArtistRepository? = nil
-    var venueRepository: BFFVenueRepository? = nil
-
+    
     private var cancellables = Set<AnyCancellable>()
 
     init(apiClient: BFFClient,
@@ -53,6 +51,7 @@ class SyncManager {
         defer { isSyncing = false }
 
         await resetOldErrorStates()
+        
 
         logInfo("Starting full sync", category: .sync)
 
@@ -87,9 +86,10 @@ class SyncManager {
             return
         }
 
+        let id = concert.objectID
         let context = coreData.newBackgroundContext()
         await context.perform {
-            guard let bgConcert = try? context.existingObject(with: concert.objectID) as? Concert else {
+            guard let bgConcert = try? context.existingObject(with: id) as? Concert else {
                 return
             }
 
@@ -121,8 +121,20 @@ class SyncManager {
         let context = coreData.newBackgroundContext()
 
         try await context.perform {
+            var pulledConcerts: Int = 0
+
+            let problem: SyncingProblem? = nil
             for serverConcert in response.concerts {
-                Task { try await self.mergeConcertFromServerSync(serverConcert, context: context) }
+                Task {
+                    do {
+                        let problem = try await self.mergeConcertFromServerSync(serverConcert, context: context)
+                        pulledConcerts += 1
+                    } catch {
+                        DispatchQueue.main.async {
+                            logError("Failed to pull concert", error: error)
+                        }
+                    }
+                }
             }
             for deletedId in response.deleted {
                 self.deleteConcertFromServerSync(deletedId, context: context)
@@ -130,13 +142,21 @@ class SyncManager {
             if context.hasChanges {
                 try context.save()
             }
+            
+            if problem != nil {
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(
+                        name: .syncingProblem,
+                        object: nil
+                    )
+                }
+            }
+            logSuccess("Pulled \(pulledConcerts) concerts", category: .sync)
         }
 
         await MainActor.run {
             UserDefaults.standard.set(Date(), forKey: "lastSyncDate")
         }
-
-        logSuccess("Pulled \(response.concerts.count) concerts", category: .sync)
     }
 
     // MARK: - Push (Core Data → Server)
@@ -192,6 +212,17 @@ class SyncManager {
             let serverArtist: ArtistDTO = try await apiClient.post("/artists", body: CreateArtistDTO(artist: payload.artist))
             logSuccess("Successfully created \"\(payload.artist.name)\"", category: .sync)
             payload.artistServerId = serverArtist.id
+            
+            await context.perform {
+                let request: NSFetchRequest<Artist> = Artist.fetchRequest()
+                request.predicate = NSPredicate(format: "name == %@ AND serverId == nil", payload.artist.name)
+                request.fetchLimit = 1
+                if let localArtist = try? context.fetch(request).first {
+                    localArtist.serverId = serverArtist.id
+                    localArtist.syncStatus = SyncStatus.synced.rawValue
+                    try? context.save()
+                }
+            }
         }
         if let venue = payload.venue, payload.venueServerId == nil {
             logInfo("Concert in sync has venue \"\(venue.name)\" which does not exist on the server", category: .sync)
@@ -199,6 +230,17 @@ class SyncManager {
             let serverVenue: IDResponse = try await apiClient.post("/venues", body: venue)
             logSuccess("Successfully created \"\(venue.name)\"", category: .sync)
             payload.venueServerId = serverVenue.id
+            
+            await context.perform {
+                let request: NSFetchRequest<Venue> = Venue.fetchRequest()
+                request.predicate = NSPredicate(format: "name == %@ AND serverId == nil", venue.name)
+                request.fetchLimit = 1
+                if let localVenue = try? context.fetch(request).first {
+                    localVenue.serverId = serverVenue.id
+                    localVenue.syncStatus = SyncStatus.synced.rawValue
+                    try? context.save()
+                }
+            }
         }
         if payload.supportActServerIds?.count != payload.supportActs?.count {
             logInfo("Concert in sync has support acts \"\(payload.supportActs?.map { $0.name } ?? [])\" which do not exist on the server", category: .sync)
@@ -207,10 +249,31 @@ class SyncManager {
             for artist in payload.supportActs ?? [] {
                 let serverArtist: ArtistDTO = try await apiClient.post("/artists", body: CreateArtistDTO(artist: artist))
                 supportActsIds.append(serverArtist.id)
+                
+                await context.perform {
+                    let request: NSFetchRequest<Artist> = Artist.fetchRequest()
+                    request.predicate = NSPredicate(format: "name == %@ AND serverId == nil", artist.name)
+                    request.fetchLimit = 1
+                    if let localArtist = try? context.fetch(request).first {
+                        localArtist.serverId = serverArtist.id
+                        localArtist.syncStatus = SyncStatus.synced.rawValue
+                        try? context.save()
+                    }
+                }
             }
             logSuccess("Successfully created \"\(payload.supportActs?.map { $0.name } ?? [])\"", category: .sync)
 
             payload.supportActServerIds = supportActsIds
+        }
+        
+        // ENCRYPTION
+        
+        payload.title = try ConcertEncryptionHelper.shared.encrypt(payload.title)
+        if let notes = payload.notes {
+            payload.notes = try ConcertEncryptionHelper.shared.encrypt(notes)
+        }
+        if let ticketNotes = payload.ticketNotes {
+            payload.ticketNotes = try ConcertEncryptionHelper.shared.encrypt(ticketNotes)
         }
 
         if let serverId = payload.serverId {
@@ -265,15 +328,15 @@ class SyncManager {
 
     // MARK: - Merge (upsert)
 
-    private func mergeConcertFromServerSync(_ serverConcert: ServerConcert, context: NSManagedObjectContext) async throws {
+    private func mergeConcertFromServerSync(_ serverConcert: ServerConcert, context: NSManagedObjectContext) async throws -> SyncingProblem? {
         let request: NSFetchRequest<Concert> = Concert.fetchRequest()
         request.predicate = NSPredicate(format: "serverId == %@", serverConcert.id)
         request.fetchLimit = 1
 
         if let existing = try context.fetch(request).first {
-            await updateConcertSync(existing, with: serverConcert, context: context)
+            return await updateConcertSync(existing, with: serverConcert, context: context)
         } else {
-            await createConcertSync(serverConcert, context: context)
+            return await createConcertSync(serverConcert, context: context)
         }
     }
 
@@ -288,21 +351,34 @@ class SyncManager {
 
     // MARK: - Update existing Concert
 
-    private func updateConcertSync(_ concert: Concert, with server: ServerConcert, context: NSManagedObjectContext) async {
+    private func updateConcertSync(_ concert: Concert, with server: ServerConcert, context: NSManagedObjectContext) async -> SyncingProblem? {
         if concert.syncStatus == SyncStatus.pending.rawValue,
            let serverModified = server.updatedAt,
            let localModified = concert.locallyModifiedAt,
            localModified > serverModified {
             concert.syncStatus = SyncStatus.conflict.rawValue
             logWarning("Conflict for: \(concert.title ?? "?")", category: .sync)
-            return
+            return nil
         }
 
+        var problem: SyncingProblem? = nil
         do {
-            concert.title       = server.title
+            if let title = server.title {
+                if let decrypted = try? ConcertEncryptionHelper.shared.decrypt(title) {
+                    concert.title   = decrypted
+                } else {
+                    problem = SyncingProblem.decryptionFailed
+                }
+            }
+            if let notes = server.notes {
+                if let decrypted = try? ConcertEncryptionHelper.shared.decrypt(notes) {
+                    concert.notes   = decrypted
+                } else {
+                    problem = SyncingProblem.decryptionFailed
+                }
+            }
             concert.date        = server.date
             concert.openingTime = server.openingTime
-            concert.notes       = server.notes
             concert.rating      = Int16(server.rating ?? 0)
             concert.city        = server.city
             
@@ -317,32 +393,51 @@ class SyncManager {
             }
             
             concert.travel = buildTravelSync(from: server, existing: concert.travel, context: context)
-            concert.ticket = buildTicketSync(from: server, existing: concert.ticket, context: context)
+            let (ticket, ticketProblem) = try buildTicketSync(from: server, existing: concert.ticket, context: context)
+            concert.ticket = ticket
+            problem = ticketProblem
             try await updateSupportActsSync(concert: concert, serverIds: server.supportActsIds ?? [], context: context)
             
             concert.serverModifiedAt = server.updatedAt
             concert.syncStatus       = SyncStatus.synced.rawValue
             concert.lastSyncedAt     = Date()
+            
+            return problem
         } catch {
-            print("error", error)
+            logError("Could not sync concert", error: error)
+            return nil
         }
     }
 
     // MARK: - Create new Concert
 
-    private func createConcertSync(_ server: ServerConcert, context: NSManagedObjectContext) async {
+    private func createConcertSync(_ server: ServerConcert, context: NSManagedObjectContext) async -> SyncingProblem? {
         let concert = Concert(context: context)
         concert.id       = UUID()
         concert.serverId = server.id
 
-        concert.title       = server.title
         concert.date        = server.date
         concert.openingTime = server.openingTime
-        concert.notes       = server.notes
         concert.rating      = Int16(server.rating ?? 0)
         concert.city        = server.city
 
+        var problem: SyncingProblem? = nil
         do {
+            if let title = server.title {
+                if let decrypted = try? ConcertEncryptionHelper.shared.decrypt(title) {
+                    concert.title   = decrypted
+                } else {
+                    problem = SyncingProblem.decryptionFailed
+                }
+            }
+            if let notes = server.notes {
+                if let decrypted = try? ConcertEncryptionHelper.shared.decrypt(notes) {
+                    concert.notes   = decrypted
+                } else {
+                    problem = SyncingProblem.decryptionFailed
+                }
+            }
+
             if let artistId = server.artistId {
                 concert.artist = try await fetchOrCreateArtistSync(serverId: artistId, context: context)
             }
@@ -353,9 +448,10 @@ class SyncManager {
             
             try await updateSupportActsSync(concert: concert, serverIds: server.supportActsIds ?? [], context: context)
             
-            
             concert.travel = buildTravelSync(from: server, existing: nil, context: context)
-            concert.ticket = buildTicketSync(from: server, existing: nil, context: context)
+            let (ticket, ticketProblem) = try buildTicketSync(from: server, existing: nil, context: context)
+            concert.ticket = ticket
+            problem = ticketProblem
             
             let currentUserId = Self.getCurrentUserIdStatic()
             concert.ownerId  = server.userId
@@ -367,8 +463,11 @@ class SyncManager {
             concert.serverModifiedAt  = server.updatedAt
             concert.locallyModifiedAt = Date()
             concert.syncVersion       = 1
+            
+            return problem
         } catch {
             logError("Could not sync concert", error: error)
+            return nil
         }
     }
 
@@ -415,15 +514,16 @@ class SyncManager {
         from server: ServerConcert,
         existing: Ticket?,
         context: NSManagedObjectContext
-    ) -> Ticket? {
+    ) throws -> (Ticket?, SyncingProblem?) {
         guard server.ticketType != nil
                 || server.ticketCategory != nil
                 || server.seatBlock != nil
         else {
             if let old = existing { context.delete(old) }
-            return nil
+            return (nil, nil)
         }
 
+        var problem: SyncingProblem? = nil
         let ticket = existing ?? Ticket(context: context)
         ticket.ticketType       = server.ticketType ?? TicketType.standing.rawValue
         ticket.ticketCategory   = server.ticketCategory ?? TicketCategory.regular.rawValue
@@ -431,14 +531,20 @@ class SyncManager {
         ticket.seatRow          = server.seatRow
         ticket.seatNumber       = server.seatNumber
         ticket.standingPosition = server.standingPosition
-        ticket.notes            = server.ticketNotes
+        if let ticketNotes = server.ticketNotes {
+            if let decrypted = try? ConcertEncryptionHelper.shared.decrypt(ticketNotes) {
+                ticket.notes    = decrypted
+            } else {
+                problem = SyncingProblem.decryptionFailed
+            }
+        }
 
         ticket.ticketPrice = buildPriceSync(
             from: server.ticketPrice,
             existing: ticket.ticketPrice,
             context: context
         )
-        return ticket
+        return (ticket, problem)
     }
 
     // MARK: - Price Builder
@@ -538,10 +644,10 @@ class SyncManager {
 
 struct ConcertPushPayload: Encodable {
     let serverId: String?
-    let title: String?
+    var title: String?
     let date: Date
     let openingTime: Date?
-    let notes: String?
+    var notes: String?
     let rating: Int?
     let city: String?
     let version: Int
@@ -567,7 +673,7 @@ struct ConcertPushPayload: Encodable {
     let seatRow: String?
     let seatNumber: String?
     let standingPosition: String?
-    let ticketNotes: String?
+    var ticketNotes: String?
 
     private enum CodingKeys: String, CodingKey {
         case date, city, notes, rating, title, version
@@ -794,4 +900,8 @@ struct ServerConcert: Codable {
             self.deletedAt = nil
         }
     }
+}
+
+enum SyncingProblem {
+    case decryptionFailed
 }

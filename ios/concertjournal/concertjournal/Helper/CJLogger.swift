@@ -81,7 +81,7 @@ final class CJLogger {
 
     // MARK: - Properties
 
-    private let subsystem = Bundle.main.bundleIdentifier ?? "com.concertjournal"
+    private let subsystem = Bundle.main.bundleIdentifier ?? "de.concertjournal"
     private var isDebugMode: Bool {
 #if DEBUG
         return true

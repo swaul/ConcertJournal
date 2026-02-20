@@ -30,6 +30,8 @@ struct CreateConcertSelectArtistView: View {
     @State var selectedArtist: String? = nil
 
     @FocusState var textFieldFocused: Bool
+    
+    @State var textFieldFocusedAnimated: Bool = false
 
     @Namespace var selection
 
@@ -83,6 +85,12 @@ struct CreateConcertSelectArtistView: View {
             }
             .padding()
         }
+        .scrollDismissesKeyboard(.interactively)
+        .onChange(of: textFieldFocused, { oldValue, newValue in
+            withAnimation(.bouncy) {
+                textFieldFocusedAnimated = newValue
+            }
+        })
         .toolbar {
             if selectedArtist != nil {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -117,6 +125,18 @@ struct CreateConcertSelectArtistView: View {
                 }
                 .padding()
                 .glassEffect()
+                
+                if textFieldFocusedAnimated {
+                    Button {
+                        HapticManager.shared.buttonTap()
+                        textFieldFocused = false
+                    } label: {
+                        Text("Fertig")
+                            .font(.cjBody)
+                    }
+                    .buttonStyle(.glass)
+                    .transition(.move(edge: .trailing).combined(with: .opacity))
+                }
 
                 if hasText {
                     Button {
@@ -129,9 +149,11 @@ struct CreateConcertSelectArtistView: View {
                             .font(.cjBody)
                     }
                     .buttonStyle(.glassProminent)
+                    .transition(.move(edge: .trailing).combined(with: .opacity))
                 }
             }
             .padding(.horizontal)
+            .padding(.bottom)
         }
     }
 

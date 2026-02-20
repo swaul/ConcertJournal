@@ -22,6 +22,7 @@ struct NewConcertVisit: Identifiable, Equatable {
     var travel: TravelDTO? = nil
     var venue: VenueDTO? = nil
     var setlistItems: [TempCeateSetlistItem] = []
+    var buddyAttendees: [BuddyAttendee] = []
 
     init(importeConcert: ImportedConcert) {
         self.date = importeConcert.date ?? .now
@@ -92,7 +93,7 @@ struct CreateConcertVisitView: View {
 
     @State var viewModel: CreateConcertVisitViewModel?
 
-    @State private var draft: NewConcertVisit
+    @State var draft: NewConcertVisit
     @State private var presentConfirmation: ConfirmationMessage? = nil
     @State private var presentErrorSheet: ErrorMessage? = nil
 
@@ -104,7 +105,8 @@ struct CreateConcertVisitView: View {
     @State private var selectVenuePresenting = false
     @State private var createSetlistPresenting = false
     @State private var presentTicketEdit = false
-
+    @State var selectBuddiesPresenting = false
+    
     @State private var selectedPhotoItems: [PhotosPickerItem] = []
     
     @State var selectedImages: [UIImage] = []
@@ -145,6 +147,8 @@ struct CreateConcertVisitView: View {
                         travelSection()
 
                         ticketSection()
+                        
+                        buddyAttendeesSection()
 
                         ratingSection()
 
@@ -153,6 +157,18 @@ struct CreateConcertVisitView: View {
                         setlistSection()
 
                         imagesSection()
+                    }
+                }
+                .toolbar {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button {
+                            HapticManager.shared.buttonTap()
+                            noteEditorFocused = false
+                            titleFocused = false
+                        } label: {
+                            Text("Fertig")
+                        }
                     }
                 }
             } else {
@@ -183,7 +199,8 @@ struct CreateConcertVisitView: View {
             guard viewModel == nil else { return }
             self.viewModel = CreateConcertVisitViewModel(artist: possibleArtist,
                                                          repository: dependencies.offlineConcertRepository,
-                                                         photoRepository: dependencies.offlinePhotoRepsitory)
+                                                         photoRepository: dependencies.offlinePhotoRepsitory,
+                                                         notificationService: dependencies.buddyNotificationService)
         }
         .adaptiveSheet(item: $presentConfirmation) { message in
             ConfirmationView(message: message)
@@ -234,6 +251,12 @@ struct CreateConcertVisitView: View {
                 draft.venue = venue
             })
         }
+        .sheet(isPresented: $selectBuddiesPresenting) {
+            BuddyAttendeePickerSheet(
+                selectedAttendees: $draft.buddyAttendees,
+                isPresented: $selectBuddiesPresenting
+            )
+        }
         .sheet(isPresented: $presentTicketEdit) {
             CreateConcertTicket(artist: viewModel?.artist) { ticketInfo in
                 draft.ticket = ticketInfo
@@ -254,18 +277,6 @@ struct CreateConcertVisitView: View {
             .interactiveDismissDisabled()
         }
         .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button {
-                    HapticManager.shared.buttonTap()
-                    noteEditorFocused = false
-                    titleFocused = false
-                } label: {
-                    Text("Fertig")
-                }
-            }
-        }
-        .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") { navigationManager.pop() }
                     .font(.cjBody)
@@ -284,7 +295,7 @@ struct CreateConcertVisitView: View {
             do {
                 savingConcertPresenting = true
 
-                try viewModel.createVisit(from: draft, selectedImages: selectedImages)
+                try await viewModel.createVisit(from: draft, selectedImages: selectedImages)
 
                 savingConcertPresenting = false
 
