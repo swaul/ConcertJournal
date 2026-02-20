@@ -44,12 +44,12 @@ struct TrackingPermissionPage: View {
                 }
                 
                 // Title
-                Text("App verbessern")
+                Text(TextKey.profileImproveApp.localized)
                     .font(.custom("PlayfairDisplay-Bold", size: 32))
                     .multilineTextAlignment(.center)
                 
                 // Description
-                Text("Hilf uns, Concert Journal zu verbessern, indem du anonyme Nutzungsdaten teilst.")
+                Text(TextKey.profileAnalyticsHint.localized)
                     .font(.cjBody)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
@@ -60,7 +60,7 @@ struct TrackingPermissionPage: View {
                     Image(systemName: "lock.shield")
                         .foregroundColor(.accentColor)
                     
-                    Text("Deine Privatsphäre ist uns wichtig. Alle Daten werden anonym verarbeitet.")
+                    Text(TextKey.profilePrivacyHint.localized)
                         .lineLimit(nil)
                         .multilineTextAlignment(.leading)
                         .font(.cjFootnote)
@@ -95,10 +95,10 @@ struct TrackingPermissionPage: View {
                                     ProgressView()
                                         .tint(.white)
                                         .font(.cjTitle2)
-                                    Text("Abfrage läuft...")
+                                    Text(TextKey.queryRunning.localized)
                                         .font(.cjTitle2)
                             } else {
-                                Text("Erlauben")
+                                Text(TextKey.allow.localized)
                                     .font(.cjTitle2)
                             }
                         }
@@ -114,7 +114,7 @@ struct TrackingPermissionPage: View {
                             UIApplication.shared.open(url)
                         }
                     } label: {
-                        Text("Einstellungen öffnen")
+                        Text(TextKey.openSettings.localized)
                             .font(.cjTitle)
                             .frame(maxWidth: .infinity)
                     }
@@ -128,7 +128,7 @@ struct TrackingPermissionPage: View {
                             HapticManager.shared.navigationTap()
                             navigationManager.push(.completion)
                         } label: {
-                            Text("Überspringen")
+                            Text(TextKey.skip.localized)
                                 .font(.cjFootnote)
                                 .underline()
                         }
@@ -137,7 +137,7 @@ struct TrackingPermissionPage: View {
                             HapticManager.shared.navigationTap()
                             navigationManager.push(.completion)
                         } label: {
-                            Text("Nächster Schritt!")
+                            Text(TextKey.nextStepExclamation.localized)
                                 .frame(maxWidth: .infinity)
                                 .font(.cjTitle2)
                         }

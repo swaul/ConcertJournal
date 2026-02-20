@@ -85,9 +85,9 @@ struct LoginView: View, KeyboardReadable {
         VStack {
             if !isKeyboardVisible {
                 Spacer()
-                Text("Concert Journal")
+                Text(TextKey.appName.localized)
                     .font(.cjLargeTitle)
-                Text("Deine Konzerte in der Cloud. Überall dabei.")
+                Text(TextKey.onboardingClouds.localized)
                     .font(.cjBody)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -161,7 +161,7 @@ struct LoginView: View, KeyboardReadable {
                         HapticManager.shared.buttonTap()
                         passwordResetPresenting = true
                     } label: {
-                        Text("Passwort vergessen")
+                        Text(TextKey.authForgotPassword.localized)
                             .font(.cjFootnote)
                             .underline()
                     }
@@ -265,10 +265,10 @@ struct LoginView: View, KeyboardReadable {
                 Group {
                     switch loginTypeAnimated {
                     case .login:
-                        Text("Anmelden")
+                        Text(TextKey.authLogin.localized)
                             .transition(.move(edge: .bottom).combined(with: .opacity))
                     case .register:
-                        Text("Registrieren")
+                        Text(TextKey.authRegister.localized)
                             .transition(.move(edge: .top).combined(with: .opacity))
                     }
                 }
@@ -287,7 +287,7 @@ struct LoginView: View, KeyboardReadable {
                     Image("Spotify")
                         .resizable().aspectRatio(contentMode: .fit)
                         .frame(height: 38)
-                    Text("Mit Spotify anmelden")
+                    Text(TextKey.loginWithSpotify.localized)
                         .font(.cjBody)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .foregroundStyle(.white)
@@ -312,7 +312,7 @@ struct LoginView: View, KeyboardReadable {
             if showLoading {
                 VStack {
                     ProgressView().padding()
-                    Text("Laden…").font(.cjTitle)
+                    Text(TextKey.loading.localized).font(.cjTitle)
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 250)

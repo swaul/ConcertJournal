@@ -75,11 +75,11 @@ struct CreateConcertTicket: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 12) {
                         if let artist {
-                            Text("Was für ein Ticket hattest du für \(artist.name)")
+                            Text(TextKey.ticketArtistQuestion.localized(with: artist.name))
                                 .font(.cjTitle)
                                 .padding(.horizontal)
                         } else {
-                            Text("Was für ein Ticket hattest du")
+                            Text(TextKey.ticketGenericQuestion.localized)
                                 .font(.cjTitle)
                                 .padding(.horizontal)
                         }
@@ -107,7 +107,7 @@ struct CreateConcertTicket: View {
                             .transition(.move(edge: .trailing))
                         }
 
-                        Text("Notes")
+                        Text(TextKey.fieldNotes.localized)
                             .font(.cjHeadline)
                             .padding(.horizontal)
                             .padding(.top)
@@ -141,7 +141,7 @@ struct CreateConcertTicket: View {
                         HapticManager.shared.buttonTap()
                         dismiss()
                     } label: {
-                        Text("Abbrechen")
+                        Text(TextKey.cancel.localized)
                             .font(.cjBody)
                     }
                 }
@@ -150,7 +150,7 @@ struct CreateConcertTicket: View {
                         HapticManager.shared.buttonTap()
                         saveTicketInfo()
                     } label: {
-                        Text("Speichern")
+                        Text(TextKey.save.localized)
                             .font(.cjBody)
                     }
                 }
@@ -163,11 +163,11 @@ struct CreateConcertTicket: View {
     @ViewBuilder
     private func ticketCategorySection() -> some View {
         VStack {
-            Text("War das eine bestimmte Ticketkategorie?")
+            Text(TextKey.ticketCategoryQuestion.localized)
                 .padding(.horizontal)
                 .padding(.top)
                 .font(.cjHeadline)
-            Text("(wischen für mehr)")
+            Text(TextKey.swipeForMore.localized)
                 .font(.cjFootnote)
                 .padding(.horizontal)
 
@@ -201,7 +201,7 @@ struct CreateConcertTicket: View {
 
     private func priceSection() -> some View {
         HStack(alignment: .firstTextBaseline) {
-                Text("Ticket preis:")
+                Text(TextKey.ticketPriceColon.localized)
                     .font(.cjHeadline)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 ExpensesValidatedTextField("49,99 €", text: $ticketPrice)
@@ -238,14 +238,14 @@ struct CreateConcertTicket: View {
     @ViewBuilder
     private func seatedSection() -> some View {
         VStack {
-            Text("Was war die Ticket Nummer?")
+            Text(TextKey.ticketNumber.localized)
                 .font(.cjHeadline)
                 .padding(.horizontal)
                 .transition(.move(edge: .leading))
                 .padding(.top)
             HStack {
                 VStack {
-                    Text("Block")
+                    Text(TextKey.fieldBlock.localized)
                         .frame(maxWidth: .infinity)
                         .font(.cjHeadline)
                     TextField("", text: $seatBlock, prompt: Text("C").font(.cjTitle))
@@ -262,7 +262,7 @@ struct CreateConcertTicket: View {
                 .padding(4)
 
                 VStack {
-                    Text("Reihe")
+                    Text(TextKey.fieldRow.localized)
                         .frame(maxWidth: .infinity)
                         .font(.cjHeadline)
                     TextField("", text: $seatRow, prompt: Text("8").font(.cjTitle))
@@ -279,7 +279,7 @@ struct CreateConcertTicket: View {
                 .padding(4)
 
                 VStack {
-                    Text("Sitz")
+                    Text(TextKey.fieldSeat.localized)
                         .frame(maxWidth: .infinity)
                         .font(.cjHeadline)
                     TextField("", text: $seatNumber, prompt: Text("29").font(.cjTitle))
@@ -299,7 +299,7 @@ struct CreateConcertTicket: View {
     @ViewBuilder
     private func standingSection() -> some View {
         VStack {
-            Text("Wo bist du gestanden?")
+            Text(TextKey.fieldWhereSat.localized)
                 .padding(.leading)
                 .font(.cjHeadline)
 

@@ -91,7 +91,7 @@ struct CreateConcertSelectVenueView: View {
                             }
                         }
                     } label: {
-                        Text("Speichern")
+                        Text(TextKey.save.localized)
                             .font(.cjBody)
                     }
                 }

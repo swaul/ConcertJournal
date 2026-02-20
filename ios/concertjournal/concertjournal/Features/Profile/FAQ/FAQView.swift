@@ -30,7 +30,7 @@ struct FAQView: View {
                 case .loading:
                     VStack(spacing: 12) {
                         ProgressView()
-                        Text("Loading")
+                        Text(TextKey.loadingData.localized)
                             .font(.cjBody)
                             .foregroundStyle(.secondary)
                     }
@@ -56,7 +56,7 @@ struct FAQView: View {
                             HapticManager.shared.buttonTap()
                             viewModel.refresh()
                         } label: {
-                            Text("Neu laden")
+                            Text(TextKey.reload.localized)
                                 .font(.cjBody)
                         }
                         .buttonStyle(.borderedProminent)

@@ -30,7 +30,7 @@ struct PasswordResetView: View {
         NavigationStack {
             VStack(alignment: .leading) {
 
-                Text("Gib ein neues Passwort ein und zur Überprüfung noch einmal das gleiche")
+                Text(TextKey.authNewPasswordDesc.localized)
                     .font(.cjBody)
                     .padding()
 
@@ -66,7 +66,7 @@ struct PasswordResetView: View {
                 Button {
                     resetPassword()
                 } label: {
-                    Text("Passwort ändern")
+                    Text(TextKey.authChangePassword.localized)
                         .font(.cjBody)
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -90,7 +90,7 @@ struct PasswordResetView: View {
                         HapticManager.shared.buttonTap()
                         dismiss()
                     } label: {
-                        Text("Abbrechen")
+                        Text(TextKey.cancel.localized)
                             .font(.cjBody)
                     }
                 }

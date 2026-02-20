@@ -49,7 +49,7 @@ struct CreateSetlistView: View {
                             HapticManager.shared.navigationTap()
                             path.append(NavigationRoute.orderSetlist(viewModel))
                         } label: {
-                            Text("Sortieren")
+                            Text(TextKey.sortieren.localized)
                                 .font(.cjBody)
                         }
                     }
@@ -263,14 +263,14 @@ struct CreateSetlistView: View {
                                 }
                                 self.songToDelete = nil
                             } label: {
-                                Text("Ja, song entfernen")
+                                Text(TextKey.setlistDeleteConfirm.localized)
                             }
 
                             Button {
                                 HapticManager.shared.buttonTap()
                                 songToDelete = nil
                             } label: {
-                                Text("Abbrechen")
+                                Text(TextKey.cancel.localized)
                             }
                         }
                     }

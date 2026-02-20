@@ -26,7 +26,7 @@ struct ConcertImportView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     // Preview Card
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Importiertes Konzert")
+                        Text(TextKey.concertImported.localized)
                             .font(.cjCaption)
                             .foregroundColor(.secondary)
 
@@ -111,7 +111,7 @@ struct ConcertImportView: View {
                     Link(destination: URL(string: extractedInfo.originalURL)!) {
                         HStack {
                             Image(systemName: "link")
-                            Text("Original-Link öffnen")
+                            Text(TextKey.openOriginalLink.localized)
                                 .font(.cjFootnote)
                         }
                         .foregroundColor(.accentColor)
@@ -151,7 +151,7 @@ struct ConcertImportView: View {
                         if isImporting {
                             ProgressView()
                         } else {
-                            Text("Importieren")
+                            Text(TextKey.`import`.localized)
                                 .bold()
                         }
                     }

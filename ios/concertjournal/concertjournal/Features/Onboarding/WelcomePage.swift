@@ -42,16 +42,16 @@ struct WelcomePage: View {
                     .padding(.bottom, 20)
                 
                 // Title
-                Text("Willkommen bei")
+                Text(TextKey.onboardingWelcome.localized)
                     .font(.cjTitle2)
                     .foregroundColor(.secondary)
                 
-                Text("Concert Journal")
+                Text(TextKey.appName.localized)
                     .font(.cjLargeTitle)
                     .multilineTextAlignment(.center)
                 
                 // Subtitle
-                Text("Deine Konzerte.\nDeine Erinnerungen.\nDeine Musik.")
+                Text(TextKey.onboardingTagline.localized)
                     .font(.cjBody)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
@@ -62,7 +62,7 @@ struct WelcomePage: View {
                 Button {
                     navigationManager.push(.featurePage)
                 } label: {
-                    Text("Los gehts!")
+                    Text(TextKey.letsGoExclamation.localized)
                         .frame(maxWidth: .infinity)
                         .font(.cjTitle2)
                 }

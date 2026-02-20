@@ -44,12 +44,12 @@ struct PhotoPermissionPage: View {
                 }
                 
                 // Title
-                Text("Zugriff auf Fotos")
+                Text(TextKey.cameraPhotoAccess.localized)
                     .font(.custom("PlayfairDisplay-Bold", size: 32))
                     .multilineTextAlignment(.center)
                 
                 // Description
-                Text("Füge Fotos zu deinen Konzerten hinzu und erstelle unvergessliche Erinnerungen.")
+                Text(TextKey.cameraPhotoHint.localized)
                     .font(.cjBody)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
@@ -79,10 +79,10 @@ struct PhotoPermissionPage: View {
                                 ProgressView()
                                     .tint(.white)
                                     .font(.cjTitle2)
-                                Text("Abfrage läuft...")
+                                Text(TextKey.queryRunning.localized)
                                     .font(.cjTitle2)
                             } else {
-                                Text("Zugriff erlauben")
+                                Text(TextKey.allow.localized)
                                     .font(.cjTitle2)
                             }
                         }
@@ -98,7 +98,7 @@ struct PhotoPermissionPage: View {
                             UIApplication.shared.open(url)
                         }
                     } label: {
-                        Text("Einstellungen öffnen")
+                        Text(TextKey.openSettings.localized)
                             .font(.cjHeadline)
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -112,7 +112,7 @@ struct PhotoPermissionPage: View {
                             HapticManager.shared.navigationTap()
                             navigationManager.push(.trackingPermission)
                         } label: {
-                            Text("Überspringen")
+                            Text(TextKey.skip.localized)
                                 .font(.cjFootnote)
                                 .underline()
                         }
@@ -121,7 +121,7 @@ struct PhotoPermissionPage: View {
                             HapticManager.shared.navigationTap()
                             navigationManager.push(.trackingPermission)
                         } label: {
-                            Text("Nächster Schritt")
+                            Text(TextKey.nextStep.localized)
                                 .frame(maxWidth: .infinity)
                                 .font(.cjTitle2)
                         }

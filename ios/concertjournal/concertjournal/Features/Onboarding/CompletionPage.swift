@@ -52,11 +52,11 @@ struct CompletionPage: View {
                 }
 
                 // Title
-                Text("Alles bereit!")
+                Text(TextKey.confirmReady.localized)
                     .font(.custom("PlayfairDisplay-Bold", size: 36))
                 
                 // Description
-                Text("Du bist startklar! Beginne jetzt damit, deine Konzerte zu dokumentieren.")
+                Text(TextKey.onboardingReady.localized)
                     .font(.cjBody)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
@@ -67,7 +67,7 @@ struct CompletionPage: View {
                 // Get Started Button
                 Button(action: { manager.completeOnboarding() }) {
                     HStack {
-                        Text("Los geht's")
+                        Text(TextKey.letsGo.localized)
                             .font(.cjTitle2)
                         Image(systemName: "arrow.right")
                     }

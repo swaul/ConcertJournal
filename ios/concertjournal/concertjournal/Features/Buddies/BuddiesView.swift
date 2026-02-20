@@ -301,11 +301,11 @@ private struct MyCodeCard: View {
                         if viewModel.isRegeneratingCode {
                             HStack(spacing: 6) {
                                 ProgressView().scaleEffect(0.8)
-                                Text("Generiere…")
+                                Text(TextKey.loading.localized)
                                     .font(.cjFootnote)
                             }
                         } else {
-                            Label(TextKey.generateNewCode.localized, systemImage: "arrow.clockwise")
+                            Label(TextKey.generateNewCode, systemImage: "arrow.clockwise")
                                 .font(.cjFootnote)
                         }
                     }
@@ -363,7 +363,7 @@ private struct BuddyRow: View {
         }
         .contextMenu {
             Button(role: .destructive) { onRemove() } label: {
-                Label(TextKey.endFriendship.localized, systemImage: "person.fill.xmark")
+                Label(TextKey.endFriendship, systemImage: "person.fill.xmark")
             }
         }
     }
@@ -453,7 +453,7 @@ private struct RequestRow: View {
             } else {
                 HStack(spacing: 8) {
                     // TODO: LOCALIZATION
-                    Text("Ausstehend")
+                    Text(TextKey.buddiesOutgoing.localized)
                         .font(.cjFootnote)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 10)
@@ -609,7 +609,7 @@ private struct AddBuddySheet: View {
                     .font(.system(size: 44)).foregroundStyle(.orange)
                 
                 // TODO: LOCALIZATION
-                Text("Suche fehlgeschlagen").font(.cjBody).foregroundStyle(.secondary)
+                Text(TextKey.errorGeneric.localized).font(.cjBody).foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             

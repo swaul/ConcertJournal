@@ -31,7 +31,7 @@ public struct OrderSetListView: View {
                 Button {
                     viewModel.saveSetlist()
                 } label: {
-                    Text("Next")
+                    Text(TextKey.nextStep.localized)
                         .font(.cjBody)
                 }
             }

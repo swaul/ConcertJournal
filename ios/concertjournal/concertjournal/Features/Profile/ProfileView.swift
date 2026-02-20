@@ -40,7 +40,7 @@ struct ProfileView: View {
                 case .loading:
                     VStack(spacing: 12) {
                         ProgressView()
-                        Text("Lade Profil…")
+                        Text(TextKey.profileLoading.localized)
                             .font(.cjBody)
                             .foregroundStyle(.secondary)
                     }
@@ -51,7 +51,7 @@ struct ProfileView: View {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .font(.system(size: 48))
                             .foregroundStyle(.orange)
-                        Text("Profil konnte nicht geladen werden")
+                        Text(TextKey.profileLoadError.localized)
                             .font(.cjBody)
                         Button("Erneut versuchen") {
                             Task { await viewModel.load() }
@@ -181,7 +181,7 @@ struct ProfileView: View {
                 if isOffline {
                     HStack(spacing: 8) {
                         Image(systemName: "wifi.slash")
-                        Text("Offline – Änderungen werden nicht gespeichert")
+                        Text(TextKey.homeOfflineWarning.localized)
                             .font(.cjFootnote)
                     }
                     .foregroundStyle(.white)
@@ -232,17 +232,17 @@ struct ProfileView: View {
                 .frame(width: 64, height: 64)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Nicht angemeldet")
+                    Text(TextKey.authNotLoggedIn.localized)
                         .font(.cjTitle2)
                         .fontWeight(.semibold)
-                    Text("Lokal gespeichert")
+                    Text(TextKey.profileSavedLocally.localized)
                         .font(.cjBody)
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
             }
 
-            Text("Melde dich an, um deine Konzerte zu sichern und auf allen Geräten zu synchronisieren.")
+            Text(TextKey.authLoginSync.localized)
                 .font(.cjFootnote)
                 .foregroundStyle(.secondary)
                 .padding(.top, 4)
@@ -269,10 +269,10 @@ struct ProfileView: View {
             Image(systemName: "wifi.slash")
                 .font(.system(size: 48))
                 .foregroundStyle(.secondary)
-            Text("Keine Internetverbindung")
+            Text(TextKey.homeOfflineWarning.localized)
                 .font(.cjTitle2)
                 .fontWeight(.semibold)
-            Text("Das Profil kann gerade nicht geladen werden.")
+            Text(TextKey.profileCannotLoad.localized)
                 .font(.cjBody)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

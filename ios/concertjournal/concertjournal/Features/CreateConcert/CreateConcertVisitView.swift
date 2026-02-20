@@ -179,7 +179,7 @@ struct CreateConcertVisitView: View {
                         HapticManager.shared.buttonTap()
                         selectArtistPresenting = true
                     } label: {
-                        Text("Wähle einen Künstler")
+                        Text(TextKey.fieldSelectArtist.localized)
                             .font(.cjBody)
                     }
                     .buttonStyle(.glassProminent)
@@ -268,7 +268,7 @@ struct CreateConcertVisitView: View {
                 VStack {
                     ProgressView()
                         .tint(dependencies.colorThemeManager.appTint)
-                    Text("Speichern..")
+                    Text(TextKey.save.localized)
                         .font(.cjBody)
                 }
             }
@@ -315,21 +315,21 @@ struct CreateConcertVisitView: View {
     private func showConfirmation() {
         // Alles perfekt gelaufen
         HapticManager.shared.success()
-        presentConfirmation = ConfirmationMessage(message: "Konzert erfolgreich erstellt! 🎉") {
+        presentConfirmation = ConfirmationMessage(message: TextKey.successConcertCreated.localized) {
             navigationManager.popToRoot()
         }
     }
 
     private func showErrorAlert(error: Error) {
         presentErrorSheet = ErrorMessage(
-            message: "Konzert konnte nicht erstellt werden. Bitte versuche es später nochmal."
+            message: TextKey.errorConcertCreate.localized
         )
     }
 
     @ViewBuilder
     func supportActsSection() -> some View {
         VStack(alignment: .leading) {
-            CJDivider(title: "Support Acts", image: nil)
+            CJDivider(title: TextKey.sectionSupportActs.localized, image: nil)
                 .padding(.horizontal)
 
             if !draft.supportActs.isEmpty {
@@ -351,7 +351,7 @@ struct CreateConcertVisitView: View {
             Button {
                 addSupportActPresenting = true
             } label: {
-                Text("Spport Act hinzufügen")
+                Text(TextKey.addSupportAct.localized)
                     .font(.cjBody)
             }
             .padding()
@@ -363,21 +363,21 @@ struct CreateConcertVisitView: View {
     @ViewBuilder
     func timeSection() -> some View {
         VStack(alignment: .leading) {
-            CJDivider(title: "Zeiten", image: nil)
+            CJDivider(title: TextKey.sectionTimes.localized, image: nil)
                 .padding(.horizontal)
 
-            DatePicker("Datum", selection: $draft.date, displayedComponents: [.date])
+            DatePicker(TextKey.fieldDate.localized, selection: $draft.date, displayedComponents: [.date])
                 .padding(.horizontal)
                 .font(.cjBody)
 
-            DatePicker("Einlass", selection: $openingTime, displayedComponents: [.hourAndMinute])
+            DatePicker(TextKey.fieldAdmission.localized, selection: $openingTime, displayedComponents: [.hourAndMinute])
                 .padding(.horizontal)
                 .font(.cjBody)
                 .onChange(of: openingTime) { _, newValue in
                     draft.openingTime = newValue
                 }
 
-            TextField("Titel (optional)", text: $draft.title)
+            TextField(TextKey.fieldTitleOptional.localized, text: $draft.title)
                 .focused($titleFocused)
                 .textInputAutocapitalization(.words)
                 .font(.cjBody)
@@ -390,7 +390,7 @@ struct CreateConcertVisitView: View {
     @ViewBuilder
     func venueSection() -> some View {
         VStack(alignment: .leading) {
-            CJDivider(title: "Location", image: nil)
+            CJDivider(title: TextKey.sectionLocation.localized, image: nil)
                 .padding(.horizontal)
 
             if !draft.venueName.isEmpty {
@@ -408,7 +408,7 @@ struct CreateConcertVisitView: View {
             Button {
                 selectVenuePresenting = true
             } label: {
-                Text("Venue auswählen")
+                Text(TextKey.fieldSelectVenue.localized)
                     .font(.cjBody)
             }
             .padding()
@@ -420,7 +420,7 @@ struct CreateConcertVisitView: View {
     @ViewBuilder
     func imagesSection() -> some View {
         VStack(alignment: .leading) {
-            CJDivider(title: "Bilder", image: nil)
+            CJDivider(title: TextKey.sectionImages.localized, image: nil)
                 .padding(.horizontal)
 
             PhotosPicker(
@@ -429,7 +429,7 @@ struct CreateConcertVisitView: View {
                 matching: .images,
                 photoLibrary: .shared()
             ) {
-                Label("Fotos hinzufügen", systemImage: "photo.on.rectangle.angled")
+                Label(TextKey.addPhotos.localized, systemImage: "photo.on.rectangle.angled")
                     .font(.cjBody)
             }
             .padding()
@@ -484,7 +484,7 @@ struct CreateConcertVisitView: View {
     @ViewBuilder
     func travelSection() -> some View {
         VStack(alignment: .leading) {
-            CJDivider(title: "Reise", image: nil)
+            CJDivider(title: TextKey.sectionTravel.localized, image: nil)
                 .padding(.horizontal)
 
             VStack(alignment: .leading, spacing: 8) {
@@ -495,40 +495,40 @@ struct CreateConcertVisitView: View {
                             Group {
                                 switch travelType {
                                 case .car:
-                                    Text("Du bist mit dem Auto zur Location gekommen")
+                                    Text(TextKey.travelModeCar.localized)
                                         .font(.cjBody)
                                 case .plane:
-                                    Text("Du hast für die Reise ein Flugzeug genommen")
+                                    Text(TextKey.travelModePlane.localized)
                                         .font(.cjBody)
                                 case .bike:
-                                    Text("Du bist mit dem Fahrrad zur Location gekommen")
+                                    Text(TextKey.travelModeBike.localized)
                                         .font(.cjBody)
                                 case .foot:
-                                    Text("Die Location war zu Fuß errreichbar")
+                                    Text(TextKey.travelModeWalking.localized)
                                         .font(.cjBody)
                                     #warning("fix")
                                 default:
-                                    Text("Du hast den Zug genommen")
+                                    Text(TextKey.travelModeTrain.localized)
                                         .font(.cjBody)
                                 }
                             }
                         }
                         if let travelDuration = travel.travelDuration {
                             let parsedDuration = DurationParser.format(travelDuration)
-                            Text("Die Reise hat \(parsedDuration) gedauert.")
+                            Text(TextKey.travelDurationWas.localized(with: parsedDuration))
                                 .font(.cjBody)
                         }
                         if let travelDistance = travel.travelDistance {
                             let parsedDistance = DistanceParser.format(travelDistance)
-                            Text("Der Weg war \(parsedDistance) lang.")
+                            Text(TextKey.travelDistanceWas.localized(with: parsedDistance))
                                 .font(.cjBody)
                         }
                         if let travelExpenses = travel.travelExpenses {
-                            Text("Die Anreise hat dich \(travelExpenses.formatted) gekostet.")
+                            Text(TextKey.travelCostWas.localized(with: travelExpenses.formatted))
                                 .font(.cjBody)
                         }
                         if let hotelExpenses = travel.hotelExpenses {
-                            Text("Und für die Übernachtung hast du \(hotelExpenses.formatted) gezahlt.")
+                            Text(TextKey.travelHotelCost.localized(with: hotelExpenses.formatted))
                                 .font(.cjBody)
                         }
                     }
@@ -540,7 +540,7 @@ struct CreateConcertVisitView: View {
                         HapticManager.shared.buttonTap()
                         presentTravelSection = true
                     } label: {
-                        Text("Reiseinfos ändern")
+                        Text(TextKey.changeTravelInfo.localized)
                             .font(.cjBody)
                     }
                     .padding()
@@ -550,7 +550,7 @@ struct CreateConcertVisitView: View {
                         HapticManager.shared.buttonTap()
                         presentTravelSection = true
                     } label: {
-                        Text("Reiseinfos hinzufügen")
+                        Text(TextKey.addTravelInfo.localized)
                             .font(.cjBody)
                     }
                     .padding()
@@ -571,7 +571,7 @@ struct CreateConcertVisitView: View {
     @ViewBuilder
     func ticketSection() -> some View {
         VStack(alignment: .leading) {
-            CJDivider(title: "Ticket", image: nil)
+            CJDivider(title: TextKey.sectionTicket.localized, image: nil)
                 .padding(.horizontal)
             
             if let ticket = draft.ticket {
@@ -595,15 +595,15 @@ struct CreateConcertVisitView: View {
                         Grid {
                             GridRow {
                                 if ticket.seatBlock != nil {
-                                    Text("Block")
+                                    Text(TextKey.fieldBlock.localized)
                                         .font(.cjHeadline)
                                 }
                                 if ticket.seatRow != nil {
-                                    Text("Reihe")
+                                    Text(TextKey.fieldRow.localized)
                                         .font(.cjHeadline)
                                 }
                                 if ticket.seatNumber != nil {
-                                    Text("Platz")
+                                    Text(TextKey.fieldSeat.localized)
                                         .font(.cjHeadline)
                                 }
                             }
@@ -639,7 +639,7 @@ struct CreateConcertVisitView: View {
                         HapticManager.shared.buttonTap()
                         presentTicketEdit = true
                     } label: {
-                        Text("Ticket infos hinzufügen")
+                        Text(TextKey.ticketInfoAdd.localized)
                             .font(.cjBody)
                     }
                     .padding()
@@ -651,7 +651,7 @@ struct CreateConcertVisitView: View {
                     HapticManager.shared.buttonTap()
                     presentTicketEdit = true
                 } label: {
-                    Text("Ticket infos hinzufügen")
+                    Text(TextKey.ticketInfoAdd.localized)
                         .font(.cjBody)
                 }
                 .padding()
@@ -664,12 +664,12 @@ struct CreateConcertVisitView: View {
     @ViewBuilder
     func ratingSection() -> some View {
         VStack(alignment: .leading) {
-            CJDivider(title: "Rating", image: nil)
+            CJDivider(title: TextKey.sectionRating.localized, image: nil)
                 .padding(.horizontal)
 
             Stepper(value: $rating, in: 0...10) {
                 HStack {
-                    Text("Rating")
+                    Text(TextKey.fieldRating.localized)
                         .font(.cjBody)
                     Spacer()
                     Text("\(rating)")
@@ -689,7 +689,7 @@ struct CreateConcertVisitView: View {
     func noteSection() -> some View {
         VStack(alignment: .leading) {
 
-            CJDivider(title: "Meine Experience", image: nil)
+            CJDivider(title: TextKey.sectionMyExperience.localized, image: nil)
                 .padding(.horizontal)
 
             TextEditor(text: $draft.notes)
@@ -707,7 +707,7 @@ struct CreateConcertVisitView: View {
     @ViewBuilder
     func setlistSection() -> some View {
         VStack(alignment: .leading) {
-            CJDivider(title: "Setlist", image: nil)
+            CJDivider(title: TextKey.sectionSetlist.localized, image: nil)
                 .padding(.horizontal)
 
             if !draft.setlistItems.isEmpty {
@@ -719,7 +719,7 @@ struct CreateConcertVisitView: View {
                         HapticManager.shared.buttonTap()
                         createSetlistPresenting = true
                     } label: {
-                        Text("Setlist bearbeiten")
+                        Text(TextKey.editSetlist.localized)
                             .padding()
                             .glassEffect()
                             .font(.cjBody)
@@ -730,7 +730,7 @@ struct CreateConcertVisitView: View {
                 Button {
                     createSetlistPresenting = true
                 } label: {
-                    Text("Setlist hinzufügen")
+                    Text(TextKey.addSetlist.localized)
                         .padding()
                         .glassEffect()
                         .font(.cjBody)
@@ -746,7 +746,7 @@ struct CreateConcertVisitView: View {
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(height: 38)
-                            Text("Aus Spotify importieren")
+                            Text(TextKey.importFromSpotify.localized)
                                 .font(.cjBody)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .foregroundStyle(Color.white)

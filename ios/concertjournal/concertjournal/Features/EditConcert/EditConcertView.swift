@@ -67,18 +67,18 @@ struct ConcertEditView: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Titel", text: $title)
-                    DatePicker("Datum", selection: $date, displayedComponents: .date)
-                    DatePicker("Einlass", selection: $openingTime, displayedComponents: .hourAndMinute)
+                    TextField(TextKey.fieldTitle.localized, text: $title)
+                    DatePicker(TextKey.fieldDate.localized, selection: $date, displayedComponents: .date)
+                    DatePicker(TextKey.fieldAdmission.localized, selection: $openingTime, displayedComponents: .hourAndMinute)
                 } header: {
-                    Text("Konzert")
+                    Text(TextKey.concert.localized)
                         .font(.cjBody)
                 }
 
                 Section {
                     supportActsSection()
                 } header: {
-                    Text("Supoprt Acts")
+                    Text(TextKey.sectionSupportActs.localized)
                         .font(.cjBody)
                 }
 
@@ -97,13 +97,13 @@ struct ConcertEditView: View {
                                 }
                             }
                         } else {
-                            Text("Venue auswählen (optional)")
+                            Text(TextKey.fieldVenueOptional.localized)
                                 .font(.cjBody)
                         }
                     }
                     .buttonStyle(.plain)
                 } header: {
-                    Text("Location")
+                    Text(TextKey.sectionLocation.localized)
                         .font(.cjBody)
                 }
                 
@@ -112,21 +112,21 @@ struct ConcertEditView: View {
                         .frame(minHeight: 120)
                         .font(.cjBody)
                 } header: {
-                    Text("Notizen")
+                    Text(TextKey.fieldNotes.localized)
                         .font(.cjBody)
                 }
                 
                 Section {
                     travelSection()
                 } header: {
-                    Text("Reiseinfos")
+                    Text(TextKey.travelInfo.localized)
                         .font(.cjBody)
                 }
 
                 Section {
                     ticketSection()
                 } header: {
-                    Text("Ticketinfo")
+                    Text(TextKey.ticketInfo.localized)
                         .font(.cjBody)
                 }
 
@@ -150,7 +150,7 @@ struct ConcertEditView: View {
                             editSeltistPresenting = CreateSetlistViewModel(currentSelection: setlistItems, spotifyRepository: dependencies.spotifyRepository, setlistRepository: dependencies.setlistRepository)
 
                         } label: {
-                            Text("Setlist bearbeiten")
+                            Text(TextKey.editSetlist.localized)
                                 .font(.cjBody)
                         }
                     } else {
@@ -158,19 +158,19 @@ struct ConcertEditView: View {
                             HapticManager.shared.buttonTap()
                             editSeltistPresenting = CreateSetlistViewModel(currentSelection: setlistItems, spotifyRepository: dependencies.spotifyRepository, setlistRepository: dependencies.setlistRepository)
                         } label: {
-                            Text("Setlist hinzufügen")
+                            Text(TextKey.addSetlist.localized)
                                 .font(.cjBody)
                         }
                     }
                 } header: {
-                    Text("Setlist")
+                    Text(TextKey.setlist.localized)
                         .font(.cjBody)
                 }
 
                 Section {
                     Stepper(value: $rating, in: 0...10) {
                         HStack {
-                            Text("Rating")
+                            Text(TextKey.fieldRating.localized)
                                 .font(.cjBody)
                             Spacer()
                             Text("\(rating)")
@@ -180,18 +180,18 @@ struct ConcertEditView: View {
                         }
                     }
                 } header: {
-                    Text("Bewertung")
+                    Text(TextKey.fieldReview.localized)
                         .font(.cjBody)
                 }
             }
-            .navigationTitle("Konzert bearbeiten")
+            .navigationTitle(TextKey.navEditConcert.localized)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button {
                         HapticManager.shared.buttonTap()
                         dismiss()
                     } label: {
-                        Text("Abbrechen")
+                        Text(TextKey.cancel.localized)
                             .font(.cjBody)
                     }
                 }
@@ -218,7 +218,7 @@ struct ConcertEditView: View {
                         )
                         dismiss()
                     } label: {
-                        Text("Speichern")
+                        Text(TextKey.save.localized)
                             .font(.cjBody)
                     }
                 }
@@ -293,26 +293,26 @@ struct ConcertEditView: View {
             }
             if let travelDuration = travel?.travelDuration {
                 let parsedDuration = DurationParser.format(travelDuration)
-                Text("Die Reise hat \(parsedDuration) gedauert.")
+                Text(TextKey.travelDurationWas.localized(with: parsedDuration))
             }
             if let travelDistance = travel?.travelDistance {
                 let parsedDistance = DistanceParser.format(travelDistance)
-                Text("Der Weg war \(parsedDistance) lang.")
+                Text(TextKey.travelDistanceWas.localized(with: parsedDistance))
             }
             if let arrivedAt = travel?.arrivedAt {
-                Text("Du bist um \(arrivedAt.timeOnlyString) angekommen")
+                Text(TextKey.travelArrived.localized(with: arrivedAt.timeOnlyString))
             }
             if let travelExpenses = travel?.travelExpenses {
-                Text("Die Anreise hat dich \(travelExpenses.formatted) gekostet.")
+                Text(TextKey.travelCostWas.localized(with: travelExpenses.formatted))
             }
             if let hotelExpenses = travel?.hotelExpenses {
-                Text("Und für die Übernachtung hast du \(hotelExpenses.formatted) gezahlt.")
+                Text(TextKey.travelHotelCost.localized(with: hotelExpenses.formatted))
             }
             
             Button {
                 editTravelPresenting = true
             } label: {
-                Text("Reiseinfos hinzufügen")
+                Text(TextKey.addTravelInfo.localized)
             }
             .padding()
             .glassEffect()
@@ -349,7 +349,7 @@ struct ConcertEditView: View {
             Button {
                 addSupportActPresenting = true
             } label: {
-                Text("Spport Act hinzufügen")
+                Text(TextKey.addSupportAct.localized)
                     .font(.cjBody)
             }
             .padding()
@@ -382,15 +382,15 @@ struct ConcertEditView: View {
                     Grid {
                         GridRow {
                             if ticket.seatBlock != nil {
-                                Text("Block")
+                                Text(TextKey.fieldBlock.localized)
                                     .font(.cjHeadline)
                             }
                             if ticket.seatRow != nil {
-                                Text("Reihe")
+                                Text(TextKey.fieldRow.localized)
                                     .font(.cjHeadline)
                             }
                             if ticket.seatNumber != nil {
-                                Text("Platz")
+                                Text(TextKey.fieldSeat.localized)
                                     .font(.cjHeadline)
                             }
                         }
@@ -424,7 +424,7 @@ struct ConcertEditView: View {
 
                 if let ticketPrice = concert.ticket?.ticketPrice {
                     HStack {
-                        Text("Ticketpreis:")
+                        Text(TextKey.ticketPriceColon.localized)
                             .font(.cjHeadline)
 
                         Text(ticketPrice.formatted)
@@ -441,7 +441,7 @@ struct ConcertEditView: View {
                 Button {
                     presentTicketEdit = true
                 } label: {
-                    Text("Ticket hinzufügen")
+                    Text(TextKey.addTicket.localized)
                         .font(.cjBody)
                 }
                 .padding()
@@ -451,7 +451,7 @@ struct ConcertEditView: View {
                 Button {
                     presentTicketEdit = true
                 } label: {
-                    Text("Ticket hinzufügen")
+                    Text(TextKey.addTicket.localized)
                         .font(.cjBody)
                 }
                 .padding()

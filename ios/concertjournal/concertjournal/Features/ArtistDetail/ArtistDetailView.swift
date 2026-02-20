@@ -67,7 +67,7 @@ struct ArtistDetailView: View {
             VStack {
                 HStack {
                     // TDODO: LOCALIZATION
-                    Text("Konzerte in diesem Jahr:")
+                    Text(TextKey.homeConcertsThisYear.localized)
                         .font(.cjBody)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Text(String(artistInfo.totalPastConcerts))
@@ -75,7 +75,7 @@ struct ArtistDetailView: View {
                 }
                 if artistInfo.futureConcerts != 0 {
                     HStack {
-                        Text("Geplante Konzerte dieses Jahr:")
+                        Text(TextKey.homePlannedThisYear.localized)
                             .font(.cjBody)
                             .frame(maxWidth: .infinity, alignment: .leading)
                         Text(String(artistInfo.futureConcerts))

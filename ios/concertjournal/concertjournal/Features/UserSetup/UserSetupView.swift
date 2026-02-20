@@ -59,11 +59,11 @@ private struct UserSetupContent: View {
                 
                 // ── Header ────────────────────────────────────────────
                 VStack(spacing: 12) {
-                    Text("Fast geschafft!")
+                    Text(TextKey.almostDone.localized)
                         .font(.custom("PlayfairDisplay-Bold", size: 36))
                         .multilineTextAlignment(.center)
                     
-                    Text("Wie sollen dich deine Buddies nennen?")
+                    Text(TextKey.profileNameQuestion.localized)
                         .font(.cjBody)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -90,7 +90,7 @@ private struct UserSetupContent: View {
                         Button {
                             nameFocused = false
                         } label: {
-                            Text("Foto später hinzufügen")
+                            Text(TextKey.addPhotoLater.localized)
                                 .font(.cjFootnote)
                                 .foregroundStyle(.secondary)
                         }
@@ -126,13 +126,13 @@ private struct UserSetupContent: View {
                 } else if case .success = viewModel.state {
                     HStack(spacing: 10) {
                         Image(systemName: "checkmark.circle.fill")
-                        Text("Gespeichert!").font(.cjTitle2)
+                        Text(TextKey.successUpdatesSaved.localized).font(.cjTitle2)
                     }
                     .frame(maxWidth: .infinity)
                     .foregroundStyle(.green)
                 } else {
                     HStack {
-                        Text("Los geht's")
+                        Text(TextKey.letsGo.localized)
                             .font(.cjTitle2)
                         Image(systemName: "arrow.right")
                     }
@@ -202,7 +202,7 @@ private struct AvatarPickerSection: View {
                                     Image(systemName: "person.fill")
                                         .font(.system(size: 36))
                                         .foregroundStyle(.secondary)
-                                    Text("Foto")
+                                    Text(TextKey.fieldPhoto.localized)
                                         .font(.cjFootnote)
                                         .foregroundStyle(.secondary)
                                 }
@@ -249,7 +249,7 @@ private struct NameInputSection: View {
         VStack(alignment: .leading, spacing: 8) {
             // Label
             HStack {
-                Text("Anzeigename")
+                Text(TextKey.fieldDisplayName.localized)
                     .font(.cjHeadline)
                 Spacer()
                 Text("\(characterCount)/\(maxLength)")
@@ -299,7 +299,7 @@ private struct NameInputSection: View {
             }
             
             // Hinweis
-            Text("Dieser Name ist für deine Buddies sichtbar.")
+            Text(TextKey.fieldDisplayNameHint.localized)
                 .font(.cjFootnote)
                 .foregroundStyle(.tertiary)
                 .padding(.horizontal, 4)

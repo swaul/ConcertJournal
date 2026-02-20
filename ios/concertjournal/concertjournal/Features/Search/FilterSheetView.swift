@@ -68,7 +68,7 @@ struct FilterSheetView: View {
         // Sort Section
         Section {
             HStack {
-                Text("Sortierung:")
+                Text(TextKey.fieldSortierungColon.localized)
                     .font(.cjBody)
                 Menu {
                     ForEach(ConcertSortOption.allCases) { option in
@@ -105,7 +105,7 @@ struct FilterSheetView: View {
                 .buttonStyle(.glass)
             }
         } header: {
-            Text("Sortierung")
+            Text(TextKey.fieldSortierung.localized)
                 .font(.cjCaption)
         }
     }
@@ -115,7 +115,7 @@ struct FilterSheetView: View {
         // Date Filter Section
         Section {
             HStack(alignment: .firstTextBaseline) {
-                Text("Zeitraum")
+                Text(TextKey.fieldTimeRange.localized)
 
                 VStack {
                     Menu {
@@ -177,7 +177,7 @@ struct FilterSheetView: View {
                 }
             }
         } header: {
-            Text("Datum")
+            Text(TextKey.fieldDate.localized)
                 .font(.cjCaption)
         }
     }
@@ -187,7 +187,7 @@ struct FilterSheetView: View {
         // Rating Filter Section
         Section {
             HStack {
-                Text("Bewertung")
+                Text(TextKey.fieldReview.localized)
                     .font(.cjBody)
 
                 Menu {
@@ -227,7 +227,7 @@ struct FilterSheetView: View {
                 .frame(maxWidth: .infinity, alignment: .trailing)
             }
         } header: {
-            Text("Bewertung")
+            Text(TextKey.fieldReview.localized)
                 .font(.cjCaption)
         }
     }
@@ -259,7 +259,7 @@ struct FilterSheetView: View {
             }
         } header: {
             HStack {
-                Text("Künstler")
+                Text(TextKey.fieldArtist.localized)
                     .font(.cjCaption)
                 Spacer()
                 if !filters.selectedArtists.isEmpty {
@@ -298,7 +298,7 @@ struct FilterSheetView: View {
             }
         } header: {
             HStack {
-                Text("Städte")
+                Text(TextKey.fieldCities.localized)
                     .font(.cjCaption)
                 Spacer()
                 if !filters.selectedCities.isEmpty {

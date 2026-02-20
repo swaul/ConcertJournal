@@ -25,7 +25,7 @@ struct ForgotPasswordView: View {
         NavigationStack {
             VStack(alignment: .leading) {
                 
-                Text("Gib deine E-Mail damit wir dir einen Link senden können um Dein Passwort zurück zu setzen.")
+                Text(TextKey.authForgotPasswordDesc.localized)
                     .font(.cjBody)
                     .padding()
                 
@@ -39,7 +39,7 @@ struct ForgotPasswordView: View {
                 Button {
                     initiatePasswordReset()
                 } label: {
-                    Text("Reset link senden")
+                    Text(TextKey.sendResetLink.localized)
                         .font(.cjBody)
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -59,7 +59,7 @@ struct ForgotPasswordView: View {
                         HapticManager.shared.navigationTap()
                         dismiss()
                     } label: {
-                        Text("Abbrechen")
+                        Text(TextKey.cancel.localized)
                             .font(.cjBody)
                     }
                 }

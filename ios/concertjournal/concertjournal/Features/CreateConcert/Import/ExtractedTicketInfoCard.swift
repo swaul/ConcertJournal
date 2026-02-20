@@ -37,7 +37,7 @@ struct ExtractedTicketInfoCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Erkannte Informationen")
+            Text(TextKey.cameraRecognized.localized)
                 .font(.cjCaption)
                 .foregroundColor(.secondary)
             
@@ -72,7 +72,7 @@ struct ExtractedTicketInfoCard: View {
             Button {
                 confirmInfo()
             } label: {
-                Text("Konzert erstellen")
+                Text(TextKey.createConcert.localized)
                     .font(.cjHeadline)
                     .frame(maxWidth: .infinity)
                     .padding(4)
@@ -119,7 +119,7 @@ struct InfoRow: View {
     var body: some View {
         VStack {
             if focusedAnimated {
-                Text("Da hat wohl etwas nicht geklappt..")
+                Text(TextKey.errorSomethingWrong.localized)
                     .font(.cjFootnote)
                 Text("Vielleicht ist hier etwas dabei:")
                     .font(.cjCaption)

@@ -76,7 +76,7 @@ struct FeaturesPage: View {
             .ignoresSafeArea()
 
             VStack(spacing: 40) {
-                Text("Was dich erwartet")
+                Text(TextKey.onboardingWelcome.localized)
                     .font(.custom("PlayfairDisplay-Bold", size: 36))
                     .padding(.top, 60)
 
@@ -99,7 +99,7 @@ struct FeaturesPage: View {
                 Button {
                     navigationManager.push(.photoPermission)
                 } label: {
-                    Text("Weiter gehts!")
+                    Text(TextKey.keepGoing.localized)
                         .frame(maxWidth: .infinity)
                         .font(.cjTitle2)
                 }

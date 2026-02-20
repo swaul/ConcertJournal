@@ -89,7 +89,7 @@ struct ColorSetView: View {
                         }
                         dismiss()
                     } label: {
-                        Text("Speichern")
+                        Text(TextKey.save.localized)
                             .font(.cjBody)
                             .bold()
                     }

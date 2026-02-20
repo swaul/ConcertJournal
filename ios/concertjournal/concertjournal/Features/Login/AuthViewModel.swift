@@ -225,7 +225,7 @@ struct SpotifyPlaylistPicker: View {
                         ContentUnavailableView(
                             "Keine Playlists",
                             systemImage: "music.note.list",
-                            description: Text("Du hast keine playlists auf Spotify. Speichere eine Playlist in deinem Spotify Account um sie hier zu importieren")
+                            description: Text(TextKey.spotifyNoPlaylistsDesc.localized)
                         )
                         .font(.cjBody)
                     } else {
@@ -261,7 +261,7 @@ struct SpotifyPlaylistPicker: View {
                                 )
                             }
                         } label: {
-                            Text("Suchen")
+                            Text(TextKey.search.localized)
                                 .font(.cjBody)
                         }
                         .buttonStyle(.glassProminent)

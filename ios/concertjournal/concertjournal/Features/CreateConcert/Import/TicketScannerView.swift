@@ -43,7 +43,7 @@ struct TicketScannerView: View {
                             VStack(spacing: 16) {
                                 ProgressView()
                                     .scaleEffect(1.5)
-                                Text("Scanne Ticket...")
+                                Text(TextKey.scanning.localized)
                                     .font(.cjBody)
                                     .foregroundColor(.secondary)
                             }
@@ -236,10 +236,10 @@ struct TicketScannerView: View {
                 .font(.system(size: 80))
                 .foregroundColor(.accentColor)
             
-            Text("Scanne dein Ticket")
+            Text(TextKey.scanTicket.localized)
                 .font(.cjTitle2)
             
-            Text("Fotografiere dein Konzert-Ticket oder wähle ein Foto aus deiner Galerie")
+            Text(TextKey.cameraScanTicket.localized)
                 .font(.cjBody)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)

@@ -98,7 +98,7 @@ struct CreateConcertSelectArtistView: View {
                         HapticManager.shared.buttonTap()
                         selectArtist(viewModel: viewModel)
                     } label: {
-                        Text("Speichern")
+                        Text(TextKey.save.localized)
                             .font(.cjBody)
                     }
                 }
@@ -107,7 +107,7 @@ struct CreateConcertSelectArtistView: View {
         .safeAreaInset(edge: .bottom) {
             HStack {
                 TextField(text: $artistName) {
-                    Text("Select an artist")
+                    Text(TextKey.fieldSelectArtist.localized)
                         .font(.cjBody)
                 }
                 .focused($textFieldFocused)
