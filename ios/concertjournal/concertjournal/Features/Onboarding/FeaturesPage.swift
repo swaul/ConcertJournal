@@ -76,7 +76,7 @@ struct FeaturesPage: View {
             .ignoresSafeArea()
 
             VStack(spacing: 40) {
-                Text(TextKey.onboardingWelcome.localized)
+                Text(TextKey.welcome.localized)
                     .font(.custom("PlayfairDisplay-Bold", size: 36))
                     .padding(.top, 60)
 

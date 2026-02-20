@@ -49,7 +49,7 @@ struct CreateSetlistView: View {
                             HapticManager.shared.navigationTap()
                             path.append(NavigationRoute.orderSetlist(viewModel))
                         } label: {
-                            Text(TextKey.sortieren.localized)
+                            Text(TextKey.sortColon.localized)
                                 .font(.cjBody)
                         }
                     }
@@ -129,6 +129,7 @@ struct CreateSetlistView: View {
         if showTextField {
             HStack {
                 TextField(text: $songName) {
+                    
                     Text("Select a Song")
                         .font(.cjBody)
                 }

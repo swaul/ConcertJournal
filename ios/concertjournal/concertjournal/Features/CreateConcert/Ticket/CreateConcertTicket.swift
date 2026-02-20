@@ -75,11 +75,11 @@ struct CreateConcertTicket: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 12) {
                         if let artist {
-                            Text(TextKey.ticketArtistQuestion.localized(with: artist.name))
+                            Text(TextKey.artistQuestion.localized(with: artist.name))
                                 .font(.cjTitle)
                                 .padding(.horizontal)
                         } else {
-                            Text(TextKey.ticketGenericQuestion.localized)
+                            Text(TextKey.genericQuestion.localized)
                                 .font(.cjTitle)
                                 .padding(.horizontal)
                         }
@@ -163,7 +163,7 @@ struct CreateConcertTicket: View {
     @ViewBuilder
     private func ticketCategorySection() -> some View {
         VStack {
-            Text(TextKey.ticketCategoryQuestion.localized)
+            Text(TextKey.categoryQuestion.localized)
                 .padding(.horizontal)
                 .padding(.top)
                 .font(.cjHeadline)
@@ -201,7 +201,7 @@ struct CreateConcertTicket: View {
 
     private func priceSection() -> some View {
         HStack(alignment: .firstTextBaseline) {
-                Text(TextKey.ticketPriceColon.localized)
+                Text(TextKey.priceColon.localized)
                     .font(.cjHeadline)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 ExpensesValidatedTextField("49,99 €", text: $ticketPrice)
@@ -238,7 +238,7 @@ struct CreateConcertTicket: View {
     @ViewBuilder
     private func seatedSection() -> some View {
         VStack {
-            Text(TextKey.ticketNumber.localized)
+            Text(TextKey.numberQuestion.localized)
                 .font(.cjHeadline)
                 .padding(.horizontal)
                 .transition(.move(edge: .leading))
@@ -299,7 +299,7 @@ struct CreateConcertTicket: View {
     @ViewBuilder
     private func standingSection() -> some View {
         VStack {
-            Text(TextKey.fieldWhereSat.localized)
+            Text(TextKey.whereSat.localized)
                 .padding(.leading)
                 .font(.cjHeadline)
 

@@ -452,7 +452,6 @@ private struct RequestRow: View {
                 }
             } else {
                 HStack(spacing: 8) {
-                    // TODO: LOCALIZATION
                     Text(TextKey.buddiesOutgoing.localized)
                         .font(.cjFootnote)
                         .foregroundStyle(.secondary)
@@ -608,8 +607,8 @@ private struct AddBuddySheet: View {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.system(size: 44)).foregroundStyle(.orange)
                 
-                // TODO: LOCALIZATION
-                Text(TextKey.errorGeneric.localized).font(.cjBody).foregroundStyle(.secondary)
+                Text(TextKey.errorGeneric.localized)
+                    .font(.cjBody).foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             

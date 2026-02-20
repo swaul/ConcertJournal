@@ -37,7 +37,7 @@ struct ExtractedTicketInfoCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(TextKey.cameraRecognized.localized)
+            Text(TextKey.recognized.localized)
                 .font(.cjCaption)
                 .foregroundColor(.secondary)
             

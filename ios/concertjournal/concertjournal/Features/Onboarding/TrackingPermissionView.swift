@@ -44,12 +44,12 @@ struct TrackingPermissionPage: View {
                 }
                 
                 // Title
-                Text(TextKey.profileImproveApp.localized)
+                Text(TextKey.improveApp.localized)
                     .font(.custom("PlayfairDisplay-Bold", size: 32))
                     .multilineTextAlignment(.center)
                 
                 // Description
-                Text(TextKey.profileAnalyticsHint.localized)
+                Text(TextKey.analyticsHint.localized)
                     .font(.cjBody)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
@@ -60,7 +60,7 @@ struct TrackingPermissionPage: View {
                     Image(systemName: "lock.shield")
                         .foregroundColor(.accentColor)
                     
-                    Text(TextKey.profilePrivacyHint.localized)
+                    Text(TextKey.privacyHint.localized)
                         .lineLimit(nil)
                         .multilineTextAlignment(.leading)
                         .font(.cjFootnote)

@@ -68,17 +68,17 @@ struct ConcertEditView: View {
             Form {
                 Section {
                     TextField(TextKey.fieldTitle.localized, text: $title)
-                    DatePicker(TextKey.fieldDate.localized, selection: $date, displayedComponents: .date)
-                    DatePicker(TextKey.fieldAdmission.localized, selection: $openingTime, displayedComponents: .hourAndMinute)
+                    DatePicker(TextKey.date.localized, selection: $date, displayedComponents: .date)
+                    DatePicker(TextKey.admission.localized, selection: $openingTime, displayedComponents: .hourAndMinute)
                 } header: {
-                    Text(TextKey.concert.localized)
+                    Text(TextKey.header.localized)
                         .font(.cjBody)
                 }
 
                 Section {
                     supportActsSection()
                 } header: {
-                    Text(TextKey.sectionSupportActs.localized)
+                    Text(TextKey.supportActs.localized)
                         .font(.cjBody)
                 }
 
@@ -97,7 +97,7 @@ struct ConcertEditView: View {
                                 }
                             }
                         } else {
-                            Text(TextKey.fieldVenueOptional.localized)
+                            Text(TextKey.venueOptional.localized)
                                 .font(.cjBody)
                         }
                     }
@@ -112,7 +112,7 @@ struct ConcertEditView: View {
                         .frame(minHeight: 120)
                         .font(.cjBody)
                 } header: {
-                    Text(TextKey.fieldNotes.localized)
+                    Text(TextKey.notes.localized)
                         .font(.cjBody)
                 }
                 
@@ -180,11 +180,11 @@ struct ConcertEditView: View {
                         }
                     }
                 } header: {
-                    Text(TextKey.fieldReview.localized)
+                    Text(TextKey.review.localized)
                         .font(.cjBody)
                 }
             }
-            .navigationTitle(TextKey.navEditConcert.localized)
+            .navigationTitle(TextKey.editConcert.localized)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button {
@@ -293,20 +293,20 @@ struct ConcertEditView: View {
             }
             if let travelDuration = travel?.travelDuration {
                 let parsedDuration = DurationParser.format(travelDuration)
-                Text(TextKey.travelDurationWas.localized(with: parsedDuration))
+                Text(TextKey.durationWas.localized(with: parsedDuration))
             }
             if let travelDistance = travel?.travelDistance {
                 let parsedDistance = DistanceParser.format(travelDistance)
-                Text(TextKey.travelDistanceWas.localized(with: parsedDistance))
+                Text(TextKey.distanceWas.localized(with: parsedDistance))
             }
             if let arrivedAt = travel?.arrivedAt {
-                Text(TextKey.travelArrived.localized(with: arrivedAt.timeOnlyString))
+                Text(TextKey.arrived.localized(with: arrivedAt.timeOnlyString))
             }
             if let travelExpenses = travel?.travelExpenses {
-                Text(TextKey.travelCostWas.localized(with: travelExpenses.formatted))
+                Text(TextKey.costWas.localized(with: travelExpenses.formatted))
             }
             if let hotelExpenses = travel?.hotelExpenses {
-                Text(TextKey.travelHotelCost.localized(with: hotelExpenses.formatted))
+                Text(TextKey.hotelCost.localized(with: hotelExpenses.formatted))
             }
             
             Button {
@@ -382,15 +382,15 @@ struct ConcertEditView: View {
                     Grid {
                         GridRow {
                             if ticket.seatBlock != nil {
-                                Text(TextKey.fieldBlock.localized)
+                                Text(TextKey.block.localized)
                                     .font(.cjHeadline)
                             }
                             if ticket.seatRow != nil {
-                                Text(TextKey.fieldRow.localized)
+                                Text(TextKey.row.localized)
                                     .font(.cjHeadline)
                             }
                             if ticket.seatNumber != nil {
-                                Text(TextKey.fieldSeat.localized)
+                                Text(TextKey.seat.localized)
                                     .font(.cjHeadline)
                             }
                         }
@@ -424,7 +424,7 @@ struct ConcertEditView: View {
 
                 if let ticketPrice = concert.ticket?.ticketPrice {
                     HStack {
-                        Text(TextKey.ticketPriceColon.localized)
+                        Text(TextKey.priceColon.localized)
                             .font(.cjHeadline)
 
                         Text(ticketPrice.formatted)

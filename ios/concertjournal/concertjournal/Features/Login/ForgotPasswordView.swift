@@ -25,7 +25,7 @@ struct ForgotPasswordView: View {
         NavigationStack {
             VStack(alignment: .leading) {
                 
-                Text(TextKey.authForgotPasswordDesc.localized)
+                Text(TextKey.forgotPasswordDesc.localized)
                     .font(.cjBody)
                     .padding()
                 

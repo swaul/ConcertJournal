@@ -42,16 +42,16 @@ struct WelcomePage: View {
                     .padding(.bottom, 20)
                 
                 // Title
-                Text(TextKey.onboardingWelcome.localized)
+                Text(TextKey.welcome.localized)
                     .font(.cjTitle2)
                     .foregroundColor(.secondary)
                 
-                Text(TextKey.appName.localized)
+                Text(TextKey.name.localized)
                     .font(.cjLargeTitle)
                     .multilineTextAlignment(.center)
                 
                 // Subtitle
-                Text(TextKey.onboardingTagline.localized)
+                Text(TextKey.tagline.localized)
                     .font(.cjBody)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)

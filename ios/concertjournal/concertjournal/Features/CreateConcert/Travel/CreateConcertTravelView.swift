@@ -67,7 +67,7 @@ public struct CreateConcertTravelView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading) {
-                    Text(TextKey.travelTransport.localized)
+                    Text(TextKey.transportQuestion.localized)
                         .font(.cjBody)
 
                     HStack {
@@ -227,7 +227,7 @@ struct DistanceValidatedTextField: View {
                 }
 
             if !isValid {
-                Text(TextKey.errorInvalidFormat.localized)
+                Text(TextKey.invalidFormat.localized)
                     .font(.cjCaption)
                     .foregroundStyle(.red)
                     .transition(.move(edge: .top).combined(with: .opacity))
@@ -273,7 +273,7 @@ struct DurationValidatedTextField: View {
                 }
 
             if !isValid {
-                Text(TextKey.errorInvalidFormat.localized)
+                Text(TextKey.invalidFormat.localized)
                     .font(.cjCaption)
                     .foregroundStyle(.red)
                     .transition(.move(edge: .top).combined(with: .opacity))
@@ -319,7 +319,7 @@ struct ExpensesValidatedTextField: View {
                 }
 
             if !isValid {
-                Text(TextKey.errorInvalidFormat.localized)
+                Text(TextKey.invalidFormat.localized)
                     .font(.cjCaption)
                     .foregroundStyle(.red)
                     .transition(.move(edge: .top).combined(with: .opacity))
@@ -361,7 +361,7 @@ struct EmailValidatedTextField: View {
                 }
 
             if !isValid {
-                Text(TextKey.errorInvalidFormat.localized)
+                Text(TextKey.invalidFormat.localized)
                     .font(.cjCaption)
                     .foregroundStyle(.red)
                     .transition(.move(edge: .top).combined(with: .opacity))

@@ -30,7 +30,7 @@ struct PasswordResetView: View {
         NavigationStack {
             VStack(alignment: .leading) {
 
-                Text(TextKey.authNewPasswordDesc.localized)
+                Text(TextKey.newPasswordDesc.localized)
                     .font(.cjBody)
                     .padding()
 
@@ -66,7 +66,7 @@ struct PasswordResetView: View {
                 Button {
                     resetPassword()
                 } label: {
-                    Text(TextKey.authChangePassword.localized)
+                    Text(TextKey.changePassword.localized)
                         .font(.cjBody)
                         .frame(maxWidth: .infinity)
                         .padding()

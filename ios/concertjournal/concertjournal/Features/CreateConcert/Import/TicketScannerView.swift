@@ -239,7 +239,7 @@ struct TicketScannerView: View {
             Text(TextKey.scanTicket.localized)
                 .font(.cjTitle2)
             
-            Text(TextKey.cameraScanTicket.localized)
+            Text(TextKey.scanTicket.localized)
                 .font(.cjBody)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)

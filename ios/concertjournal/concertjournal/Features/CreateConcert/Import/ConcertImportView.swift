@@ -26,7 +26,7 @@ struct ConcertImportView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     // Preview Card
                     VStack(alignment: .leading, spacing: 12) {
-                        Text(TextKey.concertImported.localized)
+                        Text(TextKey.imported.localized)
                             .font(.cjCaption)
                             .foregroundColor(.secondary)
 

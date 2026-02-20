@@ -35,7 +35,7 @@ struct BuddyQuickAddSheet: View {
                 switch state {
                 case .loading:
                     ProgressView()
-                    Text(TextKey.buddiesSearchUser.localized)
+                    Text(TextKey.searchUser.localized)
                         .font(.cjBody).foregroundStyle(.secondary)
                     
                 case .found:
@@ -46,11 +46,10 @@ struct BuddyQuickAddSheet: View {
                 case .notFound:
                     Image(systemName: "person.fill.questionmark")
                         .font(.system(size: 52)).foregroundStyle(.secondary)
-                    // TODO: LOCALIZATION
-                    Text(TextKey.buddiesUserNotFound.localized)
-                    Text(TextKey.buddiesUserNotFound.localized)
+
+                    Text(TextKey.userNotFound.localized)
                         .font(.cjTitle2).fontWeight(.semibold)
-                    Text(TextKey.buddiesCodeNotFound.localized(with: code.code))
+                    Text(TextKey.codeNotFound.localized(with: code.code))
                         .font(.cjBody).foregroundStyle(.secondary)
                         .multilineTextAlignment(.center).padding(.horizontal, 32)
                     
@@ -59,7 +58,7 @@ struct BuddyQuickAddSheet: View {
                         .font(.system(size: 52)).foregroundStyle(.tint)
                     Text(TextKey.buddiesRequestSent.localized)
                         .font(.cjTitle2).fontWeight(.semibold)
-                    Text(TextKey.buddiesAfterAccept.localized(with: result?.displayName "der Nutzer"))
+                    Text(TextKey.afterAccept.localized(with: result?.displayName ?? "der Nutzer"))
                         .font(.cjBody).foregroundStyle(.secondary)
                         .multilineTextAlignment(.center).padding(.horizontal, 32)
                     

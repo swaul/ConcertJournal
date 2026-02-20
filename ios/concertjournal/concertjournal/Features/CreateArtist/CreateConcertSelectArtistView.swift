@@ -107,7 +107,7 @@ struct CreateConcertSelectArtistView: View {
         .safeAreaInset(edge: .bottom) {
             HStack {
                 TextField(text: $artistName) {
-                    Text(TextKey.fieldSelectArtist.localized)
+                    Text(TextKey.selectArtist.localized)
                         .font(.cjBody)
                 }
                 .focused($textFieldFocused)

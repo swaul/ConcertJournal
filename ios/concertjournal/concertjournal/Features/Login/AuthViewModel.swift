@@ -219,13 +219,13 @@ struct SpotifyPlaylistPicker: View {
             VStack {
                 Group {
                     if viewModel.isLoading {
-                        ProgressView("Lade Playlists...")
+                        ProgressView(TextKey.loadingPlaylists.localized)
                             .font(.cjBody)
                     } else if viewModel.playlists.isEmpty {
                         ContentUnavailableView(
-                            "Keine Playlists",
+                            TextKey.noPlaylists.localized,
                             systemImage: "music.note.list",
-                            description: Text(TextKey.spotifyNoPlaylistsDesc.localized)
+                            description: Text(TextKey.noPlaylistsDesc.localized)
                         )
                         .font(.cjBody)
                     } else {

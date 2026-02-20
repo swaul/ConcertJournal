@@ -63,7 +63,7 @@ private struct UserSetupContent: View {
                         .font(.custom("PlayfairDisplay-Bold", size: 36))
                         .multilineTextAlignment(.center)
                     
-                    Text(TextKey.profileNameQuestion.localized)
+                    Text(TextKey.nameQuestion.localized)
                         .font(.cjBody)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -126,7 +126,7 @@ private struct UserSetupContent: View {
                 } else if case .success = viewModel.state {
                     HStack(spacing: 10) {
                         Image(systemName: "checkmark.circle.fill")
-                        Text(TextKey.successUpdatesSaved.localized).font(.cjTitle2)
+                        Text(TextKey.updatesSaved.localized).font(.cjTitle2)
                     }
                     .frame(maxWidth: .infinity)
                     .foregroundStyle(.green)
@@ -202,7 +202,7 @@ private struct AvatarPickerSection: View {
                                     Image(systemName: "person.fill")
                                         .font(.system(size: 36))
                                         .foregroundStyle(.secondary)
-                                    Text(TextKey.fieldPhoto.localized)
+                                    Text(TextKey.photo.localized)
                                         .font(.cjFootnote)
                                         .foregroundStyle(.secondary)
                                 }
@@ -249,7 +249,7 @@ private struct NameInputSection: View {
         VStack(alignment: .leading, spacing: 8) {
             // Label
             HStack {
-                Text(TextKey.fieldDisplayName.localized)
+                Text(TextKey.displayName.localized)
                     .font(.cjHeadline)
                 Spacer()
                 Text("\(characterCount)/\(maxLength)")
@@ -299,7 +299,7 @@ private struct NameInputSection: View {
             }
             
             // Hinweis
-            Text(TextKey.fieldDisplayNameHint.localized)
+            Text(TextKey.displayNameHint.localized)
                 .font(.cjFootnote)
                 .foregroundStyle(.tertiary)
                 .padding(.horizontal, 4)

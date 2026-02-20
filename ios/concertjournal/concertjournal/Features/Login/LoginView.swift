@@ -85,9 +85,9 @@ struct LoginView: View, KeyboardReadable {
         VStack {
             if !isKeyboardVisible {
                 Spacer()
-                Text(TextKey.appName.localized)
+                Text(TextKey.name.localized)
                     .font(.cjLargeTitle)
-                Text(TextKey.onboardingClouds.localized)
+                Text(TextKey.clouds.localized)
                     .font(.cjBody)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -312,7 +312,7 @@ struct LoginView: View, KeyboardReadable {
             if showLoading {
                 VStack {
                     ProgressView().padding()
-                    Text(TextKey.loading.localized).font(.cjTitle)
+                    Text(TextKey.loadingData.localized).font(.cjTitle)
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 250)

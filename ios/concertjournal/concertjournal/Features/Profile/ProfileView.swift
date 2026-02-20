@@ -181,7 +181,7 @@ struct ProfileView: View {
                 if isOffline {
                     HStack(spacing: 8) {
                         Image(systemName: "wifi.slash")
-                        Text(TextKey.homeOfflineWarning.localized)
+                        Text(TextKey.offlineWarning.localized)
                             .font(.cjFootnote)
                     }
                     .foregroundStyle(.white)
@@ -232,17 +232,17 @@ struct ProfileView: View {
                 .frame(width: 64, height: 64)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(TextKey.authNotLoggedIn.localized)
+                    Text(TextKey.notLoggedIn.localized)
                         .font(.cjTitle2)
                         .fontWeight(.semibold)
-                    Text(TextKey.profileSavedLocally.localized)
+                    Text(TextKey.savedLocally.localized)
                         .font(.cjBody)
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
             }
 
-            Text(TextKey.authLoginSync.localized)
+            Text(TextKey.loginSync.localized)
                 .font(.cjFootnote)
                 .foregroundStyle(.secondary)
                 .padding(.top, 4)
@@ -269,10 +269,10 @@ struct ProfileView: View {
             Image(systemName: "wifi.slash")
                 .font(.system(size: 48))
                 .foregroundStyle(.secondary)
-            Text(TextKey.homeOfflineWarning.localized)
+            Text(TextKey.offlineWarning.localized)
                 .font(.cjTitle2)
                 .fontWeight(.semibold)
-            Text(TextKey.profileCannotLoad.localized)
+            Text(TextKey.cannotLoad.localized)
                 .font(.cjBody)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

@@ -44,12 +44,12 @@ struct PhotoPermissionPage: View {
                 }
                 
                 // Title
-                Text(TextKey.cameraPhotoAccess.localized)
+                Text(TextKey.photoAccess.localized)
                     .font(.custom("PlayfairDisplay-Bold", size: 32))
                     .multilineTextAlignment(.center)
                 
                 // Description
-                Text(TextKey.cameraPhotoHint.localized)
+                Text(TextKey.photoHint.localized)
                     .font(.cjBody)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
