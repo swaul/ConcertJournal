@@ -455,7 +455,7 @@ struct ConcertDetailView: View {
     @ViewBuilder
     func venueSection(venue: Venue, viewModel: ConcertDetailViewModel) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: Text(TextKey.sectionLocation.localized), icon: "mappin.circle.fill")
+            sectionHeader(title: TextKey.sectionLocation.localized, icon: "mappin.circle.fill")
 
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 8) {

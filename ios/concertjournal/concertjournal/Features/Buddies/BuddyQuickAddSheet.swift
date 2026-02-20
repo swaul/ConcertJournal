@@ -59,7 +59,7 @@ struct BuddyQuickAddSheet: View {
                         .font(.system(size: 52)).foregroundStyle(.tint)
                     Text(TextKey.buddiesRequestSent.localized)
                         .font(.cjTitle2).fontWeight(.semibold)
-                    Text(TextKey.buddiesAfterAccept.localized(with: result?.displayName "der Nutzer"))
+                    Text(TextKey.buddiesAfterAccept.localized(with: result?.displayName ?? "der Nutzer"))
                         .font(.cjBody).foregroundStyle(.secondary)
                         .multilineTextAlignment(.center).padding(.horizontal, 32)
                     

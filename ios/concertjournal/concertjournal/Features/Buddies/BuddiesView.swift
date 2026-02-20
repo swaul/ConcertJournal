@@ -305,7 +305,7 @@ private struct MyCodeCard: View {
                                     .font(.cjFootnote)
                             }
                         } else {
-                            Label(TextKey.generateNewCode, systemImage: "arrow.clockwise")
+                            Label(TextKey.generateNewCode.localized, systemImage: "arrow.clockwise")
                                 .font(.cjFootnote)
                         }
                     }
@@ -363,7 +363,7 @@ private struct BuddyRow: View {
         }
         .contextMenu {
             Button(role: .destructive) { onRemove() } label: {
-                Label(TextKey.endFriendship, systemImage: "person.fill.xmark")
+                Label(TextKey.endFriendship.localized, systemImage: "person.fill.xmark")
             }
         }
     }
