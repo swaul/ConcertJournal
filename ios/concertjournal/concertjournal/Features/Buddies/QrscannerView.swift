@@ -87,7 +87,7 @@ struct QRScannerView: View {
                 
                 // Hinweistext
                 VStack(spacing: 8) {
-                    Text("QR-Code in den Rahmen halten")
+                    Text(TextKey.cameraScanHint.localized)
                         .font(.cjBody)
                         .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
@@ -107,17 +107,17 @@ struct QRScannerView: View {
                 .font(.system(size: 52))
                 .foregroundStyle(.secondary)
             
-            Text("Kamerazugriff verweigert")
+            Text(TextKey.cameraAccessDenied.localized)
                 .font(.cjTitle2)
                 .fontWeight(.semibold)
             
-            Text("Erlaube den Kamerazugriff in den Einstellungen um QR-Codes zu scannen.")
+            Text(TextKey.cameraAccessDeniedDesc.localized)
                 .font(.cjBody)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
             
-            Button("Zu den Einstellungen") {
+            Button(TextKey.openSettings.localized) {
                 if let url = URL(string: UIApplication.openSettingsURLString) {
                     UIApplication.shared.open(url)
                 }

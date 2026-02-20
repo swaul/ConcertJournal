@@ -75,7 +75,7 @@ struct MainAppView: View {
         .alert(TextKey.errorDecryptionFailed.localized, isPresented: $showDecryptionProblem) {
             Button(TextKey.understood.localized) {}
         } message: {
-            Text(TextKey.errorICloudDesc.localized)
+            Text(TextKey.errorDecryptionDesc.localized)
         }
 #if DEBUG
         .sheet(isPresented: $showDebugLogs) {

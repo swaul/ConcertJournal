@@ -242,11 +242,11 @@ struct ConcertDetailView: View {
                 .font(.system(size: 60))
                 .foregroundStyle(.red)
 
-            Text("Konzert löschen?")
+            Text(TextKey.concertDelete.localized)
                 .font(.cjTitle)
 
             let concertText = viewModel.concert.title == nil ? "das Konzert" : "\"\(viewModel.concert.title!)\""
-            Text("Möchtest du \(concertText) wirklich löschen? Das kann nicht rückgängig gemacht werden.")
+            Text(TextKey.concertDeleteQuestion.localized(with: concertText))
                 .font(.cjBody)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
@@ -263,7 +263,7 @@ struct ConcertDetailView: View {
                             loading = false
                             HapticManager.shared.success()
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                confirmationText = ConfirmationMessage(message: "Konzert gelöscht!") {
+                                confirmationText = ConfirmationMessage(message: TextKey.successConcertDeleted.localized) {
                                     dismiss()
                                 }
                             }
@@ -277,7 +277,7 @@ struct ConcertDetailView: View {
                         ProgressView()
                             .tint(.white)
                     } else {
-                        Text("Löschen")
+                        Text(TextKey.delete.localized)
                             .font(.cjHeadline)
                     }
                 }
@@ -292,7 +292,7 @@ struct ConcertDetailView: View {
                     HapticManager.shared.impact(.light)
                     showDeleteDialog = false
                 } label: {
-                    Text("Abbrechen")
+                    Text(TextKey.cancel.localized)
                         .font(.cjHeadline)
                 }
                 .buttonStyle(ModernButtonStyle(style: .glass, color: dependencies.colorThemeManager.appTint))
@@ -316,7 +316,7 @@ struct ConcertDetailView: View {
     @ViewBuilder
     func supportActsSection(supportActs: [Artist]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "Support Acts", icon: "music.microphone")
+            sectionHeader(title: TextKey.sectionSupportActs.localized, icon: "music.microphone")
                 .padding(.horizontal)
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -372,7 +372,7 @@ struct ConcertDetailView: View {
                     HapticManager.shared.impact(.light)
                     localHidePrices.toggle()
                 } label: {
-                    Label(localHidePrices ? "Preise anzeigen" : "Preise ausblenden",
+                    Label(localHidePrices ? TextKey.showPrices.localized : TextKey.hidePrices.localized,
                           systemImage: localHidePrices ? "eye" : "eye.slash")
                 }
             }
@@ -437,7 +437,7 @@ struct ConcertDetailView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "clock.fill")
                         .font(.caption)
-                    Text("Einlass \(openingTime.timeOnlyString)")
+                    Text(TextKey.fieldAdmission.localized + " " + openingTime.timeOnlyString)
                         .font(.cjHeadline)
                 }
                 .foregroundStyle(.secondary)
@@ -455,7 +455,7 @@ struct ConcertDetailView: View {
     @ViewBuilder
     func venueSection(venue: Venue, viewModel: ConcertDetailViewModel) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "Location", icon: "mappin.circle.fill")
+            sectionHeader(title: Text(TextKey.sectionLocation.localized), icon: "mappin.circle.fill")
 
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 8) {
@@ -500,14 +500,14 @@ struct ConcertDetailView: View {
     @ViewBuilder
     func notesSection(notes: String) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "Meine Experience", icon: "heart.text.square.fill")
+            sectionHeader(title: TextKey.sectionMyExperience.localized, icon: "heart.text.square.fill")
 
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 8) {
                     Image(systemName: "quote.opening")
                         .font(.caption)
                         .foregroundStyle(dependencies.colorThemeManager.appTint)
-                    Text("Journal Eintrag")
+                    Text(TextKey.concertEntry.localized)
                         .font(.cjCaption)
                         .foregroundStyle(dependencies.colorThemeManager.appTint)
                 }
@@ -540,7 +540,7 @@ struct ConcertDetailView: View {
     @ViewBuilder
     func travelSection(travel: Travel) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "Meine Reise", icon: "airplane.departure")
+            sectionHeader(title: TextKey.sectionMyTravel.localized, icon: "airplane.departure")
 
             VStack(spacing: 12) {
                 if let travelType = travel.travelTypeEnum {
@@ -555,7 +555,7 @@ struct ConcertDetailView: View {
                     let parsedDuration = DurationParser.format(travel.travelDuration)
                     travelInfoCard(
                         icon: "clock.fill",
-                        title: "Reisezeit",
+                        title: TextKey.summaryTravelTime.localized,
                         subtitle: parsedDuration
                     )
                 }
@@ -564,7 +564,7 @@ struct ConcertDetailView: View {
                     let parsedDistance = DistanceParser.format(travel.travelDistance)
                     travelInfoCard(
                         icon: "location.fill",
-                        title: "Entfernung",
+                        title: TextKey.summaryDistance.localized,
                         subtitle: parsedDistance
                     )
                 }
@@ -572,7 +572,7 @@ struct ConcertDetailView: View {
                 if let travelExpenses = travel.travelExpenses {
                     travelInfoCard(
                         icon: "car.fill",
-                        title: "Anreisekosten",
+                        title: TextKey.summaryArrivalCost.localized,
                         subtitle: travelExpenses.formatted,
                         isPrice: true
                     )
@@ -581,7 +581,7 @@ struct ConcertDetailView: View {
                 if let hotelExpenses = travel.hotelExpenses {
                     travelInfoCard(
                         icon: "bed.double.fill",
-                        title: "Übernachtung",
+                        title: TextKey.summaryHotel.localized,
                         subtitle: hotelExpenses.formatted,
                         isPrice: true
                     )
@@ -669,6 +669,7 @@ struct ConcertDetailView: View {
                 let url = "https://open.spotify.com/track/\(spotifyTrackId)"
                 UIApplication.shared.open(URL(string: url)!)
             } label: {
+                // TODO: LOCALIZATION
                 Label("\(item.title) in Spotify abspielen", systemImage: "play.circle.fill")
             }
             .font(.cjBody)
@@ -727,19 +728,19 @@ struct ConcertDetailView: View {
                 case .seated:
                     HStack(spacing: 12) {
                         if let block = ticket.seatBlock {
-                            seatInfoBox(title: "Block", value: block)
+                            seatInfoBox(title: TextKey.fieldBlock.localized, value: block)
                         }
                         if let row = ticket.seatRow {
-                            seatInfoBox(title: "Reihe", value: row)
+                            seatInfoBox(title: TextKey.fieldRow.localized, value: row)
                         }
                         if let seatNumber = ticket.seatNumber {
-                            seatInfoBox(title: "Platz", value: seatNumber)
+                            seatInfoBox(title: TextKey.fieldSeat.localized, value: seatNumber)
                         }
                     }
                 case .standing:
                     if let standingPosition = ticket.standingPosition {
                         VStack(spacing: 8) {
-                            Text("Position")
+                            Text(TextKey.fieldPosition.localized)
                                 .font(.cjCaption)
                                 .foregroundStyle(.secondary)
                             Text(standingPosition)
@@ -767,7 +768,7 @@ struct ConcertDetailView: View {
                         }
 
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Ticketpreis")
+                            Text(TextKey.ticketPrice.localized)
                                 .font(.cjBody)
                                 .foregroundStyle(.secondary)
 
@@ -789,7 +790,7 @@ struct ConcertDetailView: View {
                             HapticManager.shared.impact(.light)
                             localHidePrices.toggle()
                         } label: {
-                            Label(localHidePrices ? "Preise anzeigen" : "Preise ausblenden",
+                            Label(localHidePrices ? TextKey.showPrices.localized : TextKey.hidePrices.localized,
                                   systemImage: localHidePrices ? "eye" : "eye.slash")
                         }
                     }
@@ -801,7 +802,7 @@ struct ConcertDetailView: View {
                         HStack(spacing: 6) {
                             Image(systemName: "note.text")
                                 .font(.caption)
-                            Text("Notizen")
+                            Text(TextKey.fieldNotes.localized)
                                 .font(.cjCaption)
                         }
                         .foregroundStyle(.secondary)
@@ -822,7 +823,7 @@ struct ConcertDetailView: View {
     @ViewBuilder
     func imageSection(images: [ConcertImage]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "Meine Bilder", icon: "photo.on.rectangle.angled")
+            sectionHeader(title: TextKey.fieldPhoto.localized, icon: "photo.on.rectangle.angled")
                 .padding(.horizontal)
 
             ScrollView(.horizontal, showsIndicators: false) {

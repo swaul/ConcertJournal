@@ -70,7 +70,7 @@ struct ConfirmationView: View {
                         dismiss()
                     }
                 } label: {
-                    Text("Verstanden")
+                    Text(TextKey.understood.localized)
                         .font(.cjHeadline)
                         .padding()
                 }

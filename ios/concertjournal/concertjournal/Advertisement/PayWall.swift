@@ -51,24 +51,24 @@ struct PaywallView: View {
                 .padding()
             }
             .background(backgroundColor)
-            .navigationTitle("Premium")
+            .navigationTitle(TextKey.premiumTitle.localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Schließen") {
+                    Button(TextKey.close.localized) {
                         dismiss()
                     }
                 }
             }
-            .alert("Erfolg!", isPresented: $showSuccess) {
-                Button("OK") {
+            .alert(TextKey.successPremium.localized, isPresented: $showSuccess) {
+                Button(TextKey.ok.localized) {
                     dismiss()
                 }
             } message: {
-                Text("Du bist jetzt Premium-Mitglied! 🎉")
+                Text(TextKey.premiumNowMember.localized)
             }
-            .alert("Fehler", isPresented: .constant(errorMessage != nil)) {
-                Button("OK") {
+            .alert(TextKey.errorGeneric.localized, isPresented: .constant(errorMessage != nil)) {
+                Button(TextKey.ok.localized) {
                     errorMessage = nil
                 }
             } message: {
@@ -104,12 +104,12 @@ struct PaywallView: View {
                     .foregroundColor(.white)
             }
 
-            Text("Concert Journal")
+            Text(TextKey.appName.localized)
                 .font(.custom("PlayfairDisplay-Bold", size: 32))
 
             PremiumBadge()
 
-            Text("Schalte alle Premium-Features frei")
+            Text(TextKey.premiumUnlockAll.localized)
                 .font(.cjBody)
                 .foregroundColor(.secondary)
         }

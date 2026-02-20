@@ -1,10 +1,11 @@
 {
   "app.name": "Concert Journal",
 
+  "action.ok": "Okay",
   "action.cancel": "Abbrechen",
   "action.save": "Speichern",
   "action.delete": "Löschen",
-  "action.confirm": "",
+  "action.confirm": "Fertig",
   "action.skip": "Überspringen",
   "action.done": "Fertig",
   "action.close": "Schließen",

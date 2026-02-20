@@ -47,7 +47,7 @@ struct ConcertsView: View {
                                     HapticManager.shared.success()
                                 }
                             } label: {
-                                Label("Neu laden", systemImage: "arrow.counterclockwise")
+                                Label(TextKey.reload.localized, systemImage: "arrow.counterclockwise")
                                     .font(.cjHeadline)
                             }
                             .buttonStyle(ModernButtonStyle(style: .prominent,
@@ -62,10 +62,10 @@ struct ConcertsView: View {
                                 .font(.system(size: 80))
                                 .foregroundStyle(dependencies.colorThemeManager.appTint.opacity(0.6))
 
-                            Text("Noch keine Konzerte")
+                            Text(TextKey.homeNoConcerts.localized)
                                 .font(.cjTitle)
 
-                            Text("Füge dein erstes Konzert hinzu und starte deine Musikreise!")
+                            Text(TextKey.homeAddFirstCta.localized)
                                 .font(.cjBody)
                                 .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center)
@@ -75,7 +75,7 @@ struct ConcertsView: View {
                                 HapticManager.shared.impact(.medium)
                                 navigationManager.push(.createConcert)
                             } label: {
-                                Label("Erstes Konzert hinzufügen", systemImage: "plus.circle.fill")
+                                Label(TextKey.homeAddFirst.localized, systemImage: "plus.circle.fill")
                                     .font(.cjHeadline)
                             }
                             .buttonStyle(.glassProminent)
@@ -104,7 +104,7 @@ struct ConcertsView: View {
             }
             .adaptiveSheet(isPresented: $chooseCreateFlowPresenting) {
                 VStack(spacing: 20) {
-                    Text("Wie möchtest du dein Konzert erstellen?")
+                    Text(TextKey.concertCreateHow.localized)
                         .font(.cjTitle)
                         .padding()
 
@@ -117,9 +117,9 @@ struct ConcertsView: View {
                             Image(systemName: "pencil.and.list.clipboard")
                                 .font(.title2)
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Manuell erstellen")
+                                Text(TextKey.createManually.localized)
                                     .font(.cjHeadline)
-                                Text("Alle Details selbst eingeben")
+                                Text(TextKey.enterAllDetailsManually.localized)
                                     .font(.cjCaption)
                                     .foregroundStyle(.secondary)
                             }
@@ -143,9 +143,9 @@ struct ConcertsView: View {
                                 Image(systemName: "doc.viewfinder")
                                     .font(.title2)
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text("Mit Ticket erstellen")
+                                    Text(TextKey.createWithTicket.localized)
                                         .font(.cjHeadline)
-                                    Text("Ticket scannen und automatisch befüllen")
+                                    Text(TextKey.scanTicketAuto.localized)
                                         .font(.cjCaption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -156,7 +156,7 @@ struct ConcertsView: View {
                         }
                         .buttonStyle(.glass)
 
-                        Text("BETA")
+                        Text(TextKey.infoBeta.localized)
                             .font(.system(size: 10, weight: .bold))
                             .foregroundStyle(.white)
                             .padding(.horizontal, 8)
@@ -203,7 +203,7 @@ struct ConcertsView: View {
 
                 if !viewModel.futureConcerts.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Deine nächsten Konzerte")
+                        Text(TextKey.homeUpcomingConcerts.localized)
                             .font(.cjTitle)
                             .padding(.horizontal, 20)
 
@@ -222,7 +222,7 @@ struct ConcertsView: View {
                                             HapticManager.shared.impact(.light)
                                             navigationManager.push(.concertDetail(visit))
                                         } label: {
-                                            Label("Detail Seite", systemImage: "info.circle")
+                                            Label(TextKey.sectionDetailPage.localized, systemImage: "info.circle")
                                         }
                                         .font(.cjBody)
 
@@ -232,7 +232,7 @@ struct ConcertsView: View {
                                             HapticManager.shared.impact(.medium)
                                             concertToDelete = visit
                                         } label: {
-                                            Label("Löschen", systemImage: "trash")
+                                            Label(TextKey.delete.localized, systemImage: "trash")
                                         }
                                         .font(.cjBody)
                                     }
@@ -244,13 +244,15 @@ struct ConcertsView: View {
                         .scrollTargetBehavior(.viewAligned)
                         .scrollClipDisabled()
                     }
+                }
 
-                    Text("Vergangene Konzerte")
+                if !viewModel.pastConcerts.isEmpty {
+                    Text(TextKey.homePastConcerts.localized)
                         .font(.cjTitle)
                         .padding(.horizontal, 20)
                         .padding(.top, 8)
                 }
-
+                
                 ForEach(viewModel.pastConcerts.enumerated().map({ $0 }), id: \.element.id) { index, visit in
                     VStack(alignment: .leading, spacing: 8) {
                         Text(visit.title ?? visit.artist.name)
@@ -270,7 +272,7 @@ struct ConcertsView: View {
                                 HapticManager.shared.impact(.light)
                                 navigationManager.push(.concertDetail(visit))
                             } label: {
-                                Label("Detail Seite", systemImage: "info.circle")
+                                Label(TextKey.sectionDetailPage.localized, systemImage: "info.circle")
                             }
                             .font(.cjBody)
 
@@ -280,7 +282,7 @@ struct ConcertsView: View {
                                 HapticManager.shared.impact(.medium)
                                 concertToDelete = visit
                             } label: {
-                                Label("Löschen", systemImage: "trash")
+                                Label(TextKey.delete.localized, systemImage: "trash")
                             }
                             .font(.cjBody)
                         }
@@ -343,7 +345,7 @@ struct ConcertsView: View {
                         HapticManager.shared.impact(.light)
                         navigationManager.push(.concertDetail(concertToday))
                     } label: {
-                        Label("Detail Seite", systemImage: "info.circle")
+                        Label(TextKey.sectionDetailPage.localized, systemImage: "info.circle")
                     }
                     .font(.cjBody)
 
@@ -353,7 +355,7 @@ struct ConcertsView: View {
                         HapticManager.shared.impact(.medium)
                         concertToDelete = concertToday
                     } label: {
-                        Label("Löschen", systemImage: "trash")
+                        Label(TextKey.delete.localized, systemImage: "trash")
                     }
                     .font(.cjBody)
                 }
@@ -368,11 +370,11 @@ struct ConcertsView: View {
                     .font(.system(size: 60))
                     .foregroundStyle(.red)
 
-                Text("Konzert löschen?")
+                Text(TextKey.concertDelete.localized)
                     .font(.cjTitle)
 
                 let concertText = item.title == nil ? "das Konzert" : "\"\(item.title!)\""
-                Text("Möchtest du \(concertText) wirklich löschen? Das kann nicht rückgängig gemacht werden.")
+                Text(TextKey.concertDeleteQuestion.localized(with: concertText))
                     .font(.cjBody)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
@@ -393,7 +395,7 @@ struct ConcertsView: View {
                             ProgressView()
                                 .tint(.white)
                         } else {
-                            Text("Löschen")
+                            Text(TextKey.delete.localized)
                                 .font(.cjHeadline)
                         }
                     }
@@ -408,7 +410,7 @@ struct ConcertsView: View {
                         HapticManager.shared.impact(.light)
                         concertToDelete = nil
                     } label: {
-                        Text("Abbrechen")
+                        Text(TextKey.cancel.localized)
                             .font(.cjHeadline)
                     }
                     .buttonStyle(ModernButtonStyle(style: .glass, color: dependencies.colorThemeManager.appTint))

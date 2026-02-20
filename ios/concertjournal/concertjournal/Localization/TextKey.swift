@@ -15,6 +15,7 @@ enum TextKey: String {
     case appName                    = "app.name"
     
     // MARK: - Actions
+    case ok                         = "action.ok"
     case cancel                     = "action.cancel"
     case save                       = "action.save"
     case delete                     = "action.delete"
@@ -389,7 +390,7 @@ enum TextKey: String {
     case errorNoTicketInfo          = "error.no_ticket_info"
     case errorDecryptionFailed      = "error.decryption_failed"
     case errorICloudWarning         = "error.icloud_warning"
-    case errorDecryption_desc       = "error.decryption_desc"
+    case errorDecryptionDesc       = "error.decryption_desc"
     case errorEncryptionRestricted  = "error.encryption_restricted"
     case errorDeleteFailed          = "error.delete_failed"
     case errorUploadFailed          = "error.upload_failed"
@@ -404,6 +405,8 @@ enum TextKey: String {
     case errorTrackingDenied        = "error.tracking_denied"
     case errorAccessAllowed         = "error.access_allowed"
     case errorAccessDenied          = "error.access_denied"
+    
+    case infoBeta                   = "info.beta"
     
     // MARK: - Success Messages
     case successEmailSent           = "success.email_sent"

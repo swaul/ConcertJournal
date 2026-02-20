@@ -157,7 +157,7 @@ struct BuddyAttendeePickerSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Fertig") { isPresented = false }
+                    Button(TextKey.done.localized) { isPresented = false }
                         .font(.cjBody.bold())
                 }
             }

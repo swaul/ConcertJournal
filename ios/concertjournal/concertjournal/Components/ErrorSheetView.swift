@@ -46,7 +46,7 @@ struct ErrorSheetView: View {
                 Button {
                     dismiss()
                 } label: {
-                    Text("Verstanden")
+                    Text(TextKey.understood.localized)
                         .font(.cjHeadline)
                         .padding()
                 }

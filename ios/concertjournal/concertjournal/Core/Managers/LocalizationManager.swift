@@ -34,8 +34,7 @@ final class LocalizationManager {
     // MARK: - Load Local Strings
     
     var currentLanguage: String = {
-        let preferred = Locale.preferredLanguages.first ?? "en"
-        // Versuche erst den vollen Code (de-DE), dann nur die Basissprache (de)
+        let preferred = Locale.preferredLanguages.first ?? "de"
         return preferred
     }()
     
@@ -49,7 +48,7 @@ final class LocalizationManager {
         } else if Bundle.main.url(forResource: base, withExtension: "json") != nil {
             return base
         }
-        return "en" // letzter Fallback
+        return "de-DE"
     }
     
     func loadLocalStrings() {
@@ -75,7 +74,6 @@ final class LocalizationManager {
     
     private func loadBundleStrings() {
         // Zeigt alle Dateien im Bundle
-        Bundle.main.paths(forResourcesOfType: "json", inDirectory: nil).forEach { print($0) }
         let fileName = resolvedLanguageFileName()
         guard let bundleURL = Bundle.main.url(forResource: fileName, withExtension: "json") else {
             print("No bundle localization found for \(fileName)")

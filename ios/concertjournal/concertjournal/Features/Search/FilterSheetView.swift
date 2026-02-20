@@ -22,7 +22,6 @@ struct FilterSheetView: View {
     var body: some View {
         NavigationStack {
             List {
-
                 sortingSection
 
                 dateSection
@@ -43,7 +42,7 @@ struct FilterSheetView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Fertig") {
+                    Button(TextKey.done.localized) {
                         dismiss()
                     }
                     .font(.cjBody)

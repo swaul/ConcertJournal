@@ -35,7 +35,7 @@ struct BuddyQuickAddSheet: View {
                 switch state {
                 case .loading:
                     ProgressView()
-                    Text("Suche Nutzer…")
+                    Text(TextKey.buddiesSearchUser.localized)
                         .font(.cjBody).foregroundStyle(.secondary)
                     
                 case .found:
@@ -46,32 +46,34 @@ struct BuddyQuickAddSheet: View {
                 case .notFound:
                     Image(systemName: "person.fill.questionmark")
                         .font(.system(size: 52)).foregroundStyle(.secondary)
+                    // TODO: LOCALIZATION
+                    Text(TextKey.buddiesUserNotFound.localized)
                     Text("Kein Nutzer gefunden")
                         .font(.cjTitle2).fontWeight(.semibold)
-                    Text("Der Code \"\(code.code)\" ist keinem Account zugeordnet.")
+                    Text(TextKey.buddiesCodeNotFound.localized(with: code.code))
                         .font(.cjBody).foregroundStyle(.secondary)
                         .multilineTextAlignment(.center).padding(.horizontal, 32)
                     
                 case .sent:
                     Image(systemName: "paperplane.fill")
                         .font(.system(size: 52)).foregroundStyle(.tint)
-                    Text("Anfrage gesendet!")
+                    Text(TextKey.buddiesRequestSent.localized)
                         .font(.cjTitle2).fontWeight(.semibold)
-                    Text("Sobald \(result?.displayName ?? "der Nutzer") akzeptiert, erscheint er in deiner Buddy-Liste.")
+                    Text(TextKey.buddiesAfterAccept.localized(with: result?.displayName "der Nutzer"))
                         .font(.cjBody).foregroundStyle(.secondary)
                         .multilineTextAlignment(.center).padding(.horizontal, 32)
                     
                 case .error:
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.system(size: 52)).foregroundStyle(.orange)
-                    Text("Etwas ist schiefgelaufen")
+                    Text(TextKey.errorSomethingWrong.localized)
                         .font(.cjBody).foregroundStyle(.secondary)
                 }
                 
                 Spacer()
                 
                 // Dismiss
-                Button("Schließen") { dismiss() }
+                Button(TextKey.close.localized) { dismiss() }
                     .font(.cjBody).foregroundStyle(.secondary)
                     .padding(.bottom, 32)
             }
@@ -103,7 +105,7 @@ struct BuddyQuickAddSheet: View {
                 Button {
                     Task { await sendRequest(to: result.id) }
                 } label: {
-                    Label("Anfrage senden", systemImage: "person.badge.plus")
+                    Label(TextKey.sendFriendRequest.localized, systemImage: "person.badge.plus")
                         .font(.cjBody).fontWeight(.semibold)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 4)
@@ -112,11 +114,11 @@ struct BuddyQuickAddSheet: View {
                 .padding(.horizontal, 32)
                 
             case .pending:
-                Label("Anfrage bereits gesendet", systemImage: "clock")
+                Label(TextKey.requestAlreadySent.localized, systemImage: "clock")
                     .font(.cjBody).foregroundStyle(.secondary)
                 
             case .alreadyFriends:
-                Label("Ihr seid bereits Buddies", systemImage: "checkmark.circle.fill")
+                Label(TextKey.alreadyBuddies.localized, systemImage: "checkmark.circle.fill")
                     .font(.cjBody).foregroundStyle(.green)
             }
         }

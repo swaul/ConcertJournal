@@ -14,7 +14,7 @@ struct LoadingView: View {
             ProgressView()
                 .progressViewStyle(.circular)
                 .scaleEffect(2.5)
-            Text("Laden...")
+            Text(TextKey.loading.localized)
                 .font(.cjTitle2)
                 .padding()
         }

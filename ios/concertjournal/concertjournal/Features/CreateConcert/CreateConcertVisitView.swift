@@ -167,7 +167,7 @@ struct CreateConcertVisitView: View {
                             noteEditorFocused = false
                             titleFocused = false
                         } label: {
-                            Text("Fertig")
+                            Text(TextKey.done.localized)
                         }
                     }
                 }

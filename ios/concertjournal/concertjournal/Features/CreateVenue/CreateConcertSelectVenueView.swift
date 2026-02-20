@@ -114,7 +114,7 @@ struct CreateConcertSelectVenueView: View {
                     HapticManager.shared.buttonTap()
                     searchFeildFocused = false
                 } label: {
-                    Text("Fertig")
+                    Text(TextKey.done.localized)
                         .font(.cjBody)
                 }
                 .buttonStyle(.glass)
