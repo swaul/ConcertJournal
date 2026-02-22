@@ -171,6 +171,10 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
         if let venueDTO = dto.venue {
             concert.venue = fetchOrCreateVenue(from: venueDTO, context: context)
         }
+        
+        if let buddies = dto.buddyAttendees {
+            concert.setBuddies(buddies)
+        }
 
         // Support Acts: alte entfernen, neue setzen
         if let newActs = dto.supportActs {

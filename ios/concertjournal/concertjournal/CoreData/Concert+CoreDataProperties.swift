@@ -42,6 +42,7 @@ extension Concert {
     @NSManaged public var travel: Travel?
     @NSManaged public var ticket: Ticket?
     @NSManaged public var images: NSSet?
+    @NSManaged public var buddyAttendeesJSON: String?
 
 }
 
@@ -100,5 +101,24 @@ extension Concert {
     func removeImage(_ image: Photo) {
         let images = self.mutableSetValue(forKey: "images")
         images.remove(image)
+    }
+}
+
+// MARK: - Buddies
+extension Concert {
+    
+    var buddiesArray: [BuddyAttendee] {
+        guard let json = buddyAttendeesJSON,
+              let data = json.data(using: .utf8),
+              let array = try? JSONDecoder().decode([BuddyAttendee].self, from: data)
+        else { return [] }
+        return array
+    }
+    
+    func setBuddies(_ attendees: [BuddyAttendee]) {
+        buddyAttendeesJSON = try? String(
+            data: JSONEncoder().encode(attendees),
+            encoding: .utf8
+        )
     }
 }

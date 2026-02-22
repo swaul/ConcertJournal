@@ -190,6 +190,11 @@ struct ConcertsView: View {
                 HapticManager.shared.error()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .resetAppState)) { _ in
+            withAnimation {
+                viewModel = nil
+            }
+        }
     }
 
     @ViewBuilder

@@ -23,7 +23,10 @@ struct ConcertEditView: View {
     @State private var supportActs: [ArtistDTO]
     @State private var travel: TravelDTO?
     @State private var ticket: TicketDTO?
-
+    
+    @State private var buddyAttendees: [BuddyAttendee]
+    @State private var buddyPickerPresenting = false
+    
     @State private var venue: VenueDTO?
     @State private var setlistItems: [TempCeateSetlistItem]
 
@@ -43,6 +46,7 @@ struct ConcertEditView: View {
         _openingTime = State(initialValue: concert.openingTime ?? .now)
         _notes = State(initialValue: concert.notes ?? "")
         _rating = State(initialValue: Int(concert.rating == -1 ? 0 : concert.rating))
+        _buddyAttendees = State(initialValue: concert.buddiesArray)
         _venueName = State(initialValue: concert.venue?.name ?? "")
         _venue = State(initialValue: concert.venue?.toDTO())
         _travel = State(initialValue: concert.travel?.toDTO())
@@ -82,6 +86,13 @@ struct ConcertEditView: View {
                         .font(.cjBody)
                 }
 
+                Section {
+                    buddiesSection()
+                } header: {
+                    Text("Begleiter")
+                        .font(.cjBody)
+                }
+                
                 Section {
                     Button {
                         HapticManager.shared.buttonTap()
@@ -209,6 +220,7 @@ struct ConcertEditView: View {
                                 venue: venue,
                                 city: venue?.city,
                                 rating: rating,
+                                buddyAttendees: buddyAttendees,
                                 travel: travel,
                                 ticket: ticket,
                                 supportActs: supportActs,
@@ -357,6 +369,54 @@ struct ConcertEditView: View {
             .padding(.horizontal)
         }
     }
+    
+    @ViewBuilder
+    func buddiesSection() -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if !buddyAttendees.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(buddyAttendees) { buddy in
+                            VStack(spacing: 6) {
+                                AvatarView(url: buddy.avatarURL, name: buddy.displayName, size: 40)
+                                Text(buddy.displayName)
+                                    .font(.cjCaption)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                                    .frame(maxWidth: 56)
+                            }
+                            .overlay(alignment: .topTrailing) {
+                                Button {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        buddyAttendees.removeAll { $0.id == buddy.id }
+                                    }
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundStyle(.secondary)
+                                        .font(.caption)
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                }
+            }
+            
+            Button {
+                buddyPickerPresenting = true
+            } label: {
+                Text(buddyAttendees.isEmpty ? "Begleiter hinzufügen" : "Begleiter bearbeiten")
+                    .font(.cjBody)
+            }
+            .padding()
+            .glassEffect()
+            .padding(.horizontal)
+        }
+        .sheet(isPresented: $buddyPickerPresenting) {
+            BuddyAttendeePickerSheet(selectedAttendees: $buddyAttendees, isPresented: $buddyPickerPresenting)
+        }
+    }
 
     @ViewBuilder
     func ticketSection() -> some View {
@@ -475,8 +535,8 @@ struct ConcertEditView: View {
     }
 
     func correctedOpeningTime() -> Date {
-        var openingTime = self.openingTime
-        var date = self.date
+        let openingTime = self.openingTime
+        let date = self.date
 
         let calendar = Calendar.current
         let openingHourAndMinute = calendar.dateComponents([.hour, .minute], from: openingTime)
@@ -497,6 +557,7 @@ struct ConcertUpdate {
     let city: String?
     let rating: Int?
     
+    let buddyAttendees: [BuddyAttendee]?
     let travel: TravelDTO?
     let ticket: TicketDTO?
     let supportActs: [ArtistDTO]?

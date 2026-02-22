@@ -92,6 +92,10 @@ struct ConcertDetailView: View {
                         supportActsSection(supportActs: viewModel.concert.supportActsArray)
                     }
 
+                    if !viewModel.concert.buddiesArray.isEmpty {
+                        buddiesSection(buddies: viewModel.concert.buddiesArray)
+                    }
+                    
                     if let venue = viewModel.concert.venue {
                         venueSection(venue: venue, viewModel: viewModel)
                     }
@@ -326,6 +330,32 @@ struct ConcertDetailView: View {
                     }
                 }
                 .padding(.horizontal)
+                .padding(.vertical, 8)
+            }
+            .scrollBounceBehavior(.basedOnSize)
+        }
+    }
+    
+    @ViewBuilder
+    func buddiesSection(buddies: [BuddyAttendee]) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader(title: "Dabei", icon: "person.2.fill")
+                .padding(.horizontal, 20)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(buddies) { buddy in
+                        VStack(spacing: 6) {
+                            AvatarView(url: buddy.avatarURL, name: buddy.displayName, size: 64)
+                            Text(buddy.displayName)
+                                .font(.cjTitle2)
+                                .foregroundStyle(dependencies.colorThemeManager.appTint)
+                                .lineLimit(1)
+                                .frame(maxWidth: 64)
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
                 .padding(.vertical, 8)
             }
             .scrollBounceBehavior(.basedOnSize)

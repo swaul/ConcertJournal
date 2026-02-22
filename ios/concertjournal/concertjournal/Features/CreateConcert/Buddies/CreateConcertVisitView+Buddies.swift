@@ -10,11 +10,45 @@ import Supabase
 
 // MARK: - Model
 
-struct BuddyAttendee: Identifiable, Equatable, Hashable {
+struct BuddyAttendee: Codable, Identifiable, Equatable, Hashable {
+    
     let id: String
     let displayName: String
     let avatarURL: URL?
     let isBuddy: Bool
+    
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case displayName = "display_name"
+        case avatarURL = "avatar_url"
+        case isBuddy = "is_buddy"
+    }
+    
+    internal init(id: String, displayName: String, avatarURL: URL? = nil, isBuddy: Bool) {
+        self.id = id
+        self.displayName = displayName
+        self.avatarURL = avatarURL
+        self.isBuddy = isBuddy
+    }
+    
+    @MainActor @preconcurrency init(from decoder: any Decoder) throws {
+        let container: KeyedDecodingContainer<BuddyAttendee.CodingKeys> = try decoder.container(keyedBy: BuddyAttendee.CodingKeys.self)
+        
+        self.id = try container.decode(String.self, forKey: BuddyAttendee.CodingKeys.id)
+        self.displayName = try container.decode(String.self, forKey: BuddyAttendee.CodingKeys.displayName)
+        self.avatarURL = try container.decodeIfPresent(URL.self, forKey: BuddyAttendee.CodingKeys.avatarURL)
+        self.isBuddy = try container.decode(Bool.self, forKey: BuddyAttendee.CodingKeys.isBuddy)
+        
+    }
+    
+    @MainActor @preconcurrency func encode(to encoder: any Encoder) throws {
+        var container: KeyedEncodingContainer<BuddyAttendee.CodingKeys> = encoder.container(keyedBy: BuddyAttendee.CodingKeys.self)
+        
+        try container.encode(self.id, forKey: BuddyAttendee.CodingKeys.id)
+        try container.encode(self.displayName, forKey: BuddyAttendee.CodingKeys.displayName)
+        try container.encodeIfPresent(self.avatarURL, forKey: BuddyAttendee.CodingKeys.avatarURL)
+        try container.encode(self.isBuddy, forKey: BuddyAttendee.CodingKeys.isBuddy)
+    }
 }
 
 // MARK: - Section View (inline in CreateConcertVisitView)

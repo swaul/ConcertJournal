@@ -229,12 +229,18 @@ final class UserSessionManager: UserSessionManagerProtocol {
         if let user = session?.user {
             state = .loggedIn(user)
             logInfo("User logged in: \(user.email ?? "unknown")", category: .auth)
-            try? await loadProfile(for: user.id)
+            await loadProfile(for: user.id)
         } else {
             state = .loggedOut
             logInfo("User logged out", category: .auth)
         }
 
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(
+                name: .loggedInChanged,
+                object: nil
+            )
+        }
         userSessionChangedSubject.send(self.user)
     }
     

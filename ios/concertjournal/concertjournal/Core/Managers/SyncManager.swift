@@ -123,12 +123,16 @@ class SyncManager {
         try await context.perform {
             var pulledConcerts: Int = 0
 
-            let problem: SyncingProblem? = nil
+            var problems: [SyncingProblem] = []
             for serverConcert in response.concerts {
                 Task {
                     do {
                         let problem = try await self.mergeConcertFromServerSync(serverConcert, context: context)
-                        pulledConcerts += 1
+                        if let problem {
+                            problems.append(problem)
+                        } else {
+                            pulledConcerts += 1
+                        }
                     } catch {
                         DispatchQueue.main.async {
                             logError("Failed to pull concert", error: error)
@@ -143,7 +147,7 @@ class SyncManager {
                 try context.save()
             }
             
-            if problem != nil {
+            if !problems.isEmpty {
                 DispatchQueue.main.async {
                     NotificationCenter.default.post(
                         name: .syncingProblem,
@@ -382,6 +386,8 @@ class SyncManager {
             concert.rating      = Int16(server.rating ?? 0)
             concert.city        = server.city
             
+            concert.setBuddies(server.buddyAttendees ?? [])
+
             if let artistId = server.artistId {
                 concert.artist = try await fetchOrCreateArtistSync(serverId: artistId, context: context)
             }
@@ -448,6 +454,7 @@ class SyncManager {
             
             try await updateSupportActsSync(concert: concert, serverIds: server.supportActsIds ?? [], context: context)
             
+            concert.setBuddies(server.buddyAttendees ?? [])
             concert.travel = buildTravelSync(from: server, existing: nil, context: context)
             let (ticket, ticketProblem) = try buildTicketSync(from: server, existing: nil, context: context)
             concert.ticket = ticket
@@ -651,6 +658,7 @@ struct ConcertPushPayload: Encodable {
     let rating: Int?
     let city: String?
     let version: Int
+    var buddyAttendees: [BuddyAttendee]
 
     let artist: ArtistDTO
     var artistServerId: String?
@@ -677,6 +685,7 @@ struct ConcertPushPayload: Encodable {
 
     private enum CodingKeys: String, CodingKey {
         case date, city, notes, rating, title, version
+        case buddyAttendees = "buddy_attendees"
         case serverId = "id"
         case venueServerId = "venue_id"
         case artistServerId = "artist_id"
@@ -707,6 +716,7 @@ struct ConcertPushPayload: Encodable {
         rating      = concert.rating == 0 ? nil : Int(concert.rating)
         city        = concert.city
         version     = Int(concert.syncVersion)
+        buddyAttendees = concert.buddiesArray
 
         artistServerId  = concert.artist.serverId
         artist = concert.artist.toDTO()
@@ -749,6 +759,7 @@ struct ConcertPushPayload: Encodable {
         try container.encodeIfPresent(self.rating, forKey: .rating)
         try container.encodeIfPresent(self.title, forKey: .title)
         try container.encode(self.version, forKey: .version)
+        try container.encodeIfPresent(self.buddyAttendees, forKey: .buddyAttendees)
         try container.encodeIfPresent(self.venueServerId, forKey: .venueServerId)
         try container.encodeIfPresent(self.artistServerId, forKey: .artistServerId)
         try container.encodeIfPresent(self.travelType, forKey: .travelType)
@@ -799,6 +810,7 @@ struct ServerConcert: Codable {
     let notes: String?
     let rating: Int?
     let title: String?
+    let buddyAttendees: [BuddyAttendee]?
     let venueId: String?
     let travelType: String?
     let travelDuration: Double?
@@ -825,6 +837,7 @@ struct ServerConcert: Codable {
         case userId = "user_id"
         case artistId = "artist_id"
         case venueId = "venue_id"
+        case buddyAttendees = "buddy_attendees"
         case travelType = "travel_type"
         case travelDuration = "travel_duration"
         case travelDistance = "travel_distance"
@@ -852,6 +865,7 @@ struct ServerConcert: Codable {
         self.city = try container.decodeIfPresent(String.self, forKey: .city)
         self.notes = try container.decodeIfPresent(String.self, forKey: .notes)
         self.rating = try container.decodeIfPresent(Int.self, forKey: .rating)
+        self.buddyAttendees = try container.decodeIfPresent([BuddyAttendee].self, forKey: .buddyAttendees)
         self.title = try container.decodeIfPresent(String.self, forKey: .title)
         self.venueId = try container.decodeIfPresent(String.self, forKey: .venueId)
         self.travelType = try container.decodeIfPresent(String.self, forKey: .travelType)

@@ -28,11 +28,10 @@ struct ProfileView: View {
         !dependencies.networkMonitor.isConnected
     }
     
-    private var isLoggedIn: Bool {
-        if case .loggedIn = dependencies.userSessionManager.state { return true }
-        return false
-    }
-
+    @State private var isLoggedIn: Bool = false
+    
+    @State private var signOutShowing: Bool = false
+    
     var body: some View {
         Group {
             if let viewModel {
@@ -74,16 +73,75 @@ struct ProfileView: View {
             Color.background.ignoresSafeArea()
         }
         .navigationTitle("Profil")
+        .onReceive(NotificationCenter.default.publisher(for: .loggedInChanged)) { _ in
+            updateLoggedInState()
+        }
         .task {
             guard viewModel == nil else { return }
             viewModel = ProfileViewModel(
                 supabaseClient: dependencies.supabaseClient,
                 userProvider: dependencies.userSessionManager
             )
-            await viewModel?.load()
+            updateLoggedInState()
         }
         .sheet(isPresented: $showLoginSheet) {
             LoginView()
+        }
+        .adaptiveSheet(isPresented: $signOutShowing) {
+            VStack(spacing: 20) {
+                Image(systemName: "trash.circle.fill")
+                    .font(.system(size: 60))
+                    .foregroundStyle(.red)
+                
+                Text(TextKey.logOut.localized)
+                    .font(.cjTitle)
+                
+                Text("Do you want to sign out?")
+                    .font(.cjBody)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 8)
+                
+                VStack(spacing: 12) {
+                    Button(role: .destructive) {
+                        HapticManager.shared.impact(.heavy)
+                        viewModel?.signOut()
+                        HapticManager.shared.success()
+                        signOutShowing = false
+                    } label: {
+                        Text(TextKey.logOut.localized)
+                                .font(.cjHeadline)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(.red)
+                    .foregroundStyle(.white)
+                    .cornerRadius(16)
+                    
+                    Button {
+                        HapticManager.shared.impact(.light)
+                        signOutShowing = false
+                    } label: {
+                        Text(TextKey.cancel.localized)
+                            .font(.cjHeadline)
+                    }
+                    .buttonStyle(ModernButtonStyle(style: .glass, color: dependencies.colorThemeManager.appTint))
+                }
+            }
+            .padding(24)
+        }
+    }
+    
+    func updateLoggedInState() {
+        Task {
+            await viewModel?.load()
+            
+            switch dependencies.userSessionManager.state {
+            case .loggedIn:
+                isLoggedIn = true
+            default:
+                isLoggedIn = false
+            }
         }
     }
 
@@ -162,7 +220,7 @@ struct ProfileView: View {
                     if isLoggedIn {
                         Button(role: .destructive) {
                             HapticManager.shared.buttonTap()
-                            viewModel.signOut()
+                            signOutShowing = true
                         } label: {
                             Label("Abmelden", systemImage: "rectangle.portrait.and.arrow.right")
                                 .font(.cjBody)

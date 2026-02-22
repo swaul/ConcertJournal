@@ -95,6 +95,12 @@ class DependencyContainer {
                     ConcertEncryptionHelper.shared.currentUserId = nil
                     nukeLocalData()
                     UserDefaults.standard.removeObject(forKey: "lastSyncDate")
+                    DispatchQueue.main.async {
+                        NotificationCenter.default.post(
+                            name: .resetAppState,
+                            object: nil
+                        )
+                    }
                 }
             }
             .store(in: &cancellables)
@@ -171,4 +177,6 @@ extension View {
 extension Notification.Name {
     static let iCloudKeychainUnavailable = Notification.Name("iCloudKeychainUnavailable")
     static let syncingProblem = Notification.Name("SyncingProblem")
+    static let resetAppState = Notification.Name("ResetAppState")
+    static let loggedInChanged = Notification.Name("LoggedInChanged")
 }
