@@ -25,7 +25,8 @@ struct MapView: View {
     @State private var detentHeight: CGFloat = 330
 
     @State private var triggerWobble: Bool = false
-    
+    @State private var visibleRegion: MKCoordinateRegion? = nil
+
     var body: some View {
         NavigationStack {
             @Bindable var navigationManager = navigationManager
@@ -41,7 +42,6 @@ struct MapView: View {
                 guard viewModel == nil else {
                     return
                 }
-
                 viewModel = MapViewModel()
             }
         }
@@ -52,7 +52,7 @@ struct MapView: View {
         Map(position: $position) {
             ForEach(viewModel.concertLocations) { item in
                 Annotation(item.venueName, coordinate: item.coordinates) {
-                    ConcertMapPin(concert: item, triggerWobble: $triggerWobble)
+                    ConcertMapPin(concert: item, triggerWobble: $triggerWobble, visibleRegion: visibleRegion)
                         .onTapGesture {
                             let targetRegion = region(for: item)
                             pendingItem = item
@@ -88,7 +88,11 @@ struct MapView: View {
                 }
             }
         }
-        .onMapCameraChange(frequency: .onEnd) {
+        .onMapCameraChange(frequency: .continuous) { context in
+            visibleRegion = context.region
+        }
+        .onMapCameraChange(frequency: .onEnd) { context in
+            visibleRegion = context.region
             triggerWobble.toggle()
             if let pendingItem {
                 withAnimation(.easeInOut(duration: 0.35).delay(0.2)) {
@@ -239,24 +243,31 @@ struct ConcertMapItem: Identifiable, Equatable {
 
 struct ConcertMapPin: View {
     @Environment(\.dependencies) var dependencies
-
-    let concert: ConcertMapItem
-    @State private var showArtists = false
-    @Binding var triggerWobble: Bool
     
-    // Positionen im Kreis um den Pin herum
+    let concert: ConcertMapItem
+    @Binding var triggerWobble: Bool
+    let visibleRegion: MKCoordinateRegion?
+    
+    @State private var showArtists = false
+    @State private var wasVisible = true  // Merkt ob der Pin zuletzt sichtbar war
+    
     func offset(for index: Int, total: Int) -> CGSize {
         let angle = (2 * .pi / Double(total)) * Double(index) - .pi / 2
         let radius: Double = 50
-        return CGSize(
-            width: cos(angle) * radius,
-            height: sin(angle) * radius
-        )
+        return CGSize(width: cos(angle) * radius, height: sin(angle) * radius)
+    }
+    
+    var isInVisibleRegion: Bool {
+        guard let region = visibleRegion else { return true }
+        let lat = concert.coordinates.latitude
+        let lon = concert.coordinates.longitude
+        let latOk = abs(lat - region.center.latitude) < region.span.latitudeDelta / 2
+        let lonOk = abs(lon - region.center.longitude) < region.span.longitudeDelta / 2
+        return latOk && lonOk
     }
     
     var body: some View {
         ZStack {
-            // Kleine Artist-Bilder rundherum
             ForEach(Array(concert.artists.enumerated()), id: \.offset) { index, artist in
                 ArtistBubble(artist: artist)
                     .offset(showArtists ? offset(for: index, total: concert.artists.count) : .zero)
@@ -264,16 +275,9 @@ struct ConcertMapPin: View {
                     .opacity(showArtists ? 1 : 0)
                     .animation(
                         .spring(response: 0.4, dampingFraction: 0.6)
-                        .delay(Double(index) * 0.08), // Staffelung wie beim Mac
+                        .delay(Double(index) * 0.08),
                         value: showArtists
                     )
-                    .keyframeAnimator(initialValue: 1.0, trigger: triggerWobble) { view, scale in
-                        view.scaleEffect(scale)
-                    } keyframes: { _ in
-                        SpringKeyframe(1.15, duration: 0.15)
-                        SpringKeyframe(0.95, duration: 0.15)
-                        SpringKeyframe(1.0, duration: 0.2)
-                    }
             }
             
             Text("\(concert.concerts.count)")
@@ -285,13 +289,23 @@ struct ConcertMapPin: View {
                 .glassEffect(in: Circle())
         }
         .onAppear {
-            withAnimation {
-                showArtists = true
+            withAnimation { showArtists = true }
+        }
+        .onChange(of: isInVisibleRegion) { _, nowVisible in
+            if !nowVisible {
+                // Pin verlässt die Region → Animation zurücksetzen
+                showArtists = false
+                wasVisible = false
+            } else if !wasVisible {
+                // Pin kommt zurück → Animation neu abspielen
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                    showArtists = true
+                }
+                wasVisible = true
             }
         }
     }
 }
-
 struct ArtistBubble: View {
     @Environment(\.dependencies) var dependencies
 

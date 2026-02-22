@@ -26,3 +26,20 @@ struct LoadingView: View {
     }
 
 }
+
+struct TextLessLoadingView: View {
+    
+    var body: some View {
+        VStack(spacing: 24) {
+            ProgressView()
+                .progressViewStyle(.circular)
+                .scaleEffect(2.5)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background {
+            Color.background
+        }
+        .ignoresSafeArea()
+    }
+    
+}

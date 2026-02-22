@@ -75,7 +75,7 @@ struct RootView: View {
     var body: some View {
         Group {
             if loadingLocalization {
-                LoadingView()
+                TextLessLoadingView()
             } else if !onboardingManager.hasCompletedOnboarding {
                 OnboardingView(manager: onboardingManager)
                     .transition(.move(edge: .leading).combined(with: .opacity))
