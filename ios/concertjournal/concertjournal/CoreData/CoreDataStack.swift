@@ -19,6 +19,14 @@ class CoreDataStack {
     init() {
         persistentContainer = NSPersistentContainer(name: "CJModels")
 
+        let appGroupID = "group.de.kuehnel.concertjournal"
+        let storeURL = FileManager.default
+            .containerURL(forSecurityApplicationGroupIdentifier: appGroupID)!
+            .appendingPathComponent("CJModels.sqlite")
+
+        let description = NSPersistentStoreDescription(url: storeURL)
+        persistentContainer.persistentStoreDescriptions = [description]
+
         persistentContainer.loadPersistentStores { _, error in
             if let error = error as NSError? {
                 fatalError("Core Data failed to load: \(error), \(error.userInfo)")

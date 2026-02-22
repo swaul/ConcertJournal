@@ -8,37 +8,74 @@ import SwiftUI
 struct BuddiesView: View {
     
     @Environment(\.dependencies) var dependencies
+    @Environment(\.navigationManager) private var navigationManager
+
     @State private var viewModel: BuddiesViewModel?
     @State private var showRequestsSheet = false
     @State private var showAddBuddySheet = false
-    
+
+    @State private var showSharedConcerts: Buddy? = nil
+
     var body: some View {
-        Group {
-            if let viewModel {
-                switch viewModel.loadingState {
-                case .loading:
-                    loadingView()
-                case .error:
-                    errorView(viewModel: viewModel)
-                case .loaded:
-                    loadedView(viewModel: viewModel)
+        @Bindable var navigationManager = navigationManager
+
+        NavigationStack(path: $navigationManager.path) {
+            Group {
+                if let viewModel {
+                    switch viewModel.loadingState {
+                    case .loading:
+                        loadingView()
+                    case .error:
+                        errorView(viewModel: viewModel)
+                    case .loaded:
+                        loadedView(viewModel: viewModel)
+                    }
+                } else {
+                    LoadingView()
                 }
-            } else {
-                LoadingView()
+            }
+            .background { Color.background.ignoresSafeArea() }
+            .navigationTitle("Buddies")
+            .task {
+                guard viewModel == nil else { return }
+                viewModel = BuddiesViewModel(
+                    supabaseClient: dependencies.supabaseClient,
+                    userProvider: dependencies.userSessionManager
+                )
+                await viewModel?.load()
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        HapticManager.shared.impact(.light)
+                        navigationManager.push(.profile)
+                    } label: {
+                        Image(systemName: "person.circle.fill")
+                            .font(.title3)
+                    }
+                }
+            }
+            .navigationDestination(for: NavigationRoute.self) { route in
+                navigationDestination(for: route)
+            }
+            .sheet(item: $showSharedConcerts) { buddy in
+                SharedConcertsView(buddy: buddy)
             }
         }
-        .background { Color.background.ignoresSafeArea() }
-        .navigationTitle("Buddies")
-        .task {
-            guard viewModel == nil else { return }
-            viewModel = BuddiesViewModel(
-                supabaseClient: dependencies.supabaseClient,
-                userProvider: dependencies.userSessionManager
-            )
-            await viewModel?.load()
+    }
+
+    @ViewBuilder
+    private func navigationDestination(for route: NavigationRoute) -> some View {
+        switch route {
+        case .profile:
+            ProfileView()
+                .toolbarVisibility(.hidden, for: .tabBar)
+        default:
+            Text("Not implemented: \(String(describing: route))")
         }
     }
-    
+
+
     // MARK: - Loading
     
     @ViewBuilder
@@ -90,9 +127,14 @@ struct BuddiesView: View {
                         emptyBuddiesView()
                     } else {
                         ForEach(viewModel.buddies) { buddy in
-                            BuddyRow(buddy: buddy) {
-                                Task { await viewModel.removeBuddy(buddy) }
+                            Button {
+                                showSharedConcerts = buddy
+                            } label: {
+                                BuddyRow(buddy: buddy) {
+                                    Task { await viewModel.removeBuddy(buddy) }
+                                }
                             }
+                            .buttonStyle(.plain)
                         }
                     }
                 }

@@ -31,6 +31,7 @@ struct ConcertDetailView: View {
     @Environment(\.navigationManager) private var navigationManager
 
     @State var viewModel: ConcertDetailViewModel? = nil
+    @State private var confirmationTextPresenting: Bool = false
 
     let concert: Concert
 
@@ -185,8 +186,10 @@ struct ConcertDetailView: View {
         .adaptiveSheet(isPresented: $showDeleteDialog) {
             deleteDialog(viewModel: viewModel)
         }
-        .sheet(item: $confirmationText) { item in
-            ConfirmationView(message: item)
+        .adaptiveSheet(isPresented: $confirmationTextPresenting) {
+            if let confirmationText {
+                ConfirmationView(message: confirmationText, isPresented: $confirmationTextPresenting)
+            }
         }
         .sheet(isPresented: $showCalendarSheet) {
             if let calendarEvent {
@@ -197,6 +200,7 @@ struct ConcertDetailView: View {
                     if action == .saved {
                         HapticManager.shared.success()
                         confirmationText = ConfirmationMessage(message: "Event gespeichert 🎉")
+                        confirmationTextPresenting = true
                     }
                 }
             }
@@ -208,17 +212,24 @@ struct ConcertDetailView: View {
                     Task {
                         savingConcertPresenting = true
                         await viewModel.applyUpdate(updatedConcert)
+
+                        try? await Task.sleep(for: .seconds(2))
+                        
                         savingConcertPresenting = false
                         HapticManager.shared.success()
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                            confirmationText = ConfirmationMessage(message: "Updates gespeichert! 🎉")
-                        }
+
+                        try? await Task.sleep(for: .seconds(1))
+
+                        confirmationText = ConfirmationMessage(message: "Updates gespeichert! 🎉")
+                        confirmationTextPresenting = true
                     }
                 }
             )
         }
-        .adaptiveSheet(item: $confirmationText) { item in
-            ConfirmationView(message: item)
+        .adaptiveSheet(isPresented: $confirmationTextPresenting) {
+            if let confirmationText {
+                ConfirmationView(message: confirmationText, isPresented: $confirmationTextPresenting)
+            }
         }
         .fullScreenCover(item: $selectedImage) { item in
             FullscreenImagePagerView(
@@ -266,10 +277,11 @@ struct ConcertDetailView: View {
                             showDeleteDialog = false
                             loading = false
                             HapticManager.shared.success()
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                                 confirmationText = ConfirmationMessage(message: TextKey.concertDeleted.localized) {
                                     dismiss()
                                 }
+                                confirmationTextPresenting = true
                             }
                         } catch {
                             logError("Deletion of concert failed", error: error, category: .concert)

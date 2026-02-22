@@ -20,16 +20,18 @@ struct ErrorMessage: Identifiable {
 }
 
 struct ErrorSheetView: View {
-    @Environment(\.dismiss) private var dismiss
     @Environment(\.dependencies) private var dependencies
 
-    init(message: ErrorMessage) {
+    init(message: ErrorMessage, isPresented: Binding<Bool>) {
+        self._isPresented = isPresented
         self.message = message.message
         self.additionalInfos = message.additionalInfos
     }
 
     let message: String
     let additionalInfos: AdditionalInfo?
+
+    @Binding var isPresented: Bool
 
     var body: some View {
         VStack(spacing: 16) {
@@ -44,7 +46,7 @@ struct ErrorSheetView: View {
                 .frame(maxWidth: .infinity, alignment: .center)
 
                 Button {
-                    dismiss()
+                    isPresented = false
                 } label: {
                     Text(TextKey.understood.localized)
                         .font(.cjHeadline)

@@ -30,14 +30,33 @@ struct FullscreenImagePagerView: View {
 
             TabView(selection: $currentIndex) {
                 ForEach(imageUrls.indices, id: \.self) { index in
-                    AsyncImage(url: imageUrls[index].url) { image in
-                        if let image = image.image {
-                            image
+                    Group {
+                        let image = imageUrls[index]
+                        if let localImage = image.image {
+                            Image(uiImage: localImage)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .zoomable()
+                        } else if let serverUrl = image.url {
+                            AsyncImage(url: serverUrl) { phase in
+                                switch phase {
+                                case .success(let image):
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .zoomable()
+                                case .failure:
+                                    photoPlaceholder(icon: "exclamationmark.triangle")
+                                case .empty:
+                                    photoPlaceholder(icon: "photo")
+                                        .overlay { ProgressView() }
+                                @unknown default:
+                                    photoPlaceholder(icon: "photo")
+                                }
+                            }
                         } else {
-                            ProgressView()
+                            // Broken state
+                            photoPlaceholder(icon: "photo")
                         }
                     }
                     .tag(index)
@@ -74,5 +93,14 @@ struct FullscreenImagePagerView: View {
                 hideButton.toggle()
             }
         }
+    }
+
+    private func photoPlaceholder(icon: String) -> some View {
+        Rectangle()
+            .fill(Color(.systemGray5))
+            .overlay {
+                Image(systemName: icon)
+                    .foregroundStyle(.secondary)
+            }
     }
 }

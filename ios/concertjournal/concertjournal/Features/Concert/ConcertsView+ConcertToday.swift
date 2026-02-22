@@ -59,6 +59,21 @@ struct ConcertTodayView: View {
                         .cornerRadius(20)
                         .shadow(color: dependencies.colorThemeManager.appTint.opacity(0.5), radius: 8)
                         .matchedGeometryEffect(id: "timer", in: todaysConcert)
+                    } else {
+                        HStack(spacing: 6) {
+                            Image(systemName: "dot.radiowaves.left.and.right")
+                                .font(.caption)
+                                .symbolEffect(.rotate.byLayer, options: .repeat(.periodic(delay: 5.0)))
+                            Text("LIVE")
+                                .font(.system(size: 13, weight: .bold))
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(.white.opacity(0.2))
+                        .cornerRadius(20)
+                        .shadow(color: .white.opacity(0.3), radius: 8)
+                        .matchedGeometryEffect(id: "timer", in: todaysConcert)
                     }
                 }
 
@@ -175,6 +190,23 @@ struct ConcertTodayView: View {
                         .background(.ultraThinMaterial)
                         .cornerRadius(20)
                         .shadow(color: dependencies.colorThemeManager.appTint.opacity(0.5), radius: 8)
+                        .matchedGeometryEffect(id: "timer", in: todaysConcert)
+                    } else {
+                        Spacer()
+
+                        HStack(spacing: 6) {
+                            Image(systemName: "dot.radiowaves.left.and.right")
+                                .font(.caption)
+                                .symbolEffect(.rotate.byLayer, options: .repeat(.periodic(delay: 5.0)))
+                            Text("LIVE")
+                                .font(.system(size: 13, weight: .bold))
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(.white.opacity(0.2))
+                        .cornerRadius(20)
+                        .shadow(color: .white.opacity(0.3), radius: 8)
                         .matchedGeometryEffect(id: "timer", in: todaysConcert)
                     }
                 }

@@ -43,14 +43,23 @@ class ArtistDetailViewModel {
         }
     }
 
+    func checkForEmptyConcerts(artistInfo: inout ArtistInfo, concerts: [Concert]) {
+        let concertsWOTravelInfo = concerts.filter { $0.travel == nil }
+        let concertsWOTicketInfo = concerts.filter { $0.ticket == nil }
+
+        guard !concertsWOTicketInfo.isEmpty || !concertsWOTravelInfo.isEmpty else { return }
+        artistInfo.showShouldAddInfoLabel = concertsWOTicketInfo.count + concertsWOTravelInfo.count
+    }
+
     func getArtistInfoByYear(concerts: [Concert], year: String) -> ArtistInfo{
-        var futureConcertsThisYear = concerts.filter { $0.date > Date.now }.count
+        let futureConcertsThisYear = concerts.filter { $0.date > Date.now }.count
 
         var artistInfo = ArtistInfo(year: year, totalPastConcerts: concerts.count, futureConcerts: futureConcertsThisYear)
         let currency: String = concerts.compactMap { $0.travel?.travelExpenses?.currency ?? $0.travel?.hotelExpenses?.currency }.first ?? "EUR"
 
         getTravelInfos(artistInfo: &artistInfo, concerts: concerts, currency: currency)
         getTicketInfos(artistInfo: &artistInfo, concerts: concerts, currency: currency)
+        checkForEmptyConcerts(artistInfo: &artistInfo, concerts: concerts)
 
         let totalMoneySpent = ((artistInfo.moneySpentOnTravel?.value ?? 0.0)
         + (artistInfo.moneySpentOnHotels?.value ?? 0.0))
@@ -151,6 +160,8 @@ struct ArtistInfo {
     var moneySpentOnTickets: PriceDTO?
     var ticketCategories: [TicketCategory: Int]?
     var ticketTypes: [TicketType: Int]?
+
+    var showShouldAddInfoLabel: Int? = nil
 
     var hasAnyTravelInfos: Bool {
         moneySpentOnHotels != nil || moneySpentOnTravel != nil || travelDistance != nil || travelDuration != nil

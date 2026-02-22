@@ -22,6 +22,7 @@ struct PasswordResetView: View {
 
     @State private var confirmationText: ConfirmationMessage? = nil
     @State private var loadingPasswordChangePresenting: Bool = false
+    @State private var confirmationTextPresenting: Bool = false
 
     @FocusState private var newPasswordTextField: Bool
     @FocusState private var repeatNewPasswordTextField: Bool
@@ -78,8 +79,10 @@ struct PasswordResetView: View {
             .task {
                 await verifyCode()
             }
-            .sheet(item: $confirmationText) { item in
-                ConfirmationView(message: item)
+            .adaptiveSheet(isPresented: $confirmationTextPresenting) {
+                if let confirmationText {
+                    ConfirmationView(message: confirmationText, isPresented: $confirmationTextPresenting)
+                }
             }
             .sheet(isPresented: $loadingPasswordChangePresenting) {
                 LoadingSheet(message: "Password wird geändert..")
@@ -132,7 +135,7 @@ struct PasswordResetView: View {
                 confirmationText = ConfirmationMessage(message: "Passwort geändert! 🎉") {
                     dismiss()
                 }
-
+                confirmationTextPresenting = true
             } catch {
                 errorMessage = error.localizedDescription
             }

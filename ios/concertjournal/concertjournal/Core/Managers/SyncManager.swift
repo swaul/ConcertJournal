@@ -6,6 +6,7 @@
 import CoreData
 import Foundation
 import Combine
+internal import Auth
 
 class SyncManager {
 
@@ -120,49 +121,44 @@ class SyncManager {
 
         let context = coreData.newBackgroundContext()
 
-        try await context.perform {
-            var pulledConcerts: Int = 0
+        // Merges außerhalb von context.perform awaiten
+        var problems: [SyncingProblem] = []
+        var pulledConcerts = 0
 
-            var problems: [SyncingProblem] = []
-            for serverConcert in response.concerts {
-                Task {
-                    do {
-                        let problem = try await self.mergeConcertFromServerSync(serverConcert, context: context)
-                        if let problem {
-                            problems.append(problem)
-                        } else {
-                            pulledConcerts += 1
-                        }
-                    } catch {
-                        DispatchQueue.main.async {
-                            logError("Failed to pull concert", error: error)
-                        }
-                    }
+        for serverConcert in response.concerts {
+            do {
+                let problem = try await mergeConcertFromServerSync(serverConcert, context: context)
+                if let problem {
+                    problems.append(problem)
+                } else {
+                    pulledConcerts += 1
                 }
+            } catch {
+                logError("Failed to pull concert", error: error)
             }
+        }
+
+        await context.perform {
             for deletedId in response.deleted {
                 self.deleteConcertFromServerSync(deletedId, context: context)
             }
             if context.hasChanges {
-                try context.save()
+                try? context.save()
             }
-            
-            if !problems.isEmpty {
-                DispatchQueue.main.async {
-                    NotificationCenter.default.post(
-                        name: .syncingProblem,
-                        object: nil
-                    )
-                }
-            }
-            logSuccess("Pulled \(pulledConcerts) concerts", category: .sync)
         }
+
+        if !problems.isEmpty {
+            await MainActor.run {
+                NotificationCenter.default.post(name: .syncingProblem, object: nil)
+            }
+        }
+
+        logSuccess("Pulled \(pulledConcerts) concerts", category: .sync)
 
         await MainActor.run {
             UserDefaults.standard.set(Date(), forKey: "lastSyncDate")
         }
     }
-
     // MARK: - Push (Core Data → Server)
 
     private func pushChanges() async throws {
@@ -460,7 +456,7 @@ class SyncManager {
             concert.ticket = ticket
             problem = ticketProblem
             
-            let currentUserId = Self.getCurrentUserIdStatic()
+            let currentUserId = await getCurrentUserId()
             concert.ownerId  = server.userId
             concert.isOwner  = server.userId == currentUserId
             concert.canEdit  = concert.isOwner
@@ -642,8 +638,13 @@ class SyncManager {
 
     // MARK: - Helpers
 
-    static func getCurrentUserIdStatic() -> String {
-        return UserDefaults.standard.string(forKey: "currentUserId") ?? "unknown"
+    func getCurrentUserId() async -> String {
+        // Direkt aus Supabase Session holen – kein UserDefaults nötig
+        do {
+            return try await userSessionManager.loadUser().id.uuidString.lowercased()
+        } catch {
+            return "unknown"
+        }
     }
 }
 

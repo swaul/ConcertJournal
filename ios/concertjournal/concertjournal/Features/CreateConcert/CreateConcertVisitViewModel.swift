@@ -44,7 +44,7 @@ class CreateConcertVisitViewModel: Hashable, Equatable {
             throw CreateConcertError.couldNotCreateConcertDTO
         }
         
-        let concert = try repository.createConcert(newConcert)
+        let concert = try await repository.createConcert(newConcert)
         
         await notificationService.notifyBuddies(
             attendees: new.buddyAttendees,

@@ -67,7 +67,7 @@ class DependencyContainer {
         }
 
         // ✅ BFF Repositories
-        self.offlineConcertRepository = OfflineConcertRepository(syncManager: syncManager)
+        self.offlineConcertRepository = OfflineConcertRepository(syncManager: syncManager, userSessionManager: userSessionManager)
         self.offlinePhotoRepsitory = OfflinePhotoRepository()
         self.concertRepository = BFFConcertRepository(client: bffClient)
         self.artistRepository = BFFArtistRepository(client: bffClient)
@@ -114,8 +114,9 @@ class DependencyContainer {
     }
     
     func nukeLocalData() {
-        let storeURL = NSPersistentContainer.defaultDirectoryURL()
-            .appendingPathComponent("concertjournal.sqlite")
+        let storeURL = FileManager.default
+            .containerURL(forSecurityApplicationGroupIdentifier: "group.de.kuehnel.concertjournal")!
+            .appendingPathComponent("CJModels.sqlite")
         
         try? FileManager.default.removeItem(at: storeURL)
         try? FileManager.default.removeItem(at: storeURL.appendingPathExtension("shm"))

@@ -20,7 +20,8 @@ struct ForgotPasswordView: View {
     @State var email: String
     @State private var confirmationText: ConfirmationMessage? = nil
     @State private var savingConcertPresenting: Bool = false
-    
+    @State private var confirmationTextPresenting: Bool = false
+
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading) {
@@ -47,8 +48,10 @@ struct ForgotPasswordView: View {
                 .buttonStyle(.glassProminent)
                 .padding()
             }
-            .sheet(item: $confirmationText) { item in
-                ConfirmationView(message: item)
+            .sheet(isPresented: $confirmationTextPresenting) {
+                if let confirmationText {
+                    ConfirmationView(message: confirmationText, isPresented: $confirmationTextPresenting)
+                }
             }
             .sheet(isPresented: $savingConcertPresenting) {
                 LoadingSheet(message: "Email versenden..")
@@ -76,6 +79,7 @@ struct ForgotPasswordView: View {
             confirmationText = ConfirmationMessage(message: "Email gesendet 🎉") {
                 dismiss()
             }
+            confirmationTextPresenting = true
         }
     }
 }

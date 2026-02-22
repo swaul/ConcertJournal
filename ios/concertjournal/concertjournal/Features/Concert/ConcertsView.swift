@@ -21,6 +21,7 @@ struct ConcertsView: View {
     @State private var chooseCreateFlowPresenting: Bool = false
     @State private var concertToDelete: Concert? = nil
     @State private var confirmationText: ConfirmationMessage? = nil
+    @State private var confirmationTextPresenting: Bool = false
 
     @State var fullSizeTodaysConcert = true
 
@@ -201,7 +202,7 @@ struct ConcertsView: View {
     func viewWithViewModel(viewModel: ConcertsViewModel) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                if let concertToday = viewModel.concertToday {
+                if viewModel.concertToday != nil {
                     Color.clear
                         .frame(height: fullSizeTodaysConcert ? 200 : 60)
                 }
@@ -422,8 +423,10 @@ struct ConcertsView: View {
                 }
             }
             .padding(24)
-            .sheet(item: $confirmationText) { item in
-                ConfirmationView(message: item)
+        }
+        .adaptiveSheet(isPresented: $confirmationTextPresenting) {
+            if let confirmationText {
+                ConfirmationView(message: confirmationText, isPresented: $confirmationTextPresenting)
             }
         }
     }
@@ -496,7 +499,4 @@ struct ConcertsView: View {
         }
     }
 
-    private func refreshVisits() async {
-        await viewModel?.loadConcerts()
-    }
 }

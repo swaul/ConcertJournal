@@ -26,12 +26,12 @@ struct ConfirmationMessage: Identifiable {
 }
 
 struct ConfirmationView: View {
-    @Environment(\.dismiss) private var dismiss
     @Environment(\.dependencies) private var dependencies
 
     var completion: (() -> Void)?
 
-    init(message: ConfirmationMessage) {
+    init(message: ConfirmationMessage, isPresented: Binding<Bool>) {
+        self._isPresented = isPresented
         self.message = message.message
         self.additionalInfos = message.additionalInfos
         self.completion = message.completion
@@ -42,6 +42,7 @@ struct ConfirmationView: View {
 
     @State private var drawProgress: CGFloat = 0
     @State private var showDone: Bool = false
+    @Binding private var isPresented: Bool
 
     var body: some View {
         VStack(spacing: 16) {
@@ -64,10 +65,10 @@ struct ConfirmationView: View {
 
                 Button {
                     if let completion {
-                        dismiss()
+                        isPresented = false
                         completion()
                     } else {
-                        dismiss()
+                        isPresented = false
                     }
                 } label: {
                     Text(TextKey.understood.localized)
@@ -93,10 +94,10 @@ struct ConfirmationView: View {
             guard additionalInfos == nil else {  return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 if let completion {
-                    dismiss()
+                    isPresented = false
                     completion()
                 } else {
-                    dismiss()
+                    isPresented = false
                 }
             }
         }

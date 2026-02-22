@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Supabase
+import _PhotosUI_SwiftUI
 
 struct ConcertEditView: View {
     @AppStorage("hidePrices") private var hidePrices = false
@@ -23,7 +24,12 @@ struct ConcertEditView: View {
     @State private var supportActs: [ArtistDTO]
     @State private var travel: TravelDTO?
     @State private var ticket: TicketDTO?
-    
+
+    @State private var selectedPhotoItems: [PhotosPickerItem] = []
+    @State private var newImages: [UIImage] = []
+    @State private var existingPhotos: [Photo]
+    @State private var photosToDelete: [Photo] = []
+
     @State private var buddyAttendees: [BuddyAttendee]
     @State private var buddyPickerPresenting = false
     
@@ -51,6 +57,8 @@ struct ConcertEditView: View {
         _venue = State(initialValue: concert.venue?.toDTO())
         _travel = State(initialValue: concert.travel?.toDTO())
         _ticket = State(initialValue: concert.ticket?.toDTO())
+        _existingPhotos = State(initialValue: concert.imagesArray)
+
         if !concert.setlistItemsArray.isEmpty {
             let tempSetlistItems = concert.setlistItemsArray.map { TempCeateSetlistItem(setlistItem: $0) }
             _setlistItems = State(initialValue: tempSetlistItems)
@@ -194,6 +202,13 @@ struct ConcertEditView: View {
                     Text(TextKey.review.localized)
                         .font(.cjBody)
                 }
+
+                Section {
+                    photosSection()
+                } header: {
+                    Text("Fotos")
+                        .font(.cjBody)
+                }
             }
             .navigationTitle(TextKey.editConcert.localized)
             .toolbar {
@@ -210,6 +225,16 @@ struct ConcertEditView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
                         HapticManager.shared.buttonTap()
+
+                        // Neue Fotos speichern
+                        for image in newImages {
+                            _ = try? dependencies.offlinePhotoRepsitory.savePhoto(image, for: concert)
+                        }
+
+                        // Gelöschte Fotos entfernen
+                        for photo in photosToDelete {
+                            try? dependencies.offlinePhotoRepsitory.deletePhoto(photo)
+                        }
                         onSave(
                             ConcertUpdate(
                                 id: concert.id,
@@ -523,6 +548,101 @@ struct ConcertEditView: View {
             CreateConcertTicket(artist: concert.artist.toDTO(), ticketInfo: ticket) { editedTicket in
                 self.ticket = editedTicket
                 presentTicketEdit = false
+            }
+        }
+    }
+
+    @ViewBuilder
+    func photosSection() -> some View {
+        // Bestehende Fotos
+        if !existingPhotos.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(existingPhotos) { photo in
+                        let image = dependencies.offlinePhotoRepsitory.loadImage(for: photo)
+                        ZStack(alignment: .topTrailing) {
+                            Group {
+                                if let image {
+                                    Image(uiImage: image)
+                                        .resizable()
+                                        .scaledToFill()
+                                } else {
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.secondary.opacity(0.2))
+                                }
+                            }
+                            .frame(width: 90, height: 90)
+                            .clipped()
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                            Button {
+                                HapticManager.shared.buttonTap()
+                                photosToDelete.append(photo)
+                                existingPhotos.removeAll { $0.id == photo.id }
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.white)
+                                    .background(Color.black.opacity(0.6))
+                                    .clipShape(Circle())
+                            }
+                            .offset(x: 6, y: -6)
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+        }
+
+        // Neue Fotos
+        if !newImages.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(newImages.indices, id: \.self) { index in
+                        ZStack(alignment: .topTrailing) {
+                            Image(uiImage: newImages[index])
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 90, height: 90)
+                                .clipped()
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                            Button {
+                                HapticManager.shared.buttonTap()
+                                selectedPhotoItems.remove(at: index)
+                                newImages.remove(at: index)
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.white)
+                                    .background(Color.black.opacity(0.6))
+                                    .clipShape(Circle())
+                            }
+                            .offset(x: 6, y: -6)
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+        }
+
+        // Picker Button
+        PhotosPicker(
+            selection: $selectedPhotoItems,
+            maxSelectionCount: 10,
+            matching: .images,
+            photoLibrary: .shared()
+        ) {
+            Label("Fotos hinzufügen", systemImage: "photo.on.rectangle.angled")
+                .font(.cjBody)
+        }
+        .onChange(of: selectedPhotoItems) { _, newItems in
+            Task {
+                newImages.removeAll()
+                for item in newItems {
+                    if let data = try? await item.loadTransferable(type: Data.self),
+                       let image = UIImage(data: data) {
+                        newImages.append(image)
+                    }
+                }
             }
         }
     }

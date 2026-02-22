@@ -7,12 +7,14 @@
 
 import CoreData
 import Combine
+import WidgetKit
+internal import Auth
 
 protocol OfflineConcertRepositoryProtocol {
     func fetchConcerts() -> [Concert]
     func fetchConcertsWithArtist(_ id: UUID) -> [Concert]
     func getConcert(id: UUID) -> Concert?
-    func createConcert(_ dto: CreateConcertDTO) throws -> Concert
+    func createConcert(_ dto: CreateConcertDTO) async throws -> Concert
     func updateConcert(_ concert: Concert, with dto: ConcertUpdate) throws
     func deleteConcert(_ concert: Concert) throws
     func presaveArtist(_ newArtist: ArtistDTO) throws -> Artist
@@ -23,9 +25,11 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
 
     private let coreData = CoreDataStack.shared
     private let syncManager: SyncManager
+    private let userSessionManager: UserSessionManagerProtocol
 
-    init(syncManager: SyncManager) {
+    init(syncManager: SyncManager, userSessionManager: UserSessionManagerProtocol) {
         self.syncManager = syncManager
+        self.userSessionManager = userSessionManager
     }
 
     // MARK: - Fetch (Always from Core Data)
@@ -86,7 +90,7 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
 
     // MARK: - Create (Local First)
 
-    func createConcert(_ dto: CreateConcertDTO) throws -> Concert {
+    func createConcert(_ dto: CreateConcertDTO) async throws -> Concert {
         let context = coreData.viewContext
 
         // 1. Create in Core Data
@@ -102,7 +106,7 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
         concert.syncStatus = SyncStatus.pending.rawValue
         concert.locallyModifiedAt = Date()
         concert.syncVersion = 1
-        concert.ownerId = getCurrentUserId()
+        concert.ownerId = await getCurrentUserId()
         concert.isOwner = true
         concert.canEdit = true
 
@@ -131,6 +135,8 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
 
         // 2. Save to Core Data
         try coreData.saveWithResult()
+
+        WidgetCenter.shared.reloadAllTimelines()
 
         // 3. Queue for sync
         Task {
@@ -204,6 +210,8 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
         // 2. Save to Core Data
         try coreData.saveWithResult()
 
+        WidgetCenter.shared.reloadAllTimelines() // ← neu
+
         // 3. Queue for sync
         Task {
             await syncManager.syncConcert(concert)
@@ -249,6 +257,8 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
 
         // 2. Save
         try coreData.saveWithResult()
+
+        WidgetCenter.shared.reloadAllTimelines() // ← neu
 
         // 3. Queue for sync (will delete on server)
         Task {
@@ -314,8 +324,12 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
         return venue
     }
 
-    private func getCurrentUserId() -> String {
-        return UserDefaults.standard.string(forKey: "currentUserId") ?? "unknown"
+    func getCurrentUserId() async -> String {
+        do {
+            return try await userSessionManager.loadUser().id.uuidString.lowercased()
+        } catch {
+            return "unknown"
+        }
     }
 
     // MARK: - Travel Builder

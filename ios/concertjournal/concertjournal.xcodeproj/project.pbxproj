@@ -14,6 +14,9 @@
 		2FBC28592EF56A8500BEF981 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 2FBC28582EF56A8500BEF981 /* Storage */; };
 		2FBC285C2EF56AE600BEF981 /* SpotifyiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 2FBC285B2EF56AE600BEF981 /* SpotifyiOS */; };
 		2FBC28632EF56C3D00BEF981 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 2FBC28622EF56C3D00BEF981 /* Supabase */; };
+		879C56122F4B7E87008FCA09 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 879C56112F4B7E87008FCA09 /* WidgetKit.framework */; };
+		879C56142F4B7E87008FCA09 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 879C56132F4B7E87008FCA09 /* SwiftUI.framework */; };
+		879C562A2F4B8454008FCA09 /* concertjournal-widgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 879C56102F4B7E87008FCA09 /* concertjournal-widgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		87D2DAAD2F3BA0EC0002C037 /* ConcertJournalShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 87D2DAA12F3BA0EC0002C037 /* ConcertJournalShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		87D2DAC22F3DB84C0002C037 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 87D2DAC12F3DB84C0002C037 /* GoogleMobileAds */; };
 /* End PBXBuildFile section */
@@ -33,6 +36,13 @@
 			remoteGlobalIDString = 2FBC28282EF568CC00BEF981;
 			remoteInfo = concertjournal;
 		};
+		879C562B2F4B846C008FCA09 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2FBC28212EF568CC00BEF981 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 879C560F2F4B7E87008FCA09;
+			remoteInfo = "concertjournal-widgetExtension";
+		};
 		87D2DAAB2F3BA0EC0002C037 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 2FBC28212EF568CC00BEF981 /* Project object */;
@@ -49,6 +59,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				879C562A2F4B8454008FCA09 /* concertjournal-widgetExtension.appex in Embed Foundation Extensions */,
 				87D2DAAD2F3BA0EC0002C037 /* ConcertJournalShareExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
@@ -60,6 +71,10 @@
 		2FBC28292EF568CC00BEF981 /* concertjournal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = concertjournal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2FBC28362EF568CE00BEF981 /* concertjournalTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = concertjournalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2FBC28402EF568CE00BEF981 /* concertjournalUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = concertjournalUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		879C56102F4B7E87008FCA09 /* concertjournal-widgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "concertjournal-widgetExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		879C56112F4B7E87008FCA09 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		879C56132F4B7E87008FCA09 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		879C56252F4B7ECD008FCA09 /* concertjournal-widgetExtensionDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "concertjournal-widgetExtensionDebug.entitlements"; sourceTree = "<group>"; };
 		87D2DAA12F3BA0EC0002C037 /* ConcertJournalShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ConcertJournalShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -70,6 +85,20 @@
 				Info.plist,
 			);
 			target = 2FBC28282EF568CC00BEF981 /* concertjournal */;
+		};
+		879C56232F4B7E89008FCA09 /* Exceptions for "concertjournal-widget" folder in "concertjournal-widgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 879C560F2F4B7E87008FCA09 /* concertjournal-widgetExtension */;
+		};
+		879C562E2F4B8728008FCA09 /* Exceptions for "concertjournal" folder in "concertjournal-widgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CoreData/CJModels.xcdatamodeld,
+			);
+			target = 879C560F2F4B7E87008FCA09 /* concertjournal-widgetExtension */;
 		};
 		87D2DAB12F3BA0EC0002C037 /* Exceptions for "ConcertJournalShareExtension" folder in "ConcertJournalShareExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -85,6 +114,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				8720D7A52F2E43790074ACE6 /* Exceptions for "concertjournal" folder in "concertjournal" target */,
+				879C562E2F4B8728008FCA09 /* Exceptions for "concertjournal" folder in "concertjournal-widgetExtension" target */,
 			);
 			path = concertjournal;
 			sourceTree = "<group>";
@@ -97,6 +127,14 @@
 		2FBC28432EF568CE00BEF981 /* concertjournalUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = concertjournalUITests;
+			sourceTree = "<group>";
+		};
+		879C56152F4B7E87008FCA09 /* concertjournal-widget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				879C56232F4B7E89008FCA09 /* Exceptions for "concertjournal-widget" folder in "concertjournal-widgetExtension" target */,
+			);
+			path = "concertjournal-widget";
 			sourceTree = "<group>";
 		};
 		87D2DAA22F3BA0EC0002C037 /* ConcertJournalShareExtension */ = {
@@ -139,6 +177,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		879C560D2F4B7E87008FCA09 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				879C56142F4B7E87008FCA09 /* SwiftUI.framework in Frameworks */,
+				879C56122F4B7E87008FCA09 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		87D2DA9E2F3BA0EC0002C037 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -152,10 +199,12 @@
 		2FBC28202EF568CC00BEF981 = {
 			isa = PBXGroup;
 			children = (
+				879C56252F4B7ECD008FCA09 /* concertjournal-widgetExtensionDebug.entitlements */,
 				2FBC282B2EF568CC00BEF981 /* concertjournal */,
 				2FBC28392EF568CE00BEF981 /* concertjournalTests */,
 				2FBC28432EF568CE00BEF981 /* concertjournalUITests */,
 				87D2DAA22F3BA0EC0002C037 /* ConcertJournalShareExtension */,
+				879C56152F4B7E87008FCA09 /* concertjournal-widget */,
 				2FBC28612EF56C3D00BEF981 /* Frameworks */,
 				2FBC282A2EF568CC00BEF981 /* Products */,
 			);
@@ -168,6 +217,7 @@
 				2FBC28362EF568CE00BEF981 /* concertjournalTests.xctest */,
 				2FBC28402EF568CE00BEF981 /* concertjournalUITests.xctest */,
 				87D2DAA12F3BA0EC0002C037 /* ConcertJournalShareExtension.appex */,
+				879C56102F4B7E87008FCA09 /* concertjournal-widgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -175,6 +225,8 @@
 		2FBC28612EF56C3D00BEF981 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				879C56112F4B7E87008FCA09 /* WidgetKit.framework */,
+				879C56132F4B7E87008FCA09 /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -194,6 +246,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				879C562C2F4B846C008FCA09 /* PBXTargetDependency */,
 				87D2DAAC2F3BA0EC0002C037 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
@@ -260,6 +313,28 @@
 			productReference = 2FBC28402EF568CE00BEF981 /* concertjournalUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		879C560F2F4B7E87008FCA09 /* concertjournal-widgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 879C56242F4B7E89008FCA09 /* Build configuration list for PBXNativeTarget "concertjournal-widgetExtension" */;
+			buildPhases = (
+				879C560C2F4B7E87008FCA09 /* Sources */,
+				879C560D2F4B7E87008FCA09 /* Frameworks */,
+				879C560E2F4B7E87008FCA09 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				879C56152F4B7E87008FCA09 /* concertjournal-widget */,
+			);
+			name = "concertjournal-widgetExtension";
+			packageProductDependencies = (
+			);
+			productName = "concertjournal-widgetExtension";
+			productReference = 879C56102F4B7E87008FCA09 /* concertjournal-widgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		87D2DAA02F3BA0EC0002C037 /* ConcertJournalShareExtension */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 87D2DAAE2F3BA0EC0002C037 /* Build configuration list for PBXNativeTarget "ConcertJournalShareExtension" */;
@@ -303,6 +378,9 @@
 						CreatedOnToolsVersion = 26.2;
 						TestTargetID = 2FBC28282EF568CC00BEF981;
 					};
+					879C560F2F4B7E87008FCA09 = {
+						CreatedOnToolsVersion = 26.2;
+					};
 					87D2DAA02F3BA0EC0002C037 = {
 						CreatedOnToolsVersion = 26.2;
 					};
@@ -332,6 +410,7 @@
 				2FBC28352EF568CE00BEF981 /* concertjournalTests */,
 				2FBC283F2EF568CE00BEF981 /* concertjournalUITests */,
 				87D2DAA02F3BA0EC0002C037 /* ConcertJournalShareExtension */,
+				879C560F2F4B7E87008FCA09 /* concertjournal-widgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -352,6 +431,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		2FBC283E2EF568CE00BEF981 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		879C560E2F4B7E87008FCA09 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -389,6 +475,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		879C560C2F4B7E87008FCA09 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		87D2DA9D2F3BA0EC0002C037 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -408,6 +501,11 @@
 			isa = PBXTargetDependency;
 			target = 2FBC28282EF568CC00BEF981 /* concertjournal */;
 			targetProxy = 2FBC28412EF568CE00BEF981 /* PBXContainerItemProxy */;
+		};
+		879C562C2F4B846C008FCA09 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 879C560F2F4B7E87008FCA09 /* concertjournal-widgetExtension */;
+			targetProxy = 879C562B2F4B846C008FCA09 /* PBXContainerItemProxy */;
 		};
 		87D2DAAC2F3BA0EC0002C037 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -741,6 +839,79 @@
 			};
 			name = Release;
 		};
+		879C56212F4B7E89008FCA09 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = "concertjournal-widgetExtensionDebug.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 846WZ8H33D;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "concertjournal-widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "concertjournal-widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = de.kuehnel.concertjournal.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		879C56222F4B7E89008FCA09 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 846WZ8H33D;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "concertjournal-widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "concertjournal-widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.kuehnel.concertjournal-widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 		87D2DAAF2F3BA0EC0002C037 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -852,6 +1023,15 @@
 			buildConfigurations = (
 				2FBC28512EF568CE00BEF981 /* Debug */,
 				2FBC28522EF568CE00BEF981 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		879C56242F4B7E89008FCA09 /* Build configuration list for PBXNativeTarget "concertjournal-widgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				879C56212F4B7E89008FCA09 /* Debug */,
+				879C56222F4B7E89008FCA09 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -94,8 +94,12 @@ struct CreateConcertVisitView: View {
     @State var viewModel: CreateConcertVisitViewModel?
 
     @State var draft: NewConcertVisit
+
     @State private var presentConfirmation: ConfirmationMessage? = nil
+    @State private var confirmationTextPresenting: Bool = false
+
     @State private var presentErrorSheet: ErrorMessage? = nil
+    @State private var errorTextPresenting: Bool = false
 
     @State private var openingTime = Date.now
     @State private var rating: Int = 0
@@ -106,7 +110,7 @@ struct CreateConcertVisitView: View {
     @State private var createSetlistPresenting = false
     @State private var presentTicketEdit = false
     @State var selectBuddiesPresenting = false
-    
+
     @State private var selectedPhotoItems: [PhotosPickerItem] = []
     
     @State var selectedImages: [UIImage] = []
@@ -202,13 +206,16 @@ struct CreateConcertVisitView: View {
                                                          photoRepository: dependencies.offlinePhotoRepsitory,
                                                          notificationService: dependencies.buddyNotificationService)
         }
-        .adaptiveSheet(item: $presentConfirmation) { message in
-            ConfirmationView(message: message)
-                .interactiveDismissDisabled()
+        .adaptiveSheet(isPresented: $confirmationTextPresenting) {
+            if let presentConfirmation {
+                ConfirmationView(message: presentConfirmation, isPresented: $confirmationTextPresenting)
+            }
         }
-        .adaptiveSheet(item: $presentErrorSheet) { error in
-            ErrorSheetView(message: error)
-                .interactiveDismissDisabled()
+        .adaptiveSheet(isPresented: $errorTextPresenting) {
+            if let error = presentErrorSheet {
+                ErrorSheetView(message: error, isPresented: $errorTextPresenting)
+                    .interactiveDismissDisabled()
+            }
         }
         .navigationTitle("New Concert")
         .navigationBarTitleDisplayMode(.inline)
@@ -297,6 +304,7 @@ struct CreateConcertVisitView: View {
 
                 try await viewModel.createVisit(from: draft, selectedImages: selectedImages)
 
+                try? await Task.sleep(for: .seconds(2))
                 savingConcertPresenting = false
 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
@@ -318,12 +326,14 @@ struct CreateConcertVisitView: View {
         presentConfirmation = ConfirmationMessage(message: TextKey.concertCreated.localized) {
             navigationManager.popToRoot()
         }
+        confirmationTextPresenting = true
     }
 
     private func showErrorAlert(error: Error) {
         presentErrorSheet = ErrorMessage(
             message: TextKey.concertCreate.localized
         )
+        errorTextPresenting = true
     }
 
     @ViewBuilder
@@ -589,7 +599,8 @@ struct CreateConcertVisitView: View {
                             Text(ticket.ticketCategory.label)
                                 .font(.cjTitleF)
                         }
-                    
+                        .padding(.horizontal)
+
                     switch ticket.ticketType{
                     case .seated:
                         Grid {

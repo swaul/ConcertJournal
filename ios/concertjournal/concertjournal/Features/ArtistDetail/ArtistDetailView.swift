@@ -13,6 +13,8 @@ struct ArtistDetailView: View {
 
     @State var viewModel: ArtistDetailViewModel?
 
+    @State var showShouldAddMoreInfo: ShouldAddMoreInfoItem? = nil
+
     let artist: Artist
 
     init(artist: Artist) {
@@ -54,6 +56,9 @@ struct ArtistDetailView: View {
         .task {
             guard viewModel == nil else { return }
             viewModel = ArtistDetailViewModel(artist: artist, repository: dependencies.offlineConcertRepository)
+        }
+        .adaptiveSheet(item: $showShouldAddMoreInfo) { item in
+            ShouldAddMoreInfoView(item: item)
         }
     }
 
@@ -199,7 +204,6 @@ struct ArtistDetailView: View {
                         }
                     }
                 }
-
                 if let moneySpent = artistInfo.moneySpentTotal {
                     HStack {
                         Text(TextKey.spentTotal.localized)
@@ -212,6 +216,23 @@ struct ArtistDetailView: View {
                     }
                     .padding(.top, 8)
                 }
+
+                if let showShouldAddInfoLabel = artistInfo.showShouldAddInfoLabel {
+                    HStack {
+                        Spacer()
+                        Text("Fehlen hier infos?")
+                            .font(.cjFootnote)
+                            .foregroundStyle(.secondary)
+                        Button {
+                            showShouldAddMoreInfo = ShouldAddMoreInfoItem(id: UUID(), count: showShouldAddInfoLabel, year: artistInfo.year)
+                        } label: {
+                            Image(systemName: "info.circle")
+                                .font(.cjFootnote)
+                        }
+                    }
+                    .padding(.top, 4)
+                }
+
             }
             .padding()
             .rectangleGlass()
@@ -222,4 +243,42 @@ struct ArtistDetailView: View {
 
 extension UIScreen{
     static let screenWidth = UIScreen.main.bounds.size.width
+}
+
+struct ShouldAddMoreInfoItem: Identifiable {
+    let id: UUID
+    let count: Int
+    let year: String
+
+    var text: String {
+        "Du hast \(count) Konzerte im Jahr \(year) ohne info über dein Ticket oder deine Reise. Füge mehr infos hinzu, um hier eine bessere übersicht zu haben"
+    }
+}
+
+struct ShouldAddMoreInfoView: View {
+
+    @Environment(\.dismiss) var dismiss
+
+    let item: ShouldAddMoreInfoItem
+
+    var body: some View {
+        VStack {
+            HStack {
+                Spacer()
+
+                Button {
+                    dismiss()
+                } label: {
+                    Text("Fertig")
+                }
+                .buttonStyle(.glass)
+            }
+            Text(item.text)
+                .font(.cjHeadline)
+                .padding(.bottom, 24)
+                .lineLimit(nil)
+        }
+        .padding()
+        .frame(minHeight: 200)
+    }
 }
