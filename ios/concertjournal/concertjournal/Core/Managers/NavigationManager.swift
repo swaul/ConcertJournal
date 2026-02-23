@@ -49,8 +49,13 @@ enum NavigationRoute: Hashable {
     // Onboarding
     case trackingPermission
     case photoPermission
+    case notificationPermission
     case featurePage
     case completion
+
+    #if DEBUG
+    case testView
+    #endif
 }
 
 @Observable
@@ -188,7 +193,7 @@ extension NavigationRoute: Identifiable {
         case .concertDetail(let concert): return "concert-\(concert.id)"
         case .createConcert: return "create-concert"
         case .ticketScan: return "ticket-scan"
-        case .createConcertFromTicket(let ticketInfos): return "create-oncert-from-ticket"
+        case .createConcertFromTicket(let ticketInfos): return "create-oncert-from-ticket-\(ticketInfos?.artistName ?? "no-info")"
         case .createConcertFromImport(let imported): return "create-concert-from-\(imported)"
         case .editConcert(let concert): return "edit-\(concert.id)"
         case .selectArtist: return "select-artist"
@@ -206,10 +211,14 @@ extension NavigationRoute: Identifiable {
         case .playlist: return ""
         case .trackingPermission: return "trackingPermission"
         case .photoPermission: return "photoPermission"
+        case .notificationPermission: return "notificationPermission"
         case .featurePage: return "featurePage"
         case .completion: return "completion"
         case .search: return "search"
         case .buddies: return "buddies"
+            #if DEBUG
+        case .testView: return "testView"
+            #endif
         }
     }
 }

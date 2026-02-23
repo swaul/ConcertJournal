@@ -21,7 +21,6 @@ class AdMobManager {
     var isInitialized = false
     var isPremiumUser = false
 
-    // Ad Unit IDs (Ersetze mit deinen echten IDs aus AdMob Console)
 #if DEBUG
     // Test IDs
     let bannerAdUnitID = "ca-app-pub-3940256099942544/2934735716"
@@ -46,7 +45,7 @@ class AdMobManager {
 
     // Ad frequency control
     private var interstitialShowCount = 0
-    private let showInterstitialEvery = 5 // Zeige alle 5 Actions
+    private let showInterstitialEvery = 5
 
     // MARK: - Initialization
 
@@ -72,7 +71,6 @@ class AdMobManager {
     // MARK: - Premium Check
 
     func checkPremiumStatus() {
-        // Check if user has premium subscription
         isPremiumUser = UserDefaults.standard.bool(forKey: "isPremiumUser")
     }
 

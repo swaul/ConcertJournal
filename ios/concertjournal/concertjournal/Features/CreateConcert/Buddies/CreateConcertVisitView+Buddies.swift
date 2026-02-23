@@ -11,12 +11,12 @@ import Supabase
 // MARK: - Model
 
 struct BuddyAttendee: Codable, Identifiable, Equatable, Hashable {
-    
+
     let id: String
     let displayName: String
     let avatarURL: URL?
     let isBuddy: Bool
-    
+
     private enum CodingKeys: String, CodingKey {
         case id
         case displayName = "display_name"
@@ -48,49 +48,6 @@ struct BuddyAttendee: Codable, Identifiable, Equatable, Hashable {
         try container.encode(self.displayName, forKey: BuddyAttendee.CodingKeys.displayName)
         try container.encodeIfPresent(self.avatarURL, forKey: BuddyAttendee.CodingKeys.avatarURL)
         try container.encode(self.isBuddy, forKey: BuddyAttendee.CodingKeys.isBuddy)
-    }
-}
-
-// MARK: - Section View (inline in CreateConcertVisitView)
-
-extension CreateConcertVisitView {
-    
-    @ViewBuilder
-    func buddyAttendeesSection() -> some View {
-        VStack(alignment: .leading) {
-            CJDivider(title: "Mit dabei", image: nil)
-                .padding(.horizontal)
-            
-            if !draft.buddyAttendees.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(draft.buddyAttendees) { attendee in
-                            AttendeeChip(attendee: attendee) {
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    draft.buddyAttendees.removeAll { $0.id == attendee.id }
-                                }
-                            }
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-                }
-            }
-            
-            Button {
-                HapticManager.shared.buttonTap()
-                selectBuddiesPresenting = true
-            } label: {
-                Label(
-                    draft.buddyAttendees.isEmpty ? "Begleiter hinzufügen" : "Begleiter bearbeiten",
-                    systemImage: "person.badge.plus"
-                )
-                .font(.cjBody)
-            }
-            .padding()
-            .glassEffect()
-            .padding(.horizontal)
-        }
     }
 }
 
@@ -154,10 +111,12 @@ struct AttendeeChip: View {
 
 struct BuddyAttendeePickerSheet: View {
     
-    @Binding var selectedAttendees: [BuddyAttendee]
+    @State var selectedAttendees: [BuddyAttendee]
     @Binding var isPresented: Bool
     @Environment(\.dependencies) private var dependencies
-    
+
+    var onSave: ([BuddyAttendee]) -> Void
+
     @State private var buddies: [Buddy] = []
     @State private var isLoading = true
     @State private var customName: String = ""
@@ -191,8 +150,11 @@ struct BuddyAttendeePickerSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(TextKey.done.localized) { isPresented = false }
-                        .font(.cjBody.bold())
+                    Button(TextKey.done.localized) {
+                        onSave(selectedAttendees)
+                        isPresented = false
+                    }
+                    .font(.cjBody.bold())
                 }
             }
             .task { await loadBuddies() }

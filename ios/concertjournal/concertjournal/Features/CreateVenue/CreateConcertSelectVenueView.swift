@@ -14,15 +14,17 @@ struct CreateConcertSelectVenueView: View {
     @State private var viewModel: VenueSearchViewModel?
 
     @Binding var isPresented: Bool
-    
+
     let onSelect: (VenueDTO) -> Void
 
     @State var selectedVenue: MKMapItem? = nil
-    
+    @State var selectedKnownVenue: VenueDTO? = nil
+
     @FocusState var searchFeildFocused
-        
+
     @State var searchFeildFocusedAnimated: Bool = false
-    
+    @State var isSearchingAnimated: Bool = false
+
     var body: some View {
         NavigationStack {
             Group {
@@ -32,10 +34,14 @@ struct CreateConcertSelectVenueView: View {
                     LoadingView()
                 }
             }
+            .background {
+                Color.background
+                    .ignoresSafeArea()
+            }
             .navigationTitle("Venue auswählen")
             .task {
                 guard viewModel == nil else { return }
-                viewModel = VenueSearchViewModel()
+                viewModel = VenueSearchViewModel(offlineConcertRepository: dependencies.offlineConcertRepository)
             }
         }
     }
@@ -43,40 +49,57 @@ struct CreateConcertSelectVenueView: View {
     @ViewBuilder
     private func viewWithViewModel(viewModel: VenueSearchViewModel) -> some View {
         @Bindable var viewModel = viewModel
+
         ScrollView {
             VStack(alignment: .leading) {
-                ForEach(viewModel.results, id: \.identifier) { venue in
-                    Button {
-                        selectedVenue = venue
-                    } label: {
-                        VenueRow(venue: venue)
+                if isSearchingAnimated {
+                    SearchingView(searchContent: "Venue")
+                } else if let errorMessage = viewModel.errorMessage {
+                    Text(errorMessage)
+                        .font(.cjBody)
+                        .padding()
+                } else if !viewModel.didSearch {
+                    ForEach(viewModel.currentVenues, id: \.id) { venue in
+                        Button {
+                            HapticManager.shared.buttonTap()
+                            selectedKnownVenue = venue
+                        } label: {
+                            KnownVenueRow(venue: venue)
+                        }
+                        .selectedGlass(selected: selectedKnownVenue?.id == venue.id, shape: RoundedRectangle(cornerRadius: 20))
                     }
-                    .selectedGlass(selected: selectedVenue?.identifier == venue.identifier, shape: RoundedRectangle(cornerRadius: 20))
+                } else {
+                    ForEach(viewModel.results, id: \.identifier) { venue in
+                        Button {
+                            HapticManager.shared.buttonTap()
+                            selectedVenue = venue
+                        } label: {
+                            VenueRow(venue: venue)
+                        }
+                        .selectedGlass(selected: selectedVenue?.identifier == venue.identifier, shape: RoundedRectangle(cornerRadius: 20))
+                    }
                 }
             }
             .padding()
         }
-        .overlay {
-            if viewModel.isLoading {
-                ProgressView()
-            }
-        }
+        .scrollIndicators(.hidden)
+        .scrollBounceBehavior(.basedOnSize)
         .onChange(of: searchFeildFocused, { oldValue, newValue in
             withAnimation(.bouncy) {
                 searchFeildFocusedAnimated = newValue
+            }
+        })
+        .onChange(of: viewModel.isLoading, { _, newValue in
+            withAnimation {
+                isSearchingAnimated = newValue
             }
         })
         .safeAreaInset(edge: .bottom) {
             searchField(query: $viewModel.query)
                 .padding()
         }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                searchFeildFocused = true
-            }
-        }
         .toolbar {
-            if selectedVenue != nil {
+            if selectedVenue != nil || selectedKnownVenue != nil {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         guard let venue = selectedVenue else { return }
@@ -108,7 +131,7 @@ struct CreateConcertSelectVenueView: View {
                 .font(.cjBody)
                 .padding()
                 .glassEffect()
-            
+
             if searchFeildFocusedAnimated {
                 Button {
                     HapticManager.shared.buttonTap()
@@ -125,25 +148,74 @@ struct CreateConcertSelectVenueView: View {
 }
 
 struct VenueRow: View {
+    @Environment(\.dependencies) private var dependencies
 
     let venue: MKMapItem
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(venue.name ?? "Unbekannte Venue")
-                    .font(.cjHeadline)
-                    .foregroundStyle(Color("textColor"))
-                Spacer()
-            }
-            if let address = venue.addressRepresentations?.fullAddress(includingRegion: false, singleLine: true) {
-                    Text(address)
-                        .font(.cjCaption)
-                        .foregroundStyle(Color("textColor"))
+        HStack {
+            Image(systemName: "mappin.and.ellipse")
+                .resizable()
+                .frame(width: 28, height: 28)
+                .aspectRatio(contentMode: .fit)
+                .padding()
+                .foregroundStyle(dependencies.colorThemeManager.appTint)
+                .background(Color.divider)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+            VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(venue.name ?? "Unbekannte Venue")
+                        .font(.cjHeadline)
+                        .foregroundStyle(Color.text)
                         .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    if let address = venue.addressRepresentations?.fullAddress(includingRegion: false, singleLine: true) {
+                        Text(address)
+                            .font(.cjCaption)
+                            .foregroundStyle(Color.text)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
             }
         }
         .padding()
-        .foregroundStyle(Color("textColor"))
+        .foregroundStyle(Color.text)
+    }
+}
+
+struct KnownVenueRow: View {
+    @Environment(\.dependencies) private var dependencies
+
+    let venue: VenueDTO
+
+    var body: some View {
+        HStack {
+            Image(systemName: "mappin.and.ellipse")
+                .resizable()
+                .frame(width: 28, height: 28)
+                .aspectRatio(contentMode: .fit)
+                .padding()
+                .foregroundStyle(dependencies.colorThemeManager.appTint)
+                .background(Color.divider)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(venue.name)
+                    .font(.cjHeadline)
+                    .foregroundStyle(Color.text)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                Text(venue.formattedAddress)
+                    .font(.cjCaption)
+                    .foregroundStyle(Color.text)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .padding()
+        .foregroundStyle(Color.text)
     }
 }

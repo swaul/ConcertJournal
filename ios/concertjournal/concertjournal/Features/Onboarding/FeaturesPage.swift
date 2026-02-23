@@ -57,7 +57,7 @@ enum FeatureInfo: CaseIterable {
 
 struct FeaturesPage: View {
 
-    @Bindable var navigationManager: NavigationManager
+    @Bindable var manager: OnboardingManager
 
     let features = FeatureInfo.allCases
     @State private var visibleCount = 0
@@ -97,7 +97,7 @@ struct FeaturesPage: View {
                 Spacer()
 
                 Button {
-                    navigationManager.push(.photoPermission)
+                    manager.getNextStep()
                 } label: {
                     Text(TextKey.keepGoing.localized)
                         .frame(maxWidth: .infinity)

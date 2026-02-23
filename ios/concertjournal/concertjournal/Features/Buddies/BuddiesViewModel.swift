@@ -12,6 +12,7 @@ enum BuddiesLoadingState {
     case loading
     case loaded
     case error
+    case notLoggedIn
 }
 
 @Observable
@@ -61,6 +62,10 @@ final class BuddiesViewModel {
     func load() async {
         loadingState = .loading
         logInfo("Loading buddies, requests, and buddy code")
+        guard let user = try? await userProvider.loadUser() else {
+            loadingState = .notLoggedIn
+            return
+        }
         async let buddiesTask: () = fetchBuddies()
         async let requestsTask: () = fetchRequests()
         async let codeTask: () = fetchOrCreateBuddyCode()

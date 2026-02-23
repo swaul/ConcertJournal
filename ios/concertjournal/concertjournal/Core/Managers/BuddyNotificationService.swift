@@ -17,7 +17,6 @@ final class BuddyNotificationService {
         self.supabaseClient = supabaseClient
     }
     
-    /// Schickt eine In-App Notification an alle Buddy-Begleiter
     @MainActor
     func notifyBuddies(
         attendees: [BuddyAttendee],

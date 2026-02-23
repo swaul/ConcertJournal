@@ -37,7 +37,7 @@ struct ConcertEntry: TimelineEntry {
     let appTint: Color
 }
 
-struct WidgetConcert {
+struct WidgetConcert: Equatable {
     let title: String
     let artistName: String
     let artistImageData: Data?
@@ -264,7 +264,7 @@ struct MediumWidgetView: View {
                 .frame(width: 1)
                 .padding(.vertical, 12)
 
-            let secondary = entry.next ?? entry.last
+            let secondary = main == entry.next ? entry.last : entry.next
             let secondaryLabel = entry.next != nil ? "NÄCHSTES" : "LETZTES"
             MediumSecondaryCard(concert: secondary, label: secondaryLabel, tint: entry.appTint)
                 .frame(maxWidth: .infinity)

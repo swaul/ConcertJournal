@@ -439,7 +439,9 @@ struct ConcertEditView: View {
             .padding(.horizontal)
         }
         .sheet(isPresented: $buddyPickerPresenting) {
-            BuddyAttendeePickerSheet(selectedAttendees: $buddyAttendees, isPresented: $buddyPickerPresenting)
+            BuddyAttendeePickerSheet(selectedAttendees: buddyAttendees, isPresented: $buddyPickerPresenting) { buddies in
+                buddyAttendees = buddies
+            }
         }
     }
 

@@ -6,6 +6,26 @@
 import SwiftUI
 import Combine
 
+class AppDelegate: NSObject, UIApplicationDelegate {
+    var pushManager: PushNotificationManagerProtocol?
+
+    func application(
+        _ application: UIApplication,
+        didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+    ) {
+        Task {
+            await pushManager?.storeDeviceToken(deviceToken)
+        }
+    }
+
+    func application(
+        _ application: UIApplication,
+        didFailToRegisterForRemoteNotificationsWithError error: Error
+    ) {
+        logError("Push registration failed", error: error, category: .auth)
+    }
+}
+
 @main
 struct ConcertJournalApp: App {
 
@@ -24,6 +44,8 @@ struct ConcertJournalApp: App {
         AdMobManager.shared.initialize()
     }
 
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
     @State private var navigationManager = NavigationManager()
     @State private var dependencyContainer = DependencyContainer()
     
@@ -32,6 +54,9 @@ struct ConcertJournalApp: App {
             RootView(localizationManager: LocalizationManager(supabaseClient: dependencyContainer.supabaseClient), navigationManager: navigationManager)
                 .preferredColorScheme(.dark)
                 .withDependencies(dependencyContainer)
+                .task {
+                    appDelegate.pushManager = dependencyContainer.pushNotificationManager
+                }
         }
     }
 }
@@ -53,8 +78,6 @@ struct BuddyCode: Identifiable {
 }
 
 // MARK: - Root View
-// Einzige Entscheidung: Onboarding abgeschlossen? → App. Fertig.
-// Login ist optional und wird vom Profil aus gesteuert.
 
 struct RootView: View {
 
@@ -115,7 +138,6 @@ struct RootView: View {
             }
         }
         .task {
-            // Session wiederherstellen – falls der User bereits eingeloggt war
             try? await dependencies.userSessionManager.start()
         }
         .sheet(item: $showBuddySheetWithCode) { item in

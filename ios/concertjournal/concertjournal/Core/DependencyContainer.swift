@@ -26,7 +26,8 @@ class DependencyContainer {
     let syncManager: SyncManager
     let appState: AppState
     let buddyNotificationService: BuddyNotificationService
-    
+    let pushNotificationManager: PushNotificationManagerProtocol
+
     // BFF Repositories
     let offlineConcertRepository: OfflineConcertRepositoryProtocol
     let offlinePhotoRepsitory: OfflinePhotoRepositoryProtocol
@@ -57,7 +58,8 @@ class DependencyContainer {
         self.syncManager = SyncManager(apiClient: bffClient, userSessionManager: userSessionManager)
         self.appState = AppState()
         self.buddyNotificationService = BuddyNotificationService(supabaseClient: supabaseClient)
-        
+        self.pushNotificationManager = PushNotificationManager(supabaseClient: supabaseClient)
+
         // ✅ BFF Client needs auth token
         self.bffClient.getAuthToken = { [weak supabaseClient] in
             guard let session = try? await supabaseClient?.client.auth.session else {
@@ -82,18 +84,25 @@ class DependencyContainer {
         bindToAuthState()
     }
 
+    private var previousUserId: UUID? = nil
+
     func bindToAuthState() {
         userSessionManager.userSessionChanged
             .sink { [weak self] user in
                 guard let self else { return }
                 if let user {
+                    self.previousUserId = user.id
                     self.startFullSync()
                     self.checkIfUserNeedsSetup(user: user)
                     ConcertEncryptionHelper.shared.currentUserId = user.id.uuidString.lowercased()
                     self.checkiCloudKeychainOnLogin(user: user)
+                    Task { await self.pushNotificationManager.registerCachedTokenIfNeeded() }
                 } else {
-                    ConcertEncryptionHelper.shared.currentUserId = nil
+                    guard self.previousUserId != nil else { return }
+                    self.previousUserId = nil
                     nukeLocalData()
+                    ConcertEncryptionHelper.shared.currentUserId = nil
+                    Task { await self.pushNotificationManager.removeDeviceToken() }
                     UserDefaults.standard.removeObject(forKey: "lastSyncDate")
                     DispatchQueue.main.async {
                         NotificationCenter.default.post(
@@ -112,12 +121,19 @@ class DependencyContainer {
             }
             .store(in: &cancellables)
     }
-    
+
     func nukeLocalData() {
+        let container = CoreDataStack.shared.persistentContainer
+        container.viewContext.reset()
+
+        container.persistentStoreCoordinator.persistentStores.forEach { store in
+            try? container.persistentStoreCoordinator.remove(store)
+        }
+
         let storeURL = FileManager.default
             .containerURL(forSecurityApplicationGroupIdentifier: "group.de.kuehnel.concertjournal")!
             .appendingPathComponent("CJModels.sqlite")
-        
+
         try? FileManager.default.removeItem(at: storeURL)
         try? FileManager.default.removeItem(at: storeURL.appendingPathExtension("shm"))
         try? FileManager.default.removeItem(at: storeURL.appendingPathExtension("wal"))

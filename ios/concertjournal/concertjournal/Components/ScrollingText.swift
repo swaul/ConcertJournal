@@ -1,7 +1,8 @@
 //
-//  ScrollingText - Marquee Effect
+//  MarqueeText.swift
+//  concertjournal
 //
-//  Text der bei zu langem Inhalt horizontal scrollt
+//  Created by Paul Kühnel on 31.01.26.
 //
 
 import SwiftUI

@@ -54,32 +54,30 @@ struct AdaptiveItemSheetModifier<SheetContent: View, Item: Identifiable>: ViewMo
     @State private var subHeight: CGFloat = 0
     let content: (Item) -> SheetContent
 
-    init(item: Binding<Item?>, @ViewBuilder content: @escaping (Item) -> SheetContent) {
-        _item = item
-        self.content = content
-    }
-
     func body(content base: Content) -> some View {
         base
-            .background(
-                Group {
-                    if let item = item {
-                        self.content(item)
-                            .background(
-                                GeometryReader { proxy in
-                                    Color.clear
-                                        .task(id: proxy.size.height) {
-                                            subHeight = proxy.size.height
-                                        }
-                                }
-                            )
-                            .hidden()
-                    }
+            .background {
+                if let item {
+                    self.content(item)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .background(
+                            GeometryReader { proxy in
+                                Color.clear
+                                    .task(id: proxy.size.height) {
+                                        subHeight = proxy.size.height
+                                    }
+                            }
+                        )
+                        .hidden()
                 }
-            )
+            }
             .sheet(item: $item) { item in
                 self.content(item)
-                    .presentationDetents([.height(subHeight == 0  ? 200 : subHeight)])
+                    .presentationDetents(
+                        subHeight > 0
+                        ? [.height(subHeight)]
+                        : [.medium]
+                    )
             }
     }
 }

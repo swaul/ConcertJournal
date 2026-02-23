@@ -82,11 +82,9 @@ struct ConfirmationView: View {
         }
         .padding(24)
         .onAppear {
-            // Animate the checkmark stroke
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8, blendDuration: 0.1)) {
                 drawProgress = 1
             }
-            // Fade in the label slightly after the stroke completes
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
                 showDone = true
             }
@@ -108,7 +106,6 @@ struct ConfirmationView: View {
 struct CheckmarkShape: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
-        // A proportional checkmark path
         let w = rect.width
         let h = rect.height
         
@@ -217,7 +214,6 @@ struct AutoTriggerButton: View {
             timeRemaining -= updateInterval
             progress = CGFloat(1 - (timeRemaining / duration))
 
-            // Haptic feedback every second
             if timeRemaining.truncatingRemainder(dividingBy: 1.0) < updateInterval {
                 HapticManager.shared.impact(.light)
             }

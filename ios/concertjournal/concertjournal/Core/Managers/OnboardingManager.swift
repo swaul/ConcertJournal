@@ -15,6 +15,18 @@ class OnboardingManager {
 
     // MARK: - Properties
 
+    var path: [NavigationRoute] = []
+
+    var onboardingSteps: [NavigationRoute] = [
+            .featurePage,
+            .photoPermission,
+            .trackingPermission,
+            .notificationPermission,
+            .completion
+    ]
+
+    var currentIndex: Int { path.count }
+
     private let hasCompletedOnboardingKey = "hasCompletedOnboarding"
 
     var hasCompletedOnboarding: Bool
@@ -33,9 +45,17 @@ class OnboardingManager {
             }
         }
     }
+    var notificationStatus: UNAuthorizationStatus = .notDetermined {
+        didSet {
+            withAnimation {
+                notificationStatusNotDetermined = notificationStatus == .notDetermined
+            }
+        }
+    }
 
     var photoLibraryStatusNotDetermined: Bool = true
     var trackingStatusNotDetermined: Bool = true
+    var notificationStatusNotDetermined: Bool = true
 
     init() {
         hasCompletedOnboarding = UserDefaults.standard.bool(forKey: hasCompletedOnboardingKey)
@@ -55,12 +75,42 @@ class OnboardingManager {
         logInfo("Tracking permission: \(status.rawValue)", category: .auth)
     }
 
+    func requestNotificationPermission() async {
+        do {
+            let granted = try await UNUserNotificationCenter.current().requestAuthorization()
+
+            notificationStatus = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
+            guard granted == true else { return }
+            await MainActor.run {
+                UIApplication.shared.registerForRemoteNotifications()
+            }
+        } catch {
+            logError("Error while asking for notifcation permissions", error: error)
+        }
+    }
+
     func checkPhotoLibraryStatus() {
         photoLibraryStatus = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+
+        if photoLibraryStatus != .notDetermined {
+            onboardingSteps.removeAll(where: { $0 == .photoPermission })
+        }
     }
 
     func checkTrackingStatus() {
         trackingStatus = ATTrackingManager.trackingAuthorizationStatus
+
+        if trackingStatus != .notDetermined {
+            onboardingSteps.removeAll(where: { $0 == .trackingPermission })
+        }
+    }
+
+    func getNotificationStatus() async {
+        notificationStatus = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
+
+        if notificationStatus != .notDetermined {
+            onboardingSteps.removeAll(where: { $0 == .notificationPermission })
+        }
     }
 
     func completeOnboarding() {
@@ -72,5 +122,14 @@ class OnboardingManager {
     func resetOnboarding() {
         UserDefaults.standard.set(false, forKey: hasCompletedOnboardingKey)
         hasCompletedOnboarding = false
+    }
+
+    func getNextStep() {
+        let nextIndex = path.count  // wieviele Steps sind schon im path
+        guard nextIndex < onboardingSteps.count else {
+            completeOnboarding()
+            return
+        }
+        path.append(onboardingSteps[nextIndex])
     }
 }

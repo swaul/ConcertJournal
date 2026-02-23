@@ -13,20 +13,19 @@ struct OnboardingView: View {
 
     @Environment(\.dismiss) var dismiss
 
-    var manager: OnboardingManager
-
-    @State var navigationManager = NavigationManager()
+    @State var manager: OnboardingManager
 
     var body: some View {
-        NavigationStack(path: $navigationManager.path) {
-            WelcomePage(navigationManager: navigationManager)
+        NavigationStack(path: $manager.path) {
+            WelcomePage(manager: manager)
                 .navigationDestination(for: NavigationRoute.self) { route in
                     navigationDestination(for: route)
                 }
         }
-        .onAppear {
+        .task {
             manager.checkPhotoLibraryStatus()
             manager.checkTrackingStatus()
+            await manager.getNotificationStatus()
         }
     }
 
@@ -34,11 +33,13 @@ struct OnboardingView: View {
     private func navigationDestination(for route: NavigationRoute) -> some View {
         switch route {
         case .featurePage:
-            FeaturesPage(navigationManager: navigationManager)
+            FeaturesPage(manager: manager)
         case .photoPermission:
-            PhotoPermissionPage(navigationManager: navigationManager, manager: manager)
+            PhotoPermissionPage(manager: manager)
         case .trackingPermission:
-            TrackingPermissionPage(navigationManager: navigationManager, manager: manager)
+            TrackingPermissionPage(manager: manager)
+        case .notificationPermission:
+            NotificationPermissionView(manager: manager)
         case .completion:
             CompletionPage(manager: manager)
         default:

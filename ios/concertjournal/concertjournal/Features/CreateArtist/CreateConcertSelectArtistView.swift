@@ -32,6 +32,7 @@ struct CreateConcertSelectArtistView: View {
     @FocusState var textFieldFocused: Bool
     
     @State var textFieldFocusedAnimated: Bool = false
+    @State var isSearchingAnimated: Bool = false
 
     @Namespace var selection
 
@@ -59,7 +60,13 @@ struct CreateConcertSelectArtistView: View {
     func viewWithViewModel(viewModel: CreateConcertSelectArtistViewModel) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                if !didSearch {
+                if isSearchingAnimated {
+                    SearchingView(searchContent: "Künstler")
+                } else if let errorMessage = viewModel.errorMessage {
+                    Text(errorMessage)
+                        .font(.cjBody)
+                        .padding()
+                } else if !didSearch {
                     ForEach(viewModel.currentArtists) { artist in
                         Button {
                             HapticManager.shared.buttonTap()
@@ -86,9 +93,14 @@ struct CreateConcertSelectArtistView: View {
             .padding()
         }
         .scrollDismissesKeyboard(.interactively)
-        .onChange(of: textFieldFocused, { oldValue, newValue in
+        .onChange(of: textFieldFocused, { _, newValue in
             withAnimation(.bouncy) {
                 textFieldFocusedAnimated = newValue
+            }
+        })
+        .onChange(of: viewModel.isSearching, { _, newValue in
+            withAnimation {
+                isSearchingAnimated = newValue
             }
         })
         .toolbar {

@@ -11,8 +11,8 @@ import SwiftUI
 
 struct WelcomePage: View {
     
-    @Bindable var navigationManager: NavigationManager
-    
+    @Bindable var manager: OnboardingManager
+
     var body: some View {
         ZStack {
             // Background Gradient
@@ -60,7 +60,7 @@ struct WelcomePage: View {
                 Spacer()
                 
                 Button {
-                    navigationManager.push(.featurePage)
+                    manager.getNextStep()
                 } label: {
                     Text(TextKey.letsGoExclamation.localized)
                         .frame(maxWidth: .infinity)

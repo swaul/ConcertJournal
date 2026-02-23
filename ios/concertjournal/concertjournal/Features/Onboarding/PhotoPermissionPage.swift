@@ -12,7 +12,6 @@ import Photos
 
 struct PhotoPermissionPage: View {
     
-    @Bindable var navigationManager: NavigationManager
     @Bindable var manager: OnboardingManager
     
     @State private var isRequesting = false
@@ -110,7 +109,7 @@ struct PhotoPermissionPage: View {
                     if manager.photoLibraryStatusNotDetermined {
                         Button {
                             HapticManager.shared.navigationTap()
-                            navigationManager.push(.trackingPermission)
+                            manager.getNextStep()
                         } label: {
                             Text(TextKey.skip.localized)
                                 .font(.cjFootnote)
@@ -119,7 +118,7 @@ struct PhotoPermissionPage: View {
                     } else {
                         Button {
                             HapticManager.shared.navigationTap()
-                            navigationManager.push(.trackingPermission)
+                            manager.getNextStep()
                         } label: {
                             Text(TextKey.nextStep.localized)
                                 .frame(maxWidth: .infinity)
@@ -134,4 +133,8 @@ struct PhotoPermissionPage: View {
             }
         }
     }
+}
+
+#Preview {
+    PhotoPermissionPage(manager: OnboardingManager())
 }

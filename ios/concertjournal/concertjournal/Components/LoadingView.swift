@@ -43,3 +43,35 @@ struct TextLessLoadingView: View {
     }
     
 }
+
+struct SearchingView: View {
+
+    @Environment(\.dependencies) var dependencies
+
+    var searchContent: String
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "sparkle.magnifyingglass")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .symbolEffect(.breathe)
+                .frame(width: 48)
+                .foregroundStyle(dependencies.colorThemeManager.appTint)
+
+            Text("Suche \(searchContent)...")
+                .font(.cjTitle2)
+                .padding()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background {
+            Color.background
+        }
+        .ignoresSafeArea()
+    }
+
+}
+
+#Preview {
+    SearchingView(searchContent: "Künstler")
+}

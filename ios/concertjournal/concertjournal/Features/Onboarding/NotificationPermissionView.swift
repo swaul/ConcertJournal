@@ -1,8 +1,8 @@
 //
-//  Untitled.swift
+//  NotificationPermissionView.swift
 //  concertjournal
 //
-//  Created by Paul Kühnel on 10.02.26.
+//  Created by Paul Kühnel on 23.02.26.
 //
 
 import SwiftUI
@@ -10,10 +10,10 @@ import AppTrackingTransparency
 
 // MARK: - Tracking Permission Page
 
-struct TrackingPermissionPage: View {
+struct NotificationPermissionView: View {
 
     @Bindable var manager: OnboardingManager
-    
+
     @State private var isRequesting = false
 
     var body: some View {
@@ -30,60 +30,45 @@ struct TrackingPermissionPage: View {
             .ignoresSafeArea()
             VStack(spacing: 30) {
                 Spacer()
-                
+
                 // Icon
                 ZStack {
                     Circle()
                         .fill(Color.accentColor.opacity(0.2))
                         .frame(width: 120, height: 120)
-                    
-                    Image(systemName: "chart.bar.doc.horizontal")
+
+                    Image(systemName: "app.badge")
+                        .symbolRenderingMode(.multicolor)
                         .font(.system(size: 60))
                         .foregroundColor(.accentColor)
                 }
-                
+
                 // Title
-                Text(TextKey.improveApp.localized)
+                Text("Benachrichtigungen")
                     .font(.custom("PlayfairDisplay-Bold", size: 32))
                     .multilineTextAlignment(.center)
-                
+
                 // Description
-                Text(TextKey.analyticsHint.localized)
+                Text("Erhalte Benachrichtigungen, wenn andere Nutzer sich als freund hinzufügen, oder in einem Konzert markieren.")
                     .font(.cjBody)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
                     .padding(.horizontal, 40)
-                
-                // Privacy Note
-                HStack(spacing: 12) {
-                    Image(systemName: "lock.shield")
-                        .foregroundColor(.accentColor)
-                    
-                    Text(TextKey.privacyHint.localized)
-                        .lineLimit(nil)
-                        .multilineTextAlignment(.leading)
-                        .font(.cjFootnote)
-                        .foregroundColor(.secondary)
-                }
-                .padding()
-                .background(Color.accentColor.opacity(0.1))
-                .cornerRadius(12)
-                .padding(.horizontal, 40)
-                
+
                 Spacer()
-                
+
                 // Permission Status
-                TrackingStatusView(status: manager.trackingStatus)
-                
+                NotificationStatusView(status: manager.notificationStatus)
+
                 // Action Button
-                if manager.trackingStatus == .notDetermined {
+                if manager.notificationStatus == .notDetermined {
                     Button {
                         HapticManager.shared.buttonTap()
                         Task {
                             withAnimation {
                                 isRequesting = true
                             }
-                            await manager.requestTrackingPermission()
+                            await manager.requestNotificationPermission()
                             withAnimation {
                                 isRequesting = false
                             }
@@ -91,11 +76,11 @@ struct TrackingPermissionPage: View {
                     } label: {
                         HStack {
                             if isRequesting {
-                                    ProgressView()
-                                        .tint(.white)
-                                        .font(.cjTitle2)
-                                    Text(TextKey.queryRunning.localized)
-                                        .font(.cjTitle2)
+                                ProgressView()
+                                    .tint(.white)
+                                    .font(.cjTitle2)
+                                Text(TextKey.queryRunning.localized)
+                                    .font(.cjTitle2)
                             } else {
                                 Text(TextKey.allow.localized)
                                     .font(.cjTitle2)
@@ -106,7 +91,7 @@ struct TrackingPermissionPage: View {
                     .buttonStyle(.glassProminent)
                     .disabled(isRequesting)
                     .padding(.horizontal, 40)
-                } else if manager.trackingStatus == .denied || manager.trackingStatus == .restricted {
+                } else if manager.notificationStatus == .denied {
                     Button {
                         HapticManager.shared.navigationTap()
                         if let url = URL(string: UIApplication.openSettingsURLString) {
@@ -120,9 +105,9 @@ struct TrackingPermissionPage: View {
                     .buttonStyle(.glassProminent)
                     .padding(.horizontal, 40)
                 }
-                
+
                 VStack(spacing: 14) {
-                    if manager.trackingStatusNotDetermined {
+                    if manager.notificationStatusNotDetermined {
                         Button {
                             HapticManager.shared.navigationTap()
                             manager.getNextStep()
@@ -141,7 +126,7 @@ struct TrackingPermissionPage: View {
                                 .font(.cjTitle2)
                         }
                         .buttonStyle(.glass)
-                        .disabled(manager.trackingStatus == .notDetermined)
+                        .disabled(manager.notificationStatus == .notDetermined)
                     }
                 }
                 .padding(.bottom, 20)
@@ -152,5 +137,5 @@ struct TrackingPermissionPage: View {
 }
 
 #Preview {
-    TrackingPermissionPage(manager: OnboardingManager())
+    NotificationPermissionView(manager: OnboardingManager())
 }

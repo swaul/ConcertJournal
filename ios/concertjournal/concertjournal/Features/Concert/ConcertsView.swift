@@ -174,6 +174,17 @@ struct ConcertsView: View {
                 navigationDestination(for: route)
             }
             .toolbar {
+                #if DEBUG
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        HapticManager.shared.impact(.light)
+                        navigationManager.push(.testView)
+                    } label: {
+                        Image(systemName: "hammer")
+                            .font(.title3)
+                    }
+                }
+                #endif
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         HapticManager.shared.impact(.light)
@@ -261,10 +272,19 @@ struct ConcertsView: View {
                 
                 ForEach(viewModel.pastConcerts.enumerated().map({ $0 }), id: \.element.id) { index, visit in
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(visit.title ?? visit.artist.name)
-                            .font(.cjCaption)
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal, 20)
+                        HStack {
+                            Text(visit.title ?? visit.artist.name)
+                                .font(.cjCaption)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.leading)
+                                .lineLimit(2)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+
+                            Text(visit.date.shortDateOnlyString)
+                                .font(.cjCaption)
+                                .foregroundStyle(dependencies.colorThemeManager.appTint)
+                        }
+                        .padding(.horizontal, 20)
 
                         Button {
                             HapticManager.shared.impact(.light)
@@ -494,6 +514,10 @@ struct ConcertsView: View {
         case .artistDetail(let artist):
             ArtistDetailView(artist: artist)
                 .toolbarVisibility(.hidden, for: .tabBar)
+            #if DEBUG
+        case .testView:
+            TestView()
+            #endif
         default:
             Text("Not implemented: \(String(describing: route))")
         }

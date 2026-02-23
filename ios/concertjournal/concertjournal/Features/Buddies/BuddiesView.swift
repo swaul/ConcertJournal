@@ -13,6 +13,7 @@ struct BuddiesView: View {
     @State private var viewModel: BuddiesViewModel?
     @State private var showRequestsSheet = false
     @State private var showAddBuddySheet = false
+    @State private var showLoginSheet: Bool = false
 
     @State private var showSharedConcerts: Buddy? = nil
 
@@ -29,6 +30,8 @@ struct BuddiesView: View {
                         errorView(viewModel: viewModel)
                     case .loaded:
                         loadedView(viewModel: viewModel)
+                    case .notLoggedIn:
+                        notLoggedInView()
                     }
                 } else {
                     LoadingView()
@@ -36,6 +39,14 @@ struct BuddiesView: View {
             }
             .background { Color.background.ignoresSafeArea() }
             .navigationTitle("Buddies")
+            .sheet(isPresented: $showLoginSheet) {
+                LoginView()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .loggedInChanged)) { _ in
+                Task {
+                    await viewModel?.load()
+                }
+            }
             .task {
                 guard viewModel == nil else { return }
                 viewModel = BuddiesViewModel(
@@ -105,7 +116,27 @@ struct BuddiesView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-    
+
+    // MARK: - Not Logged in
+
+    @ViewBuilder
+    private func notLoggedInView() -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 48))
+                .foregroundStyle(.orange)
+            Text("Nicht angemeldet")
+                .font(.cjTitle)
+
+            Text("Um Freunde hinzuzufügen und diese in Konzerten zu verlinken, musst du dich anmelden!")
+
+            Button("Anmelden!") { showLoginSheet = true }
+                .buttonStyle(.glassProminent)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
+    }
+
     // MARK: - Loaded
     
     @ViewBuilder
@@ -163,7 +194,7 @@ struct BuddiesView: View {
             Text(viewModel.errorMessage ?? "")
         }
     }
-    
+
     // MARK: - Anfragen-Banner
     
     @ViewBuilder

@@ -32,7 +32,6 @@ private struct NativeAdViewContainer: UIViewRepresentable {
     @State var nativeViewModel: NativeAdViewModel
 
     func makeUIView(context: Context) -> NativeAdView {
-        return
         Bundle.main.loadNibNamed(
             "NativeAdView",
             owner: nil,
