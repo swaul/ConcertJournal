@@ -41,6 +41,7 @@ extension Concert {
     @NSManaged public var venue: Venue?
     @NSManaged public var travel: Travel?
     @NSManaged public var ticket: Ticket?
+    @NSManaged public var tour: Tour?
     @NSManaged public var images: NSSet?
     @NSManaged public var buddyAttendeesJSON: String?
 

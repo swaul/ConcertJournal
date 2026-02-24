@@ -31,6 +31,7 @@ class DependencyContainer {
     // BFF Repositories
     let offlineConcertRepository: OfflineConcertRepositoryProtocol
     let offlinePhotoRepsitory: OfflinePhotoRepositoryProtocol
+    let offlineTourRepository: OfflineTourRepositoryProtocol
     let concertRepository: ConcertRepositoryProtocol
     let artistRepository: ArtistRepositoryProtocol
     let venueRepository: VenueRepositoryProtocol
@@ -71,6 +72,7 @@ class DependencyContainer {
         // ✅ BFF Repositories
         self.offlineConcertRepository = OfflineConcertRepository(syncManager: syncManager, userSessionManager: userSessionManager)
         self.offlinePhotoRepsitory = OfflinePhotoRepository()
+        self.offlineTourRepository = OfflineTourRepository(coreDataStack: coreData)
         self.concertRepository = BFFConcertRepository(client: bffClient)
         self.artistRepository = BFFArtistRepository(client: bffClient)
         self.venueRepository = BFFVenueRepository(client: bffClient)
