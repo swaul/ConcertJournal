@@ -7,45 +7,46 @@
 
 import SwiftUI
 import Supabase
-import _PhotosUI_SwiftUI
+import CoreData
+import PhotosUI
 
 struct ConcertEditView: View {
-    @AppStorage("hidePrices") private var hidePrices = false
-
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.dependencies) private var dependencies
+    @AppStorage("hidePrices") var hidePrices = false
     
-    @State private var title: String
-    @State private var date: Date
-    @State private var openingTime: Date
-    @State private var notes: String
-    @State private var rating: Int
-    @State private var venueName: String
-    @State private var supportActs: [ArtistDTO]
-    @State private var travel: TravelDTO?
-    @State private var ticket: TicketDTO?
-
-    @State private var selectedPhotoItems: [PhotosPickerItem] = []
-    @State private var newImages: [UIImage] = []
-    @State private var existingPhotos: [Photo]
-    @State private var photosToDelete: [Photo] = []
-
-    @State private var buddyAttendees: [BuddyAttendee]
-    @State private var buddyPickerPresenting = false
+    @Environment(\.dismiss) var dismiss
+    @Environment(\.dependencies) var dependencies
     
-    @State private var venue: VenueDTO?
-    @State private var setlistItems: [TempCeateSetlistItem]
-
-    @State private var selectVenuePresenting = false
-    @State private var editSeltistPresenting: CreateSetlistViewModel? = nil
-    @State private var editTravelPresenting = false
-    @State private var presentTicketEdit = false
-    @State private var addSupportActPresenting = false
-
+    @State var title: String
+    @State var date: Date
+    @State var openingTime: Date
+    @State var notes: String
+    @State var rating: Int
+    @State var venueName: String
+    @State var supportActs: [ArtistDTO]
+    @State var travel: TravelDTO?
+    @State var ticket: TicketDTO?
+    
+    @State var selectedPhotoItems: [PhotosPickerItem] = []
+    @State var newImages: [UIImage] = []
+    @State var existingPhotos: [Photo]
+    @State var photosToDelete: [Photo] = []
+    
+    @State var buddyAttendees: [BuddyAttendee]
+    @State var buddyPickerPresenting = false
+    
+    @State var venue: VenueDTO?
+    @State var setlistItems: [TempCeateSetlistItem]
+    
+    @State var selectVenuePresenting = false
+    @State var editSeltistPresenting: CreateSetlistViewModel? = nil
+    @State var editTravelPresenting = false
+    @State var presentTicketEdit = false
+    @State var addSupportActPresenting = false
+    
     let concert: Concert
-
+    
     let onSave: (ConcertUpdate) -> Void
-
+    
     init(concert: Concert, onSave: @escaping (ConcertUpdate) -> Void) {
         _title = State(initialValue: concert.title ?? "")
         _date = State(initialValue: concert.date)
@@ -58,7 +59,7 @@ struct ConcertEditView: View {
         _travel = State(initialValue: concert.travel?.toDTO())
         _ticket = State(initialValue: concert.ticket?.toDTO())
         _existingPhotos = State(initialValue: concert.imagesArray)
-
+        
         if !concert.setlistItemsArray.isEmpty {
             let tempSetlistItems = concert.setlistItemsArray.map { TempCeateSetlistItem(setlistItem: $0) }
             _setlistItems = State(initialValue: tempSetlistItems)
@@ -70,147 +71,108 @@ struct ConcertEditView: View {
         } else {
             _supportActs = State(initialValue: [])
         }
-
+        
         self.concert = concert
         self.onSave = onSave
     }
-
+    
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    TextField(TextKey.fieldTitle.localized, text: $title)
-                    DatePicker(TextKey.date.localized, selection: $date, displayedComponents: .date)
-                    DatePicker(TextKey.admission.localized, selection: $openingTime, displayedComponents: .hourAndMinute)
-                } header: {
-                    Text(TextKey.header.localized)
-                        .font(.cjBody)
-                }
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 20) {
+                    
+                    editSection(title: "Title:") {
+                        TextField(TextKey.fieldTitle.localized, text: $title)
+                            .padding()
+                            .glassEffect()
+                    }
+                    
+                    editSection(title: "Zeiten") {
+                        VStack {
+                            DatePicker(TextKey.date.localized, selection: $date, displayedComponents: .date)
+                            DatePicker(TextKey.admission.localized, selection: $openingTime, displayedComponents: .hourAndMinute)
+                        }
+                        .padding(8)
+                        .rectangleGlass()
+                    }
+                    
+                    editSection(title: TextKey.supportActs.localized) {
+                        supportActsSection()
+                    }
 
-                Section {
-                    supportActsSection()
-                } header: {
-                    Text(TextKey.supportActs.localized)
-                        .font(.cjBody)
-                }
+                    editSection(title: "Buddies") {
+                        buddiesSection()
+                    }
 
-                Section {
-                    buddiesSection()
-                } header: {
-                    Text("Begleiter")
-                        .font(.cjBody)
-                }
-                
-                Section {
-                    Button {
-                        HapticManager.shared.buttonTap()
-                        selectVenuePresenting = true
-                    } label: {
-                        if !venueName.isEmpty {
-                            VStack(alignment: .leading) {
+                    editSection(title: TextKey.sectionLocation.localized) {
+                        VStack(alignment: .leading) {
+                            if !venueName.isEmpty {
                                 Text(venueName)
                                     .font(.cjBody)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
                                 if let city = venue?.city {
                                     Text(city)
                                         .font(.cjBody)
                                 }
                             }
-                        } else {
-                            Text(TextKey.venueOptional.localized)
-                                .font(.cjBody)
+
+                            Button {
+                                HapticManager.shared.buttonTap()
+                                selectVenuePresenting = true
+                            } label: {
+                                Text(TextKey.venueOptional.localized)
+                                    .font(.cjBody)
+                            }
+                            .padding()
+                            .glassEffect()
                         }
                     }
-                    .buttonStyle(.plain)
-                } header: {
-                    Text(TextKey.sectionLocation.localized)
-                        .font(.cjBody)
-                }
-                
-                Section {
-                    TextEditor(text: $notes)
-                        .frame(minHeight: 120)
-                        .font(.cjBody)
-                } header: {
-                    Text(TextKey.notes.localized)
-                        .font(.cjBody)
-                }
-                
-                Section {
-                    travelSection()
-                } header: {
-                    Text(TextKey.travelInfo.localized)
-                        .font(.cjBody)
-                }
 
-                Section {
-                    ticketSection()
-                } header: {
-                    Text(TextKey.ticketInfo.localized)
-                        .font(.cjBody)
-                }
+                    editSection(title: TextKey.notes.localized) {
+                        TextEditor(text: $notes)
+                            .frame(minHeight: 120)
+                            .font(.cjBody)
+                    }
 
-                Section {
-                    if !setlistItems.isEmpty {
-                        List {
-                            ForEach(setlistItems.enumerated(), id: \.element.id) { index, item in
-                                makeEditSongView(index: index, song: item)
-                            }
-                            .onMove { indexSet, offset in
-                                setlistItems.move(fromOffsets: indexSet, toOffset: offset)
-                                updateSetlistItems()
-                            }
-                            .onDelete { indexSet in
-                                setlistItems.remove(atOffsets: indexSet)
-                                updateSetlistItems()
-                            }
-                        }
-                        Button {
-                            HapticManager.shared.buttonTap()
-                            editSeltistPresenting = CreateSetlistViewModel(currentSelection: setlistItems, spotifyRepository: dependencies.spotifyRepository, setlistRepository: dependencies.setlistRepository)
+                    editSection(title: TextKey.travelInfo.localized) {
+                        travelSection()
+                    }
 
-                        } label: {
-                            Text(TextKey.editSetlist.localized)
-                                .font(.cjBody)
-                        }
-                    } else {
-                        Button {
-                            HapticManager.shared.buttonTap()
-                            editSeltistPresenting = CreateSetlistViewModel(currentSelection: setlistItems, spotifyRepository: dependencies.spotifyRepository, setlistRepository: dependencies.setlistRepository)
-                        } label: {
-                            Text(TextKey.addSetlist.localized)
-                                .font(.cjBody)
+                    editSection(title: TextKey.ticketInfo.localized) {
+                        ticketSection()
+                    }
+
+                    editSection(title: TextKey.setlist.localized) {
+                        setlistSection
+                    }
+
+                    editSection(title: TextKey.review.localized) {
+                        Stepper(value: $rating, in: 0...10) {
+                            HStack {
+                                Text(TextKey.fieldRating.localized)
+                                    .font(.cjBody)
+                                Spacer()
+                                Text("\(rating)")
+                                    .monospacedDigit()
+                                    .foregroundStyle(.secondary)
+                                    .font(.cjBody)
+                            }
                         }
                     }
-                } header: {
-                    Text(TextKey.setlist.localized)
-                        .font(.cjBody)
-                }
 
-                Section {
-                    Stepper(value: $rating, in: 0...10) {
-                        HStack {
-                            Text(TextKey.fieldRating.localized)
-                                .font(.cjBody)
-                            Spacer()
-                            Text("\(rating)")
-                                .monospacedDigit()
-                                .foregroundStyle(.secondary)
-                                .font(.cjBody)
-                        }
+                    editSection(title: "Fotos:") {
+                        photosSection()
                     }
-                } header: {
-                    Text(TextKey.review.localized)
-                        .font(.cjBody)
                 }
-
-                Section {
-                    photosSection()
-                } header: {
-                    Text("Fotos")
-                        .font(.cjBody)
-                }
+                .padding()
             }
+            .scrollIndicators(.hidden)
             .navigationTitle(TextKey.editConcert.localized)
+            .tint(dependencies.colorThemeManager.appTint)
+            .background {
+                Color.background
+                    .ignoresSafeArea()
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button {
@@ -221,43 +183,20 @@ struct ConcertEditView: View {
                             .font(.cjBody)
                     }
                 }
-
+                
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
                         HapticManager.shared.buttonTap()
-
-                        // Neue Fotos speichern
-                        for image in newImages {
-                            _ = try? dependencies.offlinePhotoRepsitory.savePhoto(image, for: concert)
-                        }
-
-                        // Gelöschte Fotos entfernen
-                        for photo in photosToDelete {
-                            try? dependencies.offlinePhotoRepsitory.deletePhoto(photo)
-                        }
-                        onSave(
-                            ConcertUpdate(
-                                id: concert.id,
-                                title: title,
-                                date: date,
-                                openingTime: correctedOpeningTime(),
-                                notes: notes,
-                                venue: venue,
-                                city: venue?.city,
-                                rating: rating,
-                                buddyAttendees: buddyAttendees,
-                                travel: travel,
-                                ticket: ticket,
-                                supportActs: supportActs,
-                                setlistItems: setlistItems,
-                                photos: []
-                            )
-                        )
-                        dismiss()
+                        saveConcertUpdates()
                     } label: {
                         Text(TextKey.save.localized)
                             .font(.cjBody)
                     }
+                }
+            }
+            .sheet(isPresented: $buddyPickerPresenting) {
+                BuddyAttendeePickerSheet(selectedAttendees: buddyAttendees, isPresented: $buddyPickerPresenting) { buddies in
+                    buddyAttendees = buddies
                 }
             }
             .sheet(isPresented: $selectVenuePresenting) {
@@ -268,6 +207,7 @@ struct ConcertEditView: View {
             }
             .sheet(item: $editSeltistPresenting) { item in
                 CreateSetlistView(viewModel: item) { items in
+                    print("saved \(items.count) items")
                     setlistItems = items
                     editSeltistPresenting = nil
                 }
@@ -283,90 +223,24 @@ struct ConcertEditView: View {
                     }
                 })
             }
-        }
-    }
-
-    @ViewBuilder
-    func makeEditSongView(index: Int, song: TempCeateSetlistItem) -> some View {
-        HStack {
-            Grid(verticalSpacing: 8) {
-                GridRow {
-                    Text("\(index + 1).")
-                        .font(.cjTitle2)
-                        .frame(width: 28)
-                    Text(song.title)
-                        .font(.cjHeadline)
-                        .lineLimit(nil)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+            .sheet(isPresented: $editTravelPresenting) {
+                CreateConcertTravelView(travel: travel) { travel in
+                    self.travel = travel
+                    editTravelPresenting = false
                 }
-                    GridRow {
-                        Rectangle().fill(.clear)
-                            .frame(width: 28, height: 1)
-
-                        Text(song.artistNames)
-                            .font(.cjBody)
-                            .lineLimit(nil)
-                            .multilineTextAlignment(.leading)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
             }
-            .frame(maxWidth: .infinity)
-            Image(systemName: "line.3.horizontal")
-                .frame(width: 28)
+            .sheet(isPresented: $presentTicketEdit) {
+                CreateConcertTicket(artist: concert.artist.toDTO(), ticketInfo: ticket) { editedTicket in
+                    self.ticket = editedTicket
+                    presentTicketEdit = false
+                }
+            }
         }
     }
     
-    func updateSetlistItems() {
-        setlistItems.enumerated().forEach { index, _ in
-            setlistItems[index].position = index
-        }
-    }
-
-    @ViewBuilder
-    func travelSection() -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let travelType = travel?.travelType {
-                Text(travelType.infoText(color: dependencies.colorThemeManager.appTint))
-            }
-            if let travelDuration = travel?.travelDuration {
-                let parsedDuration = DurationParser.format(travelDuration)
-                Text(TextKey.durationWas.localized(with: parsedDuration))
-            }
-            if let travelDistance = travel?.travelDistance {
-                let parsedDistance = DistanceParser.format(travelDistance)
-                Text(TextKey.distanceWas.localized(with: parsedDistance))
-            }
-            if let arrivedAt = travel?.arrivedAt {
-                Text(TextKey.arrived.localized(with: arrivedAt.timeOnlyString))
-            }
-            if let travelExpenses = travel?.travelExpenses {
-                Text(TextKey.costWas.localized(with: travelExpenses.formatted))
-            }
-            if let hotelExpenses = travel?.hotelExpenses {
-                Text(TextKey.hotelCost.localized(with: hotelExpenses.formatted))
-            }
-            
-            Button {
-                editTravelPresenting = true
-            } label: {
-                Text(TextKey.addTravelInfo.localized)
-            }
-            .padding()
-            .glassEffect()
-        }
-        .padding(.horizontal)
-        .font(.cjBody)
-        .sheet(isPresented: $editTravelPresenting) {
-            CreateConcertTravelView(travel: travel) { travel in
-                self.travel = travel
-                editTravelPresenting = false
-            }
-        }
-    }
-
     @ViewBuilder
     func supportActsSection() -> some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading) {
             if !supportActs.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
@@ -381,6 +255,8 @@ struct ConcertEditView: View {
                     .padding(.horizontal)
                     .padding(.vertical, 8)
                 }
+                .padding()
+                .rectangleGlass()
             }
 
             Button {
@@ -391,298 +267,74 @@ struct ConcertEditView: View {
             }
             .padding()
             .glassEffect()
-            .padding(.horizontal)
-        }
-    }
-    
-    @ViewBuilder
-    func buddiesSection() -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            if !buddyAttendees.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        ForEach(buddyAttendees) { buddy in
-                            VStack(spacing: 6) {
-                                AvatarView(url: buddy.avatarURL, name: buddy.displayName, size: 40)
-                                Text(buddy.displayName)
-                                    .font(.cjCaption)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(1)
-                                    .frame(maxWidth: 56)
-                            }
-                            .overlay(alignment: .topTrailing) {
-                                Button {
-                                    withAnimation(.easeInOut(duration: 0.2)) {
-                                        buddyAttendees.removeAll { $0.id == buddy.id }
-                                    }
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundStyle(.secondary)
-                                        .font(.caption)
-                                }
-                            }
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-                }
-            }
-            
-            Button {
-                buddyPickerPresenting = true
-            } label: {
-                Text(buddyAttendees.isEmpty ? "Begleiter hinzufügen" : "Begleiter bearbeiten")
-                    .font(.cjBody)
-            }
-            .padding()
-            .glassEffect()
-            .padding(.horizontal)
-        }
-        .sheet(isPresented: $buddyPickerPresenting) {
-            BuddyAttendeePickerSheet(selectedAttendees: buddyAttendees, isPresented: $buddyPickerPresenting) { buddies in
-                buddyAttendees = buddies
-            }
         }
     }
 
-    @ViewBuilder
-    func ticketSection() -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let ticket = ticket {
-                Text(ticket.ticketType.label)
-                    .font(.cjTitle)
-                    .frame(maxWidth: .infinity, alignment: .center)
-
-                VStack {
-                    Text(ticket.ticketCategory.label)
-                        .font(.cjTitleF)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                }
-                .frame(maxWidth: .infinity)
-                .frame(height: 80)
-                .background {
-                    RoundedRectangle(cornerRadius: 20).fill(ticket.ticketCategory.color)
-                }
-
-                switch ticket.ticketType {
-                case .seated:
-                    Grid {
-                        GridRow {
-                            if ticket.seatBlock != nil {
-                                Text(TextKey.block.localized)
-                                    .font(.cjHeadline)
-                            }
-                            if ticket.seatRow != nil {
-                                Text(TextKey.row.localized)
-                                    .font(.cjHeadline)
-                            }
-                            if ticket.seatNumber != nil {
-                                Text(TextKey.seat.localized)
-                                    .font(.cjHeadline)
-                            }
-                        }
-                        GridRow {
-                            if let block = ticket.seatBlock {
-                                Text(block)
-                                    .font(.cjTitle)
-                            }
-                            if let row = ticket.seatRow {
-                                Text(row)
-                                    .font(.cjTitle)
-                            }
-                            if let seatNumber = ticket.seatNumber {
-                                Text(seatNumber)
-                                    .font(.cjTitle)
-                            }
-                        }
-                    }
-                case .standing:
-                    if let standingPosition = ticket.standingPosition {
-                        Text(standingPosition)
-                            .font(.cjBody)
-                    }
-                }
-
-                if let notes = ticket.notes {
-                    Text(notes)
-                        .font(.cjBody)
-                        .padding(.horizontal)
-                }
-
-                if let ticketPrice = concert.ticket?.ticketPrice {
-                    HStack {
-                        Text(TextKey.priceColon.localized)
-                            .font(.cjHeadline)
-
-                        Text(ticketPrice.formatted)
-                            .font(.cjTitle)
-                            .conditionalRedacted(hidePrices)
-                    }
-                    .padding(.horizontal)
-                    .contentShape(Rectangle())
-                    .contextMenu {
-                        Toggle("Preise ausblenden", isOn: $hidePrices)
-                    }
-                }
-
-                Button {
-                    presentTicketEdit = true
-                } label: {
-                    Text(TextKey.addTicket.localized)
-                        .font(.cjBody)
-                }
-                .padding()
-                .glassEffect()
-                .padding(.horizontal)
-            } else {
-                Button {
-                    presentTicketEdit = true
-                } label: {
-                    Text(TextKey.addTicket.localized)
-                        .font(.cjBody)
-                }
-                .padding()
-                .glassEffect()
-                .padding(.horizontal)
-            }
-        }
-        .sheet(isPresented: $presentTicketEdit) {
-            CreateConcertTicket(artist: concert.artist.toDTO(), ticketInfo: ticket) { editedTicket in
-                self.ticket = editedTicket
-                presentTicketEdit = false
-            }
-        }
-    }
-
-    @ViewBuilder
-    func photosSection() -> some View {
-        // Bestehende Fotos
-        if !existingPhotos.isEmpty {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    ForEach(existingPhotos) { photo in
-                        let image = dependencies.offlinePhotoRepsitory.loadImage(for: photo)
-                        ZStack(alignment: .topTrailing) {
-                            Group {
-                                if let image {
-                                    Image(uiImage: image)
-                                        .resizable()
-                                        .scaledToFill()
-                                } else {
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color.secondary.opacity(0.2))
-                                }
-                            }
-                            .frame(width: 90, height: 90)
-                            .clipped()
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-
-                            Button {
-                                HapticManager.shared.buttonTap()
-                                photosToDelete.append(photo)
-                                existingPhotos.removeAll { $0.id == photo.id }
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(.white)
-                                    .background(Color.black.opacity(0.6))
-                                    .clipShape(Circle())
-                            }
-                            .offset(x: 6, y: -6)
-                        }
-                    }
-                }
-                .padding(.vertical, 4)
-            }
+    func saveConcertUpdates() {
+        for image in newImages {
+            _ = try? dependencies.offlinePhotoRepsitory.savePhoto(image, for: concert.objectID)
         }
 
-        // Neue Fotos
-        if !newImages.isEmpty {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    ForEach(newImages.indices, id: \.self) { index in
-                        ZStack(alignment: .topTrailing) {
-                            Image(uiImage: newImages[index])
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 90, height: 90)
-                                .clipped()
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-
-                            Button {
-                                HapticManager.shared.buttonTap()
-                                selectedPhotoItems.remove(at: index)
-                                newImages.remove(at: index)
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(.white)
-                                    .background(Color.black.opacity(0.6))
-                                    .clipShape(Circle())
-                            }
-                            .offset(x: 6, y: -6)
-                        }
-                    }
-                }
-                .padding(.vertical, 4)
-            }
+        for photo in photosToDelete {
+            try? dependencies.offlinePhotoRepsitory.deletePhoto(photo)
         }
 
-        // Picker Button
-        PhotosPicker(
-            selection: $selectedPhotoItems,
-            maxSelectionCount: 10,
-            matching: .images,
-            photoLibrary: .shared()
-        ) {
-            Label("Fotos hinzufügen", systemImage: "photo.on.rectangle.angled")
-                .font(.cjBody)
-        }
-        .onChange(of: selectedPhotoItems) { _, newItems in
-            Task {
-                newImages.removeAll()
-                for item in newItems {
-                    if let data = try? await item.loadTransferable(type: Data.self),
-                       let image = UIImage(data: data) {
-                        newImages.append(image)
-                    }
-                }
-            }
-        }
-    }
-
-    func importPlaylistToSetlist() async throws {
-        logInfo("Provider token found, loading playlists", category: .viewModel)
-
-        let playlists = try await dependencies.spotifyRepository.getUserPlaylists(limit: 50)
-        print(playlists)
+        onSave(
+            ConcertUpdate(
+                id: concert.id,
+                title: title,
+                date: date,
+                openingTime: correctedOpeningTime(),
+                notes: notes,
+                venue: venue,
+                city: venue?.city,
+                rating: rating,
+                buddyAttendees: buddyAttendees,
+                travel: travel,
+                ticket: ticket,
+                supportActs: supportActs,
+                setlistItems: setlistItems,
+                photos: []
+            )
+        )
+        dismiss()
     }
 
     func correctedOpeningTime() -> Date {
         let openingTime = self.openingTime
         let date = self.date
-
+        
         let calendar = Calendar.current
         let openingHourAndMinute = calendar.dateComponents([.hour, .minute], from: openingTime)
         guard let hour = openingHourAndMinute.hour,
               let minute = openingHourAndMinute.minute else { return openingTime }
-
+        
         return Calendar.current.date(bySettingHour: hour, minute: minute, second: 0, of: date) ?? openingTime
+    }
+    
+    func editSection(title: String, content: @escaping () -> some View) -> some View {
+        VStack(alignment: .leading) {
+            Text(title)
+                .font(.cjCaption)
+            content()
+        }
     }
 }
 
-struct ConcertUpdate {
-    let id: UUID
-    let title: String?
-    let date: Date
-    let openingTime: Date?
-    let notes: String?
-    let venue: VenueDTO?
-    let city: String?
-    let rating: Int?
+#if DEBUG
+#Preview {
+    @Previewable @State var presenting: Bool = true
     
-    let buddyAttendees: [BuddyAttendee]?
-    let travel: TravelDTO?
-    let ticket: TicketDTO?
-    let supportActs: [ArtistDTO]?
-    let setlistItems: [TempCeateSetlistItem]?
-    let photos: [ConcertPhoto]
+    let context = PreviewPersistenceController.shared.container.viewContext
+    let concert = Concert.preview(in: context)
+    
+    VStack {
+        Button("present") {
+            presenting = true
+        }
+    }
+    .sheet(isPresented: $presenting) {
+        ConcertEditView(concert: concert, onSave: { _ in })
+    }
 }
+#endif

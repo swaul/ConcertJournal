@@ -90,11 +90,11 @@ class ArtistDetailViewModel {
         }
 
         if travelExpensesValue != 0 {
-            artistInfo.moneySpentOnTravel = PriceDTO(value: Decimal(travelExpensesValue), currency: currency)
+            artistInfo.moneySpentOnTravel = PriceDTO(value: travelExpensesValue, currency: currency)
         }
 
         if hotelExpensesValue != 0 {
-            artistInfo.moneySpentOnHotels = PriceDTO(value: Decimal(hotelExpensesValue), currency: currency)
+            artistInfo.moneySpentOnHotels = PriceDTO(value: hotelExpensesValue, currency: currency)
         }
 
         if traveledDistance != 0 {
@@ -138,7 +138,7 @@ class ArtistDetailViewModel {
         }
 
         if ticketExpenesValue != 0 {
-            artistInfo.moneySpentOnTickets = PriceDTO(value: Decimal(ticketExpenesValue), currency: currency)
+            artistInfo.moneySpentOnTickets = PriceDTO(value: ticketExpenesValue, currency: currency)
         }
     }
 }

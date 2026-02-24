@@ -22,13 +22,28 @@ extension Travel {
     @NSManaged public var travelDuration: Double
     @NSManaged public var travelDistance: Double
     @NSManaged public var arrivedAt: Date?
-    @NSManaged public var travelExpenses: Price?
-    @NSManaged public var hotelExpenses: Price?
+    @NSManaged public var travelExpensesValue: NSDecimalNumber?
+    @NSManaged public var travelExpensesCurrency: String?
+    @NSManaged public var hotelExpensesValue: NSDecimalNumber?
+    @NSManaged public var hotelExpensesCurrency: String?
 
 }
 
 extension Travel : Identifiable {
 
+}
+
+// MARK: - Prices
+extension Travel {
+    public var travelExpenses: PriceDTO? {
+        guard let value = travelExpensesValue, let currency = travelExpensesCurrency else { return nil }
+        return PriceDTO(value: value.decimalValue, currency: currency)
+    }
+
+    public var hotelExpenses: PriceDTO? {
+        guard let value = hotelExpensesValue, let currency = hotelExpensesCurrency else { return nil }
+        return PriceDTO(value: value.decimalValue, currency: currency)
+    }
 }
 
 extension Travel {
@@ -46,8 +61,8 @@ extension Travel {
             travelDuration: travelDuration,
             travelDistance: travelDistance,
             arrivedAt: arrivedAt,
-            travelExpenses: travelExpenses?.toDTO(),
-            hotelExpenses: hotelExpenses?.toDTO()
+            travelExpenses: travelExpenses,
+            hotelExpenses: hotelExpenses
         )
     }
 }

@@ -8,15 +8,15 @@
 import CoreData
 import Combine
 import WidgetKit
-internal import Auth
+import Auth
 
 protocol OfflineConcertRepositoryProtocol {
     func fetchConcerts() -> [Concert]
     func fetchConcertsWithArtist(_ id: UUID) -> [Concert]
     func getConcert(id: UUID) -> Concert?
-    func createConcert(_ dto: CreateConcertDTO) async throws -> Concert
-    func updateConcert(_ concert: Concert, with dto: ConcertUpdate) throws
-    func deleteConcert(_ concert: Concert) throws
+    func createConcert(_ dto: CreateConcertDTO) async throws -> NSManagedObjectID
+    func updateConcert(_ concertId: NSManagedObjectID, with dto: ConcertUpdate) async throws
+    func deleteConcert(_ concertId: NSManagedObjectID) throws
     func presaveArtist(_ newArtist: ArtistDTO) throws -> Artist
     func sync() async throws
 }
@@ -90,12 +90,12 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
 
     // MARK: - Create (Local First)
 
-    func createConcert(_ dto: CreateConcertDTO) async throws -> Concert {
+    func createConcert(_ dto: CreateConcertDTO) async throws -> NSManagedObjectID {
         let context = coreData.viewContext
 
         // 1. Create in Core Data
         let concert = Concert(context: context)
-        concert.id = UUID()
+        concert.id = dto.id
         concert.title = dto.title
         concert.date = dto.date
         concert.notes = dto.notes
@@ -111,18 +111,23 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
         concert.canEdit = true
 
         // Artist & Venue
-        concert.artist = fetchOrCreateArtist(from: dto.artist, context: context)
+        concert.artist = await fetchOrCreateArtist(from: dto.artist, context: context)
 
         if let venue = dto.venue {
-            concert.venue = fetchOrCreateVenue(from: venue, context: context)
+            concert.venue = await fetchOrCreateVenue(from: venue, context: context)
         }
 
         // Support Acts
         for actDTO in dto.supportActs {
-            let act = fetchOrCreateArtist(from: actDTO, context: context)
+            let act = await fetchOrCreateArtist(from: actDTO, context: context)
             concert.addSupportAct(act)
         }
 
+        // Setlist
+        for item in dto.setlistItems {
+            let setlistItem = buildSetlistItem(from: item, concertId: concert.id.uuidString.lowercased(), context: context)
+            concert.addSetlistItem(setlistItem)
+        }
         // Travel
         if let travelDTO = dto.travel {
             concert.travel = buildTravel(from: travelDTO, context: context)
@@ -143,13 +148,14 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
             await syncManager.syncConcert(concert)
         }
 
-        return concert
+        return concert.objectID
     }
 
     // MARK: - Update (Local First)
 
-    func updateConcert(_ concert: Concert, with dto: ConcertUpdate) throws {
+    func updateConcert(_ concertId: NSManagedObjectID, with dto: ConcertUpdate) async throws {
         let context = coreData.viewContext
+        let concert: Concert = context.object(with: concertId) as! Concert
 
         // Check permission
         guard concert.canEdit else {
@@ -175,7 +181,7 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
 
         // Venue
         if let venueDTO = dto.venue {
-            concert.venue = fetchOrCreateVenue(from: venueDTO, context: context)
+            concert.venue = await fetchOrCreateVenue(from: venueDTO, context: context)
         }
         
         if let buddies = dto.buddyAttendees {
@@ -186,7 +192,14 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
         if let newActs = dto.supportActs {
             (concert.supportActs as? Set<Artist>)?.forEach { concert.removeSupportAct($0) }
             for actDTO in newActs {
-                concert.addSupportAct(fetchOrCreateArtist(from: actDTO, context: context))
+                concert.addSupportAct(await fetchOrCreateArtist(from: actDTO, context: context))
+            }
+        }
+
+        if let setlistItems = dto.setlistItems {
+            for item in setlistItems {
+                let setlistItem = buildSetlistItem(from: item, concertId: concert.id.uuidString.lowercased(), context: context)
+                concert.addSetlistItem(setlistItem)
             }
         }
 
@@ -243,8 +256,9 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
 
     // MARK: - Delete (Soft Delete)
 
-    func deleteConcert(_ concert: Concert) throws {
+    func deleteConcert(_ concertId: NSManagedObjectID) throws {
         let context = coreData.viewContext
+        let concert = context.object(with: concertId) as! Concert
 
         // Check permission
         guard concert.canEdit else {
@@ -258,7 +272,7 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
         // 2. Save
         try coreData.saveWithResult()
 
-        WidgetCenter.shared.reloadAllTimelines() // ← neu
+        WidgetCenter.shared.reloadAllTimelines()
 
         // 3. Queue for sync (will delete on server)
         Task {
@@ -276,19 +290,39 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
     private func fetchOrCreateArtist(
         from dto: ArtistDTO,
         context: NSManagedObjectContext
-    ) -> Artist {
-        // Schon in Core Data?
-        let request: NSFetchRequest<Artist> = Artist.fetchRequest()
-        request.predicate = NSPredicate(
-            format: "spotifyArtistId == %@", dto.spotifyArtistId ?? ""
-        )
-        request.fetchLimit = 1
+    ) async -> Artist {
 
-        if let existing = try? context.fetch(request).first {
-            return existing  // ✅ Bereits bekannter Artist
+        // 1. Server fragen via spotifyId
+        if let spotifyId = dto.spotifyArtistId, !spotifyId.isEmpty {
+            if let serverArtist: ArtistDTO = try? await syncManager.apiClient.get("/artists/\(spotifyId)") {
+                // Server kennt ihn – lokal nach serverId suchen oder neu anlegen
+                if let existing = fetchLocalArtistIfExists(serverArtist: serverArtist, context: context) {
+                    return existing
+                }
+
+                // Server kennt ihn aber lokal noch nicht → mit serverId anlegen
+                let artist = Artist(context: context)
+                artist.id = UUID()
+                artist.name = serverArtist.name
+                artist.imageUrl = serverArtist.imageUrl
+                artist.spotifyArtistId = serverArtist.spotifyArtistId
+                artist.serverId = serverArtist.id  // ← direkt mit serverId
+                artist.syncStatus = SyncStatus.synced.rawValue  // ← schon synced!
+                return artist
+            }
         }
 
-        // Neu anlegen
+        // 2. Lokal nach spotifyId suchen (Server offline oder kein spotifyId)
+        if let spotifyId = dto.spotifyArtistId, !spotifyId.isEmpty {
+            let request: NSFetchRequest<Artist> = Artist.fetchRequest()
+            request.predicate = NSPredicate(format: "spotifyArtistId == %@", spotifyId)
+            request.fetchLimit = 1
+            if let existing = try? context.fetch(request).first {
+                return existing
+            }
+        }
+
+        // 3. Neu anlegen (wirklich unbekannt)
         let artist = Artist(context: context)
         artist.id = UUID()
         artist.name = dto.name
@@ -298,16 +332,62 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
         return artist
     }
 
+    private func fetchLocalArtistIfExists(serverArtist: ArtistDTO, context: NSManagedObjectContext) -> Artist? {
+        let request: NSFetchRequest<Artist> = Artist.fetchRequest()
+        request.predicate = NSPredicate(format: "serverId == %@", serverArtist.id)
+        request.fetchLimit = 1
+
+        if let existing = try? context.fetch(request).first {
+            return existing
+        }
+
+        guard let spotifyId = serverArtist.spotifyArtistId, !spotifyId.isEmpty else { return nil }
+        request.predicate = NSPredicate(format: "spotifyArtistId == %@", spotifyId)
+
+        if let existing = try? context.fetch(request).first {
+            existing.serverId = serverArtist.id
+            existing.syncStatus = SyncStatus.synced.rawValue
+            return existing
+        }
+
+        return nil
+    }
+
     private func fetchOrCreateVenue(
         from dto: VenueDTO,
         context: NSManagedObjectContext
-    ) -> Venue {
-        if let appleMapsId = dto.appleMapsId {
-            let request: NSFetchRequest<Venue> = Venue.fetchRequest()
+    ) async -> Venue {
+        let request: NSFetchRequest<Venue> = Venue.fetchRequest()
+
+        if let appleMapsId = dto.appleMapsId, !appleMapsId.isEmpty {
+            if let serverVenue: VenueDTO = try? await syncManager.apiClient.get("/venues/\(appleMapsId)") {
+                // Server kennt ihn – lokal nach serverId suchen oder neu anlegen
+                if let existing = fetchLocalVenueIfExists(serverVenue: serverVenue, context: context) {
+                    return existing
+                }
+
+                // Server kennt ihn aber lokal noch nicht → mit serverId anlegen
+                let venue = Venue(context: context)
+                venue.id = UUID()
+                venue.name = serverVenue.name
+                venue.city = serverVenue.city
+                venue.formattedAddress = serverVenue.formattedAddress
+                venue.latitude = serverVenue.latitude ?? 0
+                venue.longitude = serverVenue.longitude ?? 0
+                venue.appleMapsId = serverVenue.appleMapsId
+                venue.serverId = serverVenue.id
+                venue.syncStatus = SyncStatus.pending.rawValue
+                return venue
+            }
+        }
+
+        if let appleMapsId = dto.appleMapsId, !appleMapsId.isEmpty {
             request.predicate = NSPredicate(format: "appleMapsId == %@", appleMapsId)
             request.fetchLimit = 1
-
             if let existing = try? context.fetch(request).first {
+                if existing.serverId == nil {
+                    existing.serverId = dto.id
+                }
                 return existing
             }
         }
@@ -320,8 +400,34 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
         venue.latitude = dto.latitude ?? 0
         venue.longitude = dto.longitude ?? 0
         venue.appleMapsId = dto.appleMapsId
+        venue.serverId = dto.id
         venue.syncStatus = SyncStatus.pending.rawValue
         return venue
+    }
+
+    private func fetchLocalVenueIfExists(
+        serverVenue: VenueDTO,
+        context: NSManagedObjectContext
+    ) -> Venue? {
+
+        let request: NSFetchRequest<Venue> = Venue.fetchRequest()
+        request.fetchLimit = 1
+
+        request.predicate = NSPredicate(format: "serverId == %@", serverVenue.id)
+        if let existing = try? context.fetch(request).first {
+            return existing
+        }
+
+        if let appleId = serverVenue.appleMapsId, !appleId.isEmpty {
+            request.predicate = NSPredicate(format: "appleMapsId == %@", appleId)
+            if let existing = try? context.fetch(request).first {
+                existing.serverId = serverVenue.id
+                existing.syncStatus = SyncStatus.synced.rawValue
+                return existing
+            }
+        }
+
+        return nil
     }
 
     func getCurrentUserId() async -> String {
@@ -330,6 +436,37 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
         } catch {
             return "unknown"
         }
+    }
+
+    // MARK: - Setlist
+
+    private func buildSetlist(from items: [TempCeateSetlistItem], concertId: String, context: NSManagedObjectContext) -> [SetlistItem] {
+        var createdItems = [SetlistItem]()
+
+        for item in items {
+            let setlistItem = buildSetlistItem(from: item, concertId: concertId, context: context)
+            createdItems.append(setlistItem)
+        }
+
+        return createdItems
+    }
+
+    private func buildSetlistItem(from item: TempCeateSetlistItem, concertId: String, context: NSManagedObjectContext) -> SetlistItem {
+        let setlistItem = SetlistItem(context: context)
+        setlistItem.id = UUID()
+        setlistItem.concertId = concertId
+        setlistItem.title = item.title
+        setlistItem.spotifyTrackId = item.spotifyTrackId
+        setlistItem.albumName = item.albumName
+        setlistItem.artistNames = item.artistNames
+        setlistItem.position = Int16(item.position)
+        setlistItem.section = item.section
+        setlistItem.serverId = nil
+        setlistItem.coverImage = item.coverImage
+        setlistItem.locallyModifiedAt = Date()
+        setlistItem.syncStatus = SyncStatus.pending.rawValue
+
+        return setlistItem
     }
 
     // MARK: - Travel Builder
@@ -341,13 +478,16 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
         travel.travelDistance = dto.travelDistance ?? 0
         travel.arrivedAt      = dto.arrivedAt
 
-        if let expensesDTO = dto.travelExpenses {
-            travel.travelExpenses = buildPrice(from: expensesDTO, context: context)
-        }
-        if let hotelDTO = dto.hotelExpenses {
-            travel.hotelExpenses = buildPrice(from: hotelDTO, context: context)
+        if let travelExpenses = dto.travelExpenses {
+            travel.travelExpensesValue = NSDecimalNumber(decimal: travelExpenses.value)
+            travel.travelExpensesCurrency = travelExpenses.currency
         }
 
+        if let hotelExpenses = dto.hotelExpenses {
+            travel.hotelExpensesValue = NSDecimalNumber(decimal: hotelExpenses.value)
+            travel.hotelExpensesCurrency = hotelExpenses.currency
+        }
+        
         return travel
     }
 
@@ -362,21 +502,12 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
         ticket.seatNumber       = dto.seatNumber
         ticket.standingPosition = dto.standingPosition
         ticket.notes            = dto.notes
-
-        if let priceDTO = dto.ticketPrice {
-            ticket.ticketPrice = buildPrice(from: priceDTO, context: context)
+        if let ticketPrice = dto.ticketPrice {
+            ticket.ticketPriceValue = NSDecimalNumber(decimal: ticketPrice.value)
+            ticket.ticketPriceCurrency = ticketPrice.currency
         }
 
         return ticket
-    }
-
-    // MARK: - Price Builder
-
-    private func buildPrice(from dto: PriceDTO, context: NSManagedObjectContext) -> Price {
-        let price = Price(context: context)
-        price.value    = NSDecimalNumber(decimal: dto.value).doubleValue
-        price.currency = dto.currency
-        return price
     }
 }
 

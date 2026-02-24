@@ -9,7 +9,7 @@ import Foundation
 import Supabase
 import SwiftUI
 
-struct PriceDTO: Codable, Equatable {
+public struct PriceDTO: Codable, Equatable {
     let value: Decimal
     let currency: String
 

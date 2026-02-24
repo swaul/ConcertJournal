@@ -122,7 +122,7 @@ class ConcertsViewModel: NSObject, NSFetchedResultsControllerDelegate {
 
     func deleteConcert(_ concert: Concert) async {
         do {
-            try repository.deleteConcert(concert)
+            try repository.deleteConcert(concert.objectID)
             // UI aktualisiert sich automatisch via FRC Delegate
         } catch {
             errorMessage = "Delete failed: \(error.localizedDescription)"

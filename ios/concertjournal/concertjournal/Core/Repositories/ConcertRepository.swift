@@ -343,11 +343,11 @@ extension Concert {
     }
 
     // Helper: Vergleiche Prices
-    private func arePricesEqual(_ price1: Price?, _ price2: PriceDTO?) -> Bool {
+    private func arePricesEqual(_ price1: PriceDTO?, _ price2: PriceDTO?) -> Bool {
         switch (price1, price2) {
         case (nil, nil): return true
         case (nil, _), (_, nil): return false
-        case let (p1?, p2?): return Decimal(p1.value) == p2.value && p1.currency == p2.currency
+        case let (p1?, p2?): return p1.value == p2.value && p1.currency == p2.currency
         }
     }
 }

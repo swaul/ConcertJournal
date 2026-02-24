@@ -310,7 +310,7 @@ struct MediumMainCard: View {
                     Text(concert.artistName)
                         .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(.white)
-                        .lineLimit(1)
+                        .lineLimit(2)
 
                     if isToday, let openingTime = concert.openingTime {
                         Text(openingTime.widgetTimeString)
@@ -379,7 +379,7 @@ struct MediumSecondaryCard: View {
                         Text(concert.artistName)
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundStyle(.primary)
-                            .lineLimit(1)
+                            .lineLimit(2)
                             .foregroundStyle(tint)
 
                         Text(concert.date.shortWidgetDate)

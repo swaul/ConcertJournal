@@ -48,7 +48,7 @@ class CreateConcertVisitViewModel: Hashable, Equatable {
         
         await notificationService.notifyBuddies(
             attendees: new.buddyAttendees,
-            concertId: concert.id.uuidString.lowercased(),
+            concertId: newConcert.id.uuidString.lowercased(),
             concertTitle: new.artistName
         )
         

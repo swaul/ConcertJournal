@@ -24,7 +24,6 @@ struct MapView: View {
     @State private var selectedDetent: PresentationDetent = .height(330)
     @State private var detentHeight: CGFloat = 330
 
-    @State private var triggerWobble: Bool = false
     @State private var visibleRegion: MKCoordinateRegion? = nil
 
     var body: some View {
@@ -52,7 +51,7 @@ struct MapView: View {
         Map(position: $position) {
             ForEach(viewModel.concertLocations) { item in
                 Annotation(item.venueName, coordinate: item.coordinates) {
-                    ConcertMapPin(concert: item, triggerWobble: $triggerWobble, visibleRegion: visibleRegion)
+                    ConcertMapPin(concert: item, visibleRegion: visibleRegion)
                         .onTapGesture {
                             let targetRegion = region(for: item)
                             pendingItem = item
@@ -93,7 +92,6 @@ struct MapView: View {
         }
         .onMapCameraChange(frequency: .onEnd) { context in
             visibleRegion = context.region
-            triggerWobble.toggle()
             if let pendingItem {
                 withAnimation(.easeInOut(duration: 0.35).delay(0.2)) {
                     selectedItem = pendingItem
@@ -245,7 +243,6 @@ struct ConcertMapPin: View {
     @Environment(\.dependencies) var dependencies
     
     let concert: ConcertMapItem
-    @Binding var triggerWobble: Bool
     let visibleRegion: MKCoordinateRegion?
     
     @State private var showArtists = false

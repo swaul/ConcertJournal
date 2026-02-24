@@ -64,7 +64,7 @@ class ConcertDetailViewModel {
     
     func applyUpdate(_ update: ConcertUpdate) async {
         do {
-            try repository.updateConcert(concert, with: update)
+            try await repository.updateConcert(concert.objectID, with: update)
             HapticManager.shared.success()
         } catch {
             logError("Update did not work")
@@ -73,7 +73,7 @@ class ConcertDetailViewModel {
 
     func deleteConcert() async throws {
         do {
-            try repository.deleteConcert(concert)
+            try repository.deleteConcert(concert.objectID)
             HapticManager.shared.success()
         } catch {
             logError("Deleting did not work")

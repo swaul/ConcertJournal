@@ -9,7 +9,7 @@ import CoreData
 // MARK: - Protocol
 
 protocol OfflinePhotoRepositoryProtocol {
-    func savePhoto(_ image: UIImage, for concert: Concert) throws -> Photo
+    func savePhoto(_ image: UIImage, for concertId: NSManagedObjectID) throws -> Photo
     func deletePhoto(_ photo: Photo) throws
     func loadImage(for photo: Photo) -> UIImage?
     func syncPendingUploads() async
@@ -41,8 +41,9 @@ class OfflinePhotoRepository: OfflinePhotoRepositoryProtocol {
 
     /// Saves image to disk + Core Data immediately.
     /// Upload to server happens in background via syncPendingUploads()
-    func savePhoto(_ image: UIImage, for concert: Concert) throws -> Photo {
+    func savePhoto(_ image: UIImage, for concertId: NSManagedObjectID) throws -> Photo {
         let context = coreData.viewContext
+        let concert = try context.existingObject(with: concertId) as! Concert
 
         // 1. Create Core Data object first
         let photo = Photo(context: context)

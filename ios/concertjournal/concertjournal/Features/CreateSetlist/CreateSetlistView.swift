@@ -129,10 +129,10 @@ struct CreateSetlistView: View {
         if showTextField {
             HStack {
                 TextField(text: $songName) {
-                    
                     Text("Select a Song")
                         .font(.cjBody)
                 }
+                .matchedGeometryEffect(id: "searchTextField", in: searchTextFieldNamespace)
                 .focused($textFieldFocused)
                 .onChange(of: textFieldFocused, { oldValue, newValue in
                     if oldValue == true && newValue == false {
@@ -169,7 +169,6 @@ struct CreateSetlistView: View {
                     .buttonStyle(.glass)
                 }
             }
-            .matchedGeometryEffect(id: "searchTextField", in: searchTextFieldNamespace)
 
         } else {
             HStack {
@@ -185,8 +184,8 @@ struct CreateSetlistView: View {
                         .padding()
                 }
                 .buttonStyle(.glass)
+                .matchedGeometryEffect(id: "searchTextField", in: searchTextFieldNamespace)
             }
-            .matchedGeometryEffect(id: "searchTextField", in: searchTextFieldNamespace)
         }
     }
 

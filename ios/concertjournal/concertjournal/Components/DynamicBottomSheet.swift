@@ -43,7 +43,9 @@ struct AdaptiveSheetModifier<SheetContent: View>: ViewModifier {
             )
             .sheet(isPresented: $isPresented) {
                 sheetContent
-                    .presentationDetents([.height(subHeight)])
+                    .presentationDetents(subHeight > 0
+                                         ? [.height(subHeight)]
+                                         : [.medium])
             }
             .id(subHeight)
     }

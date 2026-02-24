@@ -11,6 +11,7 @@ import UIKit
 
 struct CreateConcertDTO {
 
+    let id: UUID
     let artist: ArtistDTO
     let supportActs: [ArtistDTO]
     let date: Date
@@ -20,6 +21,7 @@ struct CreateConcertDTO {
     let rating: Int?
     let title: String?
     let venue: VenueDTO?
+    let setlistItems: [TempCeateSetlistItem]
 
     // Travel
     let travel: TravelDTO?
@@ -28,6 +30,7 @@ struct CreateConcertDTO {
 
     init?(newConcertVisit: NewConcertVisit, images: [UIImage]) {
         guard let artist = newConcertVisit.artist else { return nil }
+        self.id = UUID()
         self.artist = artist
         self.supportActs = newConcertVisit.supportActs
         self.date = newConcertVisit.date
@@ -39,6 +42,8 @@ struct CreateConcertDTO {
         self.venue = newConcertVisit.venue
         self.travel = newConcertVisit.travel
         self.ticket = newConcertVisit.ticket
+        self.setlistItems = newConcertVisit.setlistItems
+
         self.images = images
     }
 }

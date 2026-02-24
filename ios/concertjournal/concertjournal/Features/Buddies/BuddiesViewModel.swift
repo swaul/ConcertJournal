@@ -322,6 +322,18 @@ final class BuddiesViewModel {
             if let idx = searchResults.firstIndex(where: { $0.id == userId }) {
                 searchResults[idx].relationStatus = .pending
             }
+
+            // In sendRequest(to:) – nach dem erfolgreichen Insert:
+            try await supabaseClient.client
+                .from("notifications")
+                .insert(BuddyNotificationRow(
+                    recipientId: userId,
+                    type: "buddy_request",
+                    title: "\(senderName) möchte dein Buddy werden!",
+                    body: "Tippe hier um die Anfrage anzunehmen."
+                ))
+                .execute()
+
             logSuccess("Buddy request sent to user: \(userId)")
             HapticManager.shared.buttonTap()
         } catch {
@@ -340,13 +352,29 @@ final class BuddiesViewModel {
             buddies.append(Buddy(id: request.id, userId: request.userId, displayName: request.displayName,
                                  avatarURL: request.avatarURL, sharedConcerts: 0, lastActivity: request.createdAt))
             logSuccess("Accepted request id: \(request.id)")
+
+            // In acceptRequest(_:) – nach dem erfolgreichen Update:
+            try await supabaseClient.client
+                .from("notifications")
+                .insert(BuddyNotificationRow(
+                    recipientId: request.userId,
+                    type: "buddy_accepted",
+                    title: "\(senderName) hat deine Anfrage angenommen!",
+                    body: "Ihr seid jetzt Buddies 🎉"
+                ))
+                .execute()
+
             HapticManager.shared.buttonTap()
         } catch {
             logError("Failed to accept request id: \(request.id)", error: error)
             errorMessage = "Anfrage konnte nicht akzeptiert werden."
         }
     }
-    
+
+    private var senderName: String {
+        userProvider.user?.userMetadata["display_name"]?.stringValue ?? "Jemand"
+    }
+
     @MainActor
     func declineRequest(_ request: BuddyRequest) async {
         logInfo("Declining request id: \(request.id)")
@@ -474,5 +502,19 @@ private struct BuddyCodeRow: Decodable {
     let buddyCode: String?
     enum CodingKeys: String, CodingKey {
         case buddyCode = "buddy_code"
+    }
+}
+
+private struct BuddyNotificationRow: Encodable {
+    let recipientId: String
+    let type: String
+    let title: String
+    let body: String
+    let isRead: Bool = false
+
+    enum CodingKeys: String, CodingKey {
+        case recipientId = "recipient_id"
+        case type, title, body
+        case isRead = "is_read"
     }
 }

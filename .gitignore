@@ -3,3 +3,5 @@ ios/concertjournal/concertjournal.xcodeproj/project.xcworkspace/xcuserdata/pkuhn
 *.xcuserstate
 
 *.xcbkptlist
+
+*.DS_Store

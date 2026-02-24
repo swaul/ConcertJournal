@@ -25,7 +25,8 @@ extension Ticket {
     @NSManaged public var seatNumber: String?
     @NSManaged public var standingPosition: String?
     @NSManaged public var notes: String?
-    @NSManaged public var ticketPrice: Price?
+    @NSManaged public var ticketPriceValue: NSDecimalNumber?
+    @NSManaged public var ticketPriceCurrency: String?
 
 }
 
@@ -46,6 +47,13 @@ extension Ticket {
 }
 
 extension Ticket {
+    public var ticketPrice: PriceDTO? {
+        guard let value = ticketPriceValue, let currency = ticketPriceCurrency else { return nil }
+        return PriceDTO(value: value.decimalValue, currency: currency)
+    }
+}
+
+extension Ticket {
 
     func toDTO() -> TicketDTO? {
         guard let ticketType = ticketTypeEnum else { return nil }
@@ -53,7 +61,7 @@ extension Ticket {
         return TicketDTO(
             ticketType: ticketType,
             ticketCategory: ticketCategoryEnum ?? .regular,
-            ticketPrice: ticketPrice?.toDTO(),
+            ticketPrice: ticketPrice,
             seatBlock: seatBlock,
             seatRow: seatRow,
             seatNumber: seatNumber,

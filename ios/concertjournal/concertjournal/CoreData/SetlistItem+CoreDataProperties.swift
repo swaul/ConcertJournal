@@ -30,6 +30,7 @@ extension SetlistItem {
     @NSManaged public var albumName: String?
     @NSManaged public var artistNames: String
     @NSManaged public var coverImage: String?
+    @NSManaged public var concertId: String
     @NSManaged public var concert: Concert?
 
 }

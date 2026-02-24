@@ -172,6 +172,7 @@ struct ConcertDetailView: View {
                     } label: {
                         Label("Bearbeiten", systemImage: "pencil")
                     }
+                    Divider()
                     Button(role: .destructive) {
                         HapticManager.shared.impact(.medium)
                         showDeleteDialog = true

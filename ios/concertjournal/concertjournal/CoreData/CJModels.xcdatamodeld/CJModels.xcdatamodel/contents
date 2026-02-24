@@ -8,7 +8,8 @@
         <attribute name="serverId" optional="YES" attributeType="String"/>
         <attribute name="spotifyArtistId" optional="YES" attributeType="String"/>
         <attribute name="syncStatus" attributeType="String"/>
-        <relationship name="concerts" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Concert" inverseName="supportActs" inverseEntity="Concert"/>
+        <relationship name="concerts" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Concert" inverseName="artist" inverseEntity="Concert"/>
+        <relationship name="concertsSupp" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Concert" inverseName="supportActs" inverseEntity="Concert"/>
     </entity>
     <entity name="Concert" representedClassName="Concert" syncable="YES">
         <attribute name="buddyAttendeesJSON" optional="YES" attributeType="String"/>
@@ -29,13 +30,13 @@
         <attribute name="syncStatus" optional="YES" attributeType="String"/>
         <attribute name="syncVersion" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="title" optional="YES" attributeType="String"/>
-        <relationship name="artist" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Artist"/>
+        <relationship name="artist" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Artist" inverseName="concerts" inverseEntity="Artist"/>
         <relationship name="images" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Photo" inverseName="concert" inverseEntity="Photo"/>
         <relationship name="setlistItems" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SetlistItem" inverseName="concert" inverseEntity="SetlistItem"/>
-        <relationship name="supportActs" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Artist" inverseName="concerts" inverseEntity="Artist"/>
-        <relationship name="ticket" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Ticket"/>
-        <relationship name="travel" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Travel"/>
-        <relationship name="venue" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Venue"/>
+        <relationship name="supportActs" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Artist" inverseName="concertsSupp" inverseEntity="Artist"/>
+        <relationship name="ticket" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Ticket" inverseName="concert" inverseEntity="Ticket"/>
+        <relationship name="travel" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Travel" inverseName="concert" inverseEntity="Travel"/>
+        <relationship name="venue" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Venue" inverseName="concert" inverseEntity="Venue"/>
     </entity>
     <entity name="Photo" representedClassName="Photo" syncable="YES">
         <attribute name="createdAt" attributeType="Date" usesScalarValueType="NO"/>
@@ -47,13 +48,10 @@
         <attribute name="uploadStatus" attributeType="String"/>
         <relationship name="concert" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Concert" inverseName="images" inverseEntity="Concert"/>
     </entity>
-    <entity name="Price" representedClassName="Price" syncable="YES">
-        <attribute name="currency" attributeType="String"/>
-        <attribute name="value" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-    </entity>
     <entity name="SetlistItem" representedClassName="SetlistItem" syncable="YES">
         <attribute name="albumName" optional="YES" attributeType="String"/>
         <attribute name="artistNames" attributeType="String"/>
+        <attribute name="concertId" attributeType="String"/>
         <attribute name="coverImage" optional="YES" attributeType="String"/>
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="locallyModifiedAt" attributeType="Date" usesScalarValueType="NO"/>
@@ -83,16 +81,21 @@
         <attribute name="seatRow" optional="YES" attributeType="String"/>
         <attribute name="standingPosition" optional="YES" attributeType="String"/>
         <attribute name="ticketCategory" optional="YES" attributeType="String"/>
+        <attribute name="ticketPriceCurrency" optional="YES" attributeType="String"/>
+        <attribute name="ticketPriceValue" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="ticketType" attributeType="String"/>
-        <relationship name="ticketPrice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Price"/>
+        <relationship name="concert" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Concert" inverseName="ticket" inverseEntity="Concert"/>
     </entity>
     <entity name="Travel" representedClassName="Travel" syncable="YES">
         <attribute name="arrivedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="hotelExpensesCurrency" optional="YES" attributeType="String"/>
+        <attribute name="hotelExpensesValue" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="travelDistance" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="travelDuration" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="travelExpensesCurrency" optional="YES" attributeType="String"/>
+        <attribute name="travelExpensesValue" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="travelType" optional="YES" attributeType="String"/>
-        <relationship name="hotelExpenses" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Price"/>
-        <relationship name="travelExpenses" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Price"/>
+        <relationship name="concert" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Concert" inverseName="travel" inverseEntity="Concert"/>
     </entity>
     <entity name="Venue" representedClassName="Venue" syncable="YES">
         <attribute name="appleMapsId" optional="YES" attributeType="String"/>
@@ -104,5 +107,6 @@
         <attribute name="name" attributeType="String"/>
         <attribute name="serverId" optional="YES" attributeType="String"/>
         <attribute name="syncStatus" optional="YES" attributeType="String"/>
+        <relationship name="concert" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Concert" inverseName="venue" inverseEntity="Concert"/>
     </entity>
 </model>

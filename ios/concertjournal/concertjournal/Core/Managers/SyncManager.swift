@@ -6,7 +6,7 @@
 import CoreData
 import Foundation
 import Combine
-internal import Auth
+import Auth
 
 class SyncManager {
 
@@ -37,6 +37,31 @@ class SyncManager {
 
     // MARK: - Full Sync
 
+    func deduplicateArtists() async {
+        let context = coreData.newBackgroundContext()
+        await context.perform {
+            let request: NSFetchRequest<Artist> = Artist.fetchRequest()
+            guard let all = try? context.fetch(request) else { return }
+
+            var seen: [String: Artist] = [:]  // spotifyId → erster Artist
+
+            for artist in all {
+                guard let spotifyId = artist.spotifyArtistId, !spotifyId.isEmpty else { continue }
+
+                if let existing = seen[spotifyId] {
+                    // Duplikat: Concerts ummappen und dann löschen
+                    (artist.concerts as? Set<Concert>)?.forEach {
+                        $0.artist = existing
+                    }
+                    context.delete(artist)
+                } else {
+                    seen[spotifyId] = artist
+                }
+            }
+            try? context.save()
+        }
+    }
+
     func fullSync() async throws {
         guard isLoggedIn else {
             logDebug("Skip sync – user not logged in", category: .sync)
@@ -56,6 +81,7 @@ class SyncManager {
 
         logInfo("Starting full sync", category: .sync)
 
+        await deduplicateArtists()
         try await pullChanges()
         try await pushChanges()
 
@@ -498,16 +524,15 @@ class SyncManager {
         travel.travelDistance = server.travelDistance ?? 0
         travel.arrivedAt      = server.arrivedAt
 
-        travel.travelExpenses = buildPriceSync(
-            from: server.travelExpenses,
-            existing: travel.travelExpenses,
-            context: context
-        )
-        travel.hotelExpenses = buildPriceSync(
-            from: server.hotelExpenses,
-            existing: travel.hotelExpenses,
-            context: context
-        )
+        if let travelExpenses = server.travelExpenses {
+            travel.travelExpensesValue = NSDecimalNumber(decimal: travelExpenses.value)
+            travel.travelExpensesCurrency = travelExpenses.currency
+        }
+        if let hotelExpenses = server.hotelExpenses {
+            travel.hotelExpensesValue = NSDecimalNumber(decimal: hotelExpenses.value)
+            travel.hotelExpensesCurrency = hotelExpenses.currency
+        }
+
         return travel
     }
 
@@ -542,30 +567,12 @@ class SyncManager {
             }
         }
 
-        ticket.ticketPrice = buildPriceSync(
-            from: server.ticketPrice,
-            existing: ticket.ticketPrice,
-            context: context
-        )
-        return (ticket, problem)
-    }
-
-    // MARK: - Price Builder
-
-    private func buildPriceSync(
-        from dto: PriceDTO?,
-        existing: Price?,
-        context: NSManagedObjectContext
-    ) -> Price? {
-        guard let dto else {
-            if let old = existing { context.delete(old) }
-            return nil
+        if let ticketPrice = server.ticketPrice {
+            ticket.ticketPriceValue = NSDecimalNumber(decimal: ticketPrice.value)
+            ticket.ticketPriceCurrency = ticketPrice.currency
         }
 
-        let price = existing ?? Price(context: context)
-        price.value    = NSDecimalNumber(decimal: dto.value).doubleValue
-        price.currency = dto.currency
-        return price
+        return (ticket, problem)
     }
 
     // MARK: - Support Acts Sync
@@ -732,12 +739,8 @@ struct ConcertPushPayload: Encodable {
         travelDuration = concert.travel?.travelDuration
         travelDistance = concert.travel?.travelDistance
         arrivedAt      = concert.travel?.arrivedAt
-        travelExpenses = concert.travel?.travelExpenses.map {
-            PriceDTO(value: Decimal($0.value), currency: $0.currency)
-        }
-        hotelExpenses = concert.travel?.hotelExpenses.map {
-            PriceDTO(value: Decimal($0.value), currency: $0.currency)
-        }
+        travelExpenses = concert.travel?.travelExpenses
+        hotelExpenses = concert.travel?.hotelExpenses
 
         ticketType     = concert.ticket?.ticketType
         ticketCategory = concert.ticket?.ticketCategory
@@ -746,9 +749,7 @@ struct ConcertPushPayload: Encodable {
         seatNumber     = concert.ticket?.seatNumber
         standingPosition = concert.ticket?.standingPosition
         ticketNotes    = concert.ticket?.notes
-        ticketPrice    = concert.ticket?.ticketPrice.map {
-            PriceDTO(value: Decimal($0.value), currency: $0.currency)
-        }
+        ticketPrice    = concert.ticket?.ticketPrice
     }
 
     func encode(to encoder: any Encoder) throws {
