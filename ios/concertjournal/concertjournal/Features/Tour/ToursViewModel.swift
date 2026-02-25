@@ -41,8 +41,8 @@ class ToursViewModel {
         isLoading = false
     }
 
-    func createTour(name: String, startDate: Date, endDate: Date, artist: Artist? = nil, description: String? = nil) {
-        _ = tourRepository.createTour(name: name, startDate: startDate, endDate: endDate, artist: artist, description: description)
+    func createTour(name: String, startDate: Date, endDate: Date, artist: ArtistDTO, description: String? = nil) async {
+        _ = await tourRepository.createTour(name: name, startDate: startDate, endDate: endDate, artist: artist, description: description)
         loadTours()
     }
 

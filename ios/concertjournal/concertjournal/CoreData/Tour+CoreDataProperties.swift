@@ -32,7 +32,7 @@ extension Tour {
     @NSManaged public var serverModifiedAt: Date?
     @NSManaged public var syncVersion: Int32
 
-    @NSManaged public var artist: Artist?
+    @NSManaged public var artist: Artist
     @NSManaged public var concerts: NSSet?
 
 }
@@ -92,3 +92,16 @@ public enum TourStatus {
 }
 
 extension Tour: Identifiable {}
+
+extension Tour {
+
+    func toDTO() -> TourDTO {
+        TourDTO(id: id.uuidString.lowercased(),
+                name: name,
+                tourDescription: tourDescription,
+                startDate: startDate.supabseDateString,
+                endDate: endDate.supabseDateString,
+                artistId: artist.serverId ?? artist.id.uuidString.lowercased(),
+                ownerId: ownerId)
+    }
+}

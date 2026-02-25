@@ -21,11 +21,9 @@ struct TourDetailView: View {
                     Text(tour.name)
                         .font(.cjTitle)
 
-                    if let artist = tour.artist {
-                        Text(artist.name)
+                        Text(tour.artist.name)
                             .font(.cjHeadline)
                             .foregroundStyle(.secondary)
-                    }
 
                     HStack {
                         Text("\(tour.startDate.formatted(date: .abbreviated, time: .omitted)) - \(tour.endDate.formatted(date: .abbreviated, time: .omitted))")

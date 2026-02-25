@@ -291,9 +291,29 @@ class SyncManager {
 
             payload.supportActServerIds = supportActsIds
         }
-        
+
+        if let tour = payload.tour, payload.tourServerId == nil {
+            logInfo("Concert in sync has Tour \"\(tour.name)\" which does not exist on the server", category: .sync)
+            logInfo("Creating \"\(tour.name)\"", category: .sync)
+
+            let serverTour: IDResponse = try await apiClient.post("/tours", body: tour)
+            logSuccess("Successfully created \"\(tour.name)\"", category: .sync)
+            payload.tourServerId = serverTour.id
+
+            await context.perform {
+                let request: NSFetchRequest<Tour> = Tour.fetchRequest()
+                request.predicate = NSPredicate(format: "name == %@ AND serverId == nil", tour.name)
+                request.fetchLimit = 1
+
+                if let localTour = try? context.fetch(request).first {
+                    localTour.serverId = serverTour.id
+                    localTour.syncStatus = SyncStatus.synced.rawValue
+                    try? context.save()
+                }
+            }
+        }
+
         // ENCRYPTION
-        
         payload.title = try ConcertEncryptionHelper.shared.encrypt(payload.title)
         if let notes = payload.notes {
             payload.notes = try ConcertEncryptionHelper.shared.encrypt(notes)
@@ -419,7 +439,11 @@ class SyncManager {
             } else {
                 concert.venue = nil
             }
-            
+
+            if let tourId = server.tourId {
+                concert.tour = try await fetchOrCreateTourSync(serverId: tourId, context: context)
+            }
+
             concert.travel = buildTravelSync(from: server, existing: concert.travel, context: context)
             let (ticket, ticketProblem) = try buildTicketSync(from: server, existing: concert.ticket, context: context)
             concert.ticket = ticket
@@ -481,7 +505,11 @@ class SyncManager {
             let (ticket, ticketProblem) = try buildTicketSync(from: server, existing: nil, context: context)
             concert.ticket = ticket
             problem = ticketProblem
-            
+
+            if let tourId = server.tourId {
+                concert.tour = try await fetchOrCreateTourSync(serverId: tourId, context: context)
+            }
+
             let currentUserId = await getCurrentUserId()
             concert.ownerId  = server.userId
             concert.isOwner  = server.userId == currentUserId
@@ -590,6 +618,42 @@ class SyncManager {
         }
     }
 
+    // MARK: - Tour Sync
+
+    private func fetchOrCreateTourSync(serverId: String, context: NSManagedObjectContext) async throws -> Tour {
+        let request: NSFetchRequest<Tour> = Tour.fetchRequest()
+        request.predicate = NSPredicate(format: "serverId == %@", serverId)
+        request.fetchLimit = 1
+
+        if let existing = try? context.fetch(request).first {
+            return existing
+        }
+
+        let loadedTour: TourDTO = try await apiClient.get("/tours/\(serverId)")
+
+        let tour = Tour(context: context)
+        tour.id = UUID()
+        tour.serverId = serverId
+        tour.syncStatus = SyncStatus.synced.rawValue
+
+        tour.name = loadedTour.name
+        tour.artist = try await fetchOrCreateArtistSync(serverId: loadedTour.artistId, context: context)
+
+        // TODO: FIX
+        tour.startDate = loadedTour.startDate.supabaseStringDate ?? Date.now
+        tour.endDate = loadedTour.endDate.supabaseStringDate ?? Date.now
+        tour.tourDescription = loadedTour.tourDescription
+
+        let currentUserId = await getCurrentUserId()
+        tour.ownerId = loadedTour.ownerId
+        tour.isOwner = loadedTour.ownerId == currentUserId
+        tour.lastSyncedAt = Date.now
+        tour.locallyModifiedAt = nil
+        tour.syncVersion = 1
+
+        return tour
+    }
+
     // MARK: - Artist Sync
 
     private func fetchOrCreateArtistSync(serverId: String, context: NSManagedObjectContext) async throws -> Artist {
@@ -606,8 +670,8 @@ class SyncManager {
         let artist = Artist(context: context)
         artist.id = UUID()
         artist.serverId = serverId
-        artist.syncStatus = SyncStatus.pending.rawValue
-        
+        artist.syncStatus = SyncStatus.synced.rawValue
+
         artist.name = loadedArtist.name
         artist.imageUrl = loadedArtist.imageUrl
         artist.spotifyArtistId = loadedArtist.spotifyArtistId
@@ -631,8 +695,8 @@ class SyncManager {
         let venue = Venue(context: context)
         venue.id = UUID()
         venue.serverId = serverId
-        venue.syncStatus = SyncStatus.pending.rawValue
-        
+        venue.syncStatus = SyncStatus.synced.rawValue
+
         venue.name = loadedVenue.name
         venue.city = loadedVenue.city
         venue.formattedAddress = loadedVenue.formattedAddress
@@ -675,6 +739,9 @@ struct ConcertPushPayload: Encodable {
     var supportActServerIds: [String]?
     let supportActs: [ArtistDTO]?
 
+    var tourServerId: String?
+    let tour: TourDTO?
+
     let travelType: String?
     let travelDuration: Double?
     let travelDistance: Double?
@@ -712,6 +779,7 @@ struct ConcertPushPayload: Encodable {
         case ticketPrice = "ticket_price"
         case openingTime = "opening_time"
         case arrivedAt = "arrived_at"
+        case tourId = "tour_id"
         case supportActServerIds = "support_acts_ids"
     }
 
@@ -734,6 +802,9 @@ struct ConcertPushPayload: Encodable {
         supportActs = concert.supportActsArray.compactMap { $0.toDTO() }
         supportActServerIds = concert.supportActsArray
             .compactMap { $0.serverId }
+
+        tour = concert.tour?.toDTO()
+        tourServerId = concert.tour?.serverId
 
         travelType     = concert.travel?.travelType
         travelDuration = concert.travel?.travelDuration
@@ -779,6 +850,7 @@ struct ConcertPushPayload: Encodable {
         try container.encodeIfPresent(self.ticketPrice, forKey: .ticketPrice)
         try container.encodeIfPresent(self.openingTime?.supabseDateString, forKey: .openingTime)
         try container.encodeIfPresent(self.arrivedAt?.supabseDateString, forKey: .arrivedAt)
+        try container.encodeIfPresent(self.tourServerId, forKey: .tourId)
         try container.encodeIfPresent(self.supportActServerIds, forKey: .supportActServerIds)
     }
 }
@@ -829,6 +901,7 @@ struct ServerConcert: Codable {
     let ticketPrice: PriceDTO?
     let openingTime: Date?
     let arrivedAt: Date?
+    let tourId: String?
     let supportActsIds: [String]?
     let deletedAt: Date?
 
@@ -855,6 +928,7 @@ struct ServerConcert: Codable {
         case ticketPrice = "ticket_price"
         case openingTime = "opening_time"
         case arrivedAt = "arrived_at"
+        case tourId = "tour_id"
         case supportActsIds = "support_acts_ids"
         case deletedAt = "deleted_at"
     }
@@ -884,6 +958,7 @@ struct ServerConcert: Codable {
         self.ticketNotes = try container.decodeIfPresent(String.self, forKey: .ticketNotes)
         self.ticketPrice = try container.decodeIfPresent(PriceDTO.self, forKey: .ticketPrice)
         self.supportActsIds = try container.decodeIfPresent([String].self, forKey: .supportActsIds)
+        self.tourId = try container.decodeIfPresent(String.self, forKey: .tourId)
 
         if let createdAt = try container.decode(String.self, forKey: .createdAt).supabaseStringDate {
             self.createdAt = createdAt

@@ -8,12 +8,12 @@ import CoreData
 import Combine
 
 @Observable
-class ConcertsViewModel: NSObject, NSFetchedResultsControllerDelegate {
+class ConcertsViewModel: NSObject {
 
     // MARK: - State
 
     var concertToday: Concert? = nil
-    var pastConcerts: [Concert] = []
+    var allConcerts: [Concert] = []
     var futureConcerts: [Concert] = []
     var isLoading = false
     var isSyncing = false
@@ -65,15 +65,7 @@ class ConcertsViewModel: NSObject, NSFetchedResultsControllerDelegate {
             cacheName: nil
         )
 
-        fetchedResultsController?.delegate = self
-
         try? fetchedResultsController?.performFetch()
-        updateConcerts()
-    }
-
-    // MARK: - NSFetchedResultsControllerDelegate
-
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         updateConcerts()
     }
 
@@ -92,11 +84,10 @@ class ConcertsViewModel: NSObject, NSFetchedResultsControllerDelegate {
         }
 
         let future = concertsWithoutToday.filter { $0.date > now }
-        let past   = concertsWithoutToday.filter { $0.date <= now }
 
         withAnimation {
             self.futureConcerts = future.sorted(by: { $0.date < $1.date })
-            self.pastConcerts   = past
+            self.allConcerts    = concertsWithoutToday
         }
     }
 

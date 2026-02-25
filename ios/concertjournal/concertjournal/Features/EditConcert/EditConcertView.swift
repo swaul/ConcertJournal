@@ -25,7 +25,8 @@ struct ConcertEditView: View {
     @State var supportActs: [ArtistDTO]
     @State var travel: TravelDTO?
     @State var ticket: TicketDTO?
-    
+    @State var tour: Tour?
+
     @State var selectedPhotoItems: [PhotosPickerItem] = []
     @State var newImages: [UIImage] = []
     @State var existingPhotos: [Photo]
@@ -38,6 +39,7 @@ struct ConcertEditView: View {
     @State var setlistItems: [TempCeateSetlistItem]
     
     @State var selectVenuePresenting = false
+    @State var selectTourPresenting = false
     @State var editSeltistPresenting: CreateSetlistViewModel? = nil
     @State var editTravelPresenting = false
     @State var presentTicketEdit = false
@@ -55,6 +57,7 @@ struct ConcertEditView: View {
         _rating = State(initialValue: Int(concert.rating == -1 ? 0 : concert.rating))
         _buddyAttendees = State(initialValue: concert.buddiesArray)
         _venueName = State(initialValue: concert.venue?.name ?? "")
+        _tour = State(initialValue: concert.tour)
         _venue = State(initialValue: concert.venue?.toDTO())
         _travel = State(initialValue: concert.travel?.toDTO())
         _ticket = State(initialValue: concert.ticket?.toDTO())
@@ -95,7 +98,39 @@ struct ConcertEditView: View {
                         .padding(8)
                         .rectangleGlass()
                     }
-                    
+
+                    editSection(title: "Tour") {
+                        VStack(alignment: .leading) {
+                            if let tour {
+                                Text(tour.name)
+                                    .font(.cjTitleF)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                    .padding()
+                                    .glassEffect()
+
+                                Button {
+                                    HapticManager.shared.buttonTap()
+                                    selectTourPresenting = true
+                                } label: {
+                                    Text("Tour ändern")
+                                        .font(.cjBody)
+                                }
+                                .padding()
+                                .glassEffect()
+                            } else {
+                                Button {
+                                    HapticManager.shared.buttonTap()
+                                    selectTourPresenting = true
+                                } label: {
+                                    Text("Konzert zu Tour hinzufügen")
+                                        .font(.cjBody)
+                                }
+                                .padding()
+                                .glassEffect()
+                            }
+                        }
+                    }
+
                     editSection(title: TextKey.supportActs.localized) {
                         supportActsSection()
                     }
@@ -235,6 +270,12 @@ struct ConcertEditView: View {
                     presentTicketEdit = false
                 }
             }
+            .sheet(isPresented: $selectTourPresenting) {
+                SelectTourView(currentTour: tour, contextArtist: concert.artist) { selectedTour in
+                    self.tour = selectedTour
+                    selectTourPresenting = false
+                }
+            }
         }
     }
     
@@ -289,6 +330,7 @@ struct ConcertEditView: View {
                 venue: venue,
                 city: venue?.city,
                 rating: rating,
+                tour: tour,
                 buddyAttendees: buddyAttendees,
                 travel: travel,
                 ticket: ticket,

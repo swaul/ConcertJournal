@@ -12,27 +12,33 @@ struct SelectTourView: View {
     @Environment(\.dependencies) var dependencies
 
     @State var viewModel: SelectTourViewModel?
-
     @State var createTourPresenting: Bool = false
 
+    var currentTour: Tour?
+    var contextArtist: Artist?
     var onSelect: (Tour) -> Void
 
     var body: some View {
-        Group {
-            if let viewModel {
-                loadedView(viewModel: viewModel)
-            } else {
-                LoadingView()
+        NavigationStack {
+            Group {
+                if let viewModel {
+                    loadedView(viewModel: viewModel)
+                } else {
+                    LoadingView()
+                }
             }
-        }
-        .task {
-            guard viewModel == nil else { return }
-            viewModel = SelectTourViewModel(tourRepository: dependencies.offlineTourRepository)
+            .task {
+                guard viewModel == nil else { return }
+                viewModel = SelectTourViewModel(tourRepository: dependencies.offlineTourRepository)
+            }
+            .navigationTitle("Tour Auswählen")
         }
     }
 
     @ViewBuilder
     func loadedView(viewModel: SelectTourViewModel) -> some View {
+        @Bindable var viewModel = viewModel
+
         ScrollView {
             VStack(alignment: .leading) {
                 ForEach(viewModel.tours, id: \.id) { tour in
@@ -42,19 +48,29 @@ struct SelectTourView: View {
                         makeTourView(tour: tour)
                     }
                 }
-                Button {
-                    createTourPresenting = true
-                } label: {
-                    Label("Neue Tour erstellen", systemImage: "plus.circle")
-                        .font(.cjBody)
-                        .frame(maxWidth: .infinity)
-                }
             }
+            .padding()
         }
+        .scrollIndicators(.hidden)
+        .safeAreaInset(edge: .bottom) {
+            Button {
+                createTourPresenting = true
+            } label: {
+                Label("Neue Tour erstellen", systemImage: "plus.circle")
+                    .font(.cjBody)
+                    .frame(maxWidth: .infinity)
+            }
+            .padding()
+            .glassEffect()
+            .padding()
+        }
+        .tint(dependencies.colorThemeManager.appTint)
         .sheet(isPresented: $createTourPresenting) {
-            CreateTourView {
+            CreateTourView(contextArtist: contextArtist) {
+                createTourPresenting = false
                 viewModel.loadTours()
             }
+            .presentationDetents([.medium])
         }
     }
 
@@ -94,6 +110,7 @@ class SelectTourViewModel {
 
 struct CreateTourView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.dependencies) var dependencies
 
     @State var viewModel: CreateTourViewModel?
 
@@ -101,32 +118,75 @@ struct CreateTourView: View {
     @State private var startDate = Date.now
     @State private var endDate = Date.now.addingTimeInterval(86400 * 7)
     @State private var tourDescription = ""
-    @State private var selectedArtist: Artist? = nil
+    @State private var selectedArtist: ArtistDTO?
 
-    var onCreate: (Tour) -> Void
+    @State private var selectArtistPresenting: Bool = false
+
+    var onCreate: () -> Void
+
+    init(contextArtist: Artist? = nil, onCreate: @escaping () -> Void) {
+        self._selectedArtist = State(initialValue: contextArtist?.toDTO())
+        self.onCreate = onCreate
+    }
 
     var body: some View {
         NavigationStack {
             Group {
                 if let viewModel {
-                    Form {
-                        Section("Tour-Informationen") {
+                    ScrollView {
+                        VStack(alignment: .leading) {
+                            Text("Tour Informationen")
+                                .font(.cjHeadline)
+
                             TextField("Tour Name", text: $tourName)
+                                .font(.cjBody)
+                                .padding()
+                                .glassEffect()
+                                .disabled(viewModel.isLoading)
 
                             DatePicker("Startdatum", selection: $startDate, displayedComponents: .date)
+                                .font(.cjBody)
+                                .padding()
+                                .glassEffect()
+                                .disabled(viewModel.isLoading)
+
                             DatePicker("Enddatum", selection: $endDate, displayedComponents: .date)
+                                .font(.cjBody)
+                                .padding()
+                                .glassEffect()
+                                .disabled(viewModel.isLoading)
 
                             TextField("Beschreibung (optional)", text: $tourDescription, axis: .vertical)
                                 .lineLimit(3...5)
-                        }
+                                .font(.cjBody)
+                                .padding()
+                                .glassEffect()
+                                .disabled(viewModel.isLoading)
 
-                        Section("Künstler") {
-                            Text("Künstler-Auswahl Feature")
+                            Text("Künstler")
+                                .font(.cjBody)
+
+                            Button {
+                                selectArtistPresenting = true
+                            } label: {
+                                if viewModel.isLoading {
+                                    ProgressView()
+                                } else if let selectedArtist {
+                                    Text(selectedArtist.name)
+                                } else {
+                                    Text("Künstler wählen")
+                                }
+                            }
+                            .padding()
+                            .glassEffect()
+                            .disabled(viewModel.isLoading)
                         }
+                        .padding()
                     }
                     .toolbar {
                         ToolbarItem(placement: .confirmationAction) {
                             Button("Erstellen") {
+                                guard let selectedArtist else { return }
                                 viewModel.createTour(
                                     name: tourName,
                                     startDate: startDate,
@@ -136,12 +196,21 @@ struct CreateTourView: View {
                                 )
                                 dismiss()
                             }
-                            .disabled(tourName.isEmpty)
+                            .disabled(tourName.isEmpty || selectedArtist == nil || viewModel.isLoading)
                         }
                     }
                 } else {
                     LoadingView()
                 }
+            }
+            .sheet(isPresented: $selectArtistPresenting) {
+                CreateConcertSelectArtistView(isPresented: $selectArtistPresenting) { artist in
+                    self.selectedArtist = artist
+                }
+            }
+            .task {
+                guard viewModel == nil else { return }
+                viewModel = CreateTourViewModel(tourRepository: dependencies.offlineTourRepository, tourSyncManager: dependencies.tourSyncManager)
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -160,13 +229,28 @@ struct CreateTourView: View {
 class CreateTourViewModel {
 
     let tourRepository: OfflineTourRepositoryProtocol
+    let tourSyncManager: TourSyncManagerProtocol
+    var isLoading: Bool = false
 
-    init(tourRepository: OfflineTourRepositoryProtocol) {
+    init(tourRepository: OfflineTourRepositoryProtocol, tourSyncManager: TourSyncManagerProtocol) {
         self.tourRepository = tourRepository
+        self.tourSyncManager = tourSyncManager
     }
 
-    func createTour(name: String, startDate: Date, endDate: Date, artist: Artist? = nil, description: String? = nil) {
-        _ = tourRepository.createTour(name: name, startDate: startDate, endDate: endDate, artist: artist, description: description)
+    func createTour(name: String, startDate: Date, endDate: Date, artist: ArtistDTO, description: String? = nil) {
+        Task {
+            isLoading = true
+            async let createTask = tourRepository.createTour(name: name, startDate: startDate, endDate: endDate, artist: artist, description: description)
+            async let minWaitTask: Void = Task.sleep(for: .seconds(2))
+
+            do {
+                let (tour, _) = try await (createTask, minWaitTask)
+                let serverTour = try await tourSyncManager.createTour(tour)
+                isLoading = false
+            } catch {
+
+            }
+        }
     }
 
 }

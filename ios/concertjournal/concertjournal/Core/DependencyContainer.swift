@@ -24,6 +24,7 @@ class DependencyContainer {
     let storageService: StorageServiceProtocol
     let networkMonitor: NetworkMonitor
     let syncManager: SyncManager
+    let tourSyncManager: TourSyncManagerProtocol
     let appState: AppState
     let buddyNotificationService: BuddyNotificationService
     let pushNotificationManager: PushNotificationManagerProtocol
@@ -57,6 +58,7 @@ class DependencyContainer {
         self.storageService = StorageService(supabaseClient: supabaseClient)
         self.networkMonitor = NetworkMonitor()
         self.syncManager = SyncManager(apiClient: bffClient, userSessionManager: userSessionManager)
+        self.tourSyncManager = TourSyncManager(supabaseClient: supabaseClient, apiClient: bffClient, coreData: coreData)
         self.appState = AppState()
         self.buddyNotificationService = BuddyNotificationService(supabaseClient: supabaseClient)
         self.pushNotificationManager = PushNotificationManager(supabaseClient: supabaseClient)
@@ -72,7 +74,7 @@ class DependencyContainer {
         // ✅ BFF Repositories
         self.offlineConcertRepository = OfflineConcertRepository(syncManager: syncManager, userSessionManager: userSessionManager)
         self.offlinePhotoRepsitory = OfflinePhotoRepository()
-        self.offlineTourRepository = OfflineTourRepository(coreDataStack: coreData)
+        self.offlineTourRepository = OfflineTourRepository(coreDataStack: coreData, apiClient: bffClient)
         self.concertRepository = BFFConcertRepository(client: bffClient)
         self.artistRepository = BFFArtistRepository(client: bffClient)
         self.venueRepository = BFFVenueRepository(client: bffClient)

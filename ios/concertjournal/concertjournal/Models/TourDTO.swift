@@ -7,13 +7,13 @@
 
 import Foundation
 
-public struct TourDTO: Codable, Identifiable {
+public struct TourDTO: Codable, Identifiable, Equatable {
     public let id: String
     public let name: String
     public let tourDescription: String?
-    public let startDate: String  // ISO 8601
-    public let endDate: String    // ISO 8601
-    public let artistId: String?
+    public let startDate: String
+    public let endDate: String
+    public let artistId: String
     public let ownerId: String
 
     enum CodingKeys: String, CodingKey {

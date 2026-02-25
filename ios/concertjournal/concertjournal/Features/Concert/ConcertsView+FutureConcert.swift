@@ -65,6 +65,16 @@ struct FutureConcertView: View {
                     }
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
+                } else {
+                    HStack(spacing: 4) {
+                        Image(systemName: "mappin.circle.fill")
+                            .font(.caption)
+                        Text("")
+                            .font(.cjCaption)
+                    }
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .opacity(0)
                 }
 
                 if let city = concert.city {
@@ -77,8 +87,15 @@ struct FutureConcertView: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                 } else {
-                    Text(" ")
-                        .font(.cjCaption)
+                    HStack(spacing: 4) {
+                        Image(systemName: "mappin.circle.fill")
+                            .font(.caption)
+                        Text("")
+                            .font(.cjCaption)
+                    }
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .opacity(0)
                 }
             }
             .padding(16)

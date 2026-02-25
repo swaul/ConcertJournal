@@ -1,4 +1,5 @@
 import Combine
+import CoreData
 import MapKit
 import SwiftUI
 import Supabase
@@ -16,6 +17,8 @@ struct NewConcertVisit: Identifiable, Equatable {
     var notes: String = ""
     var rating: Int?
 
+    var tourName: String? = nil
+    var tour: NSManagedObjectID? = nil
     var artist: ArtistDTO? = nil
     var supportActs: [ArtistDTO] = []
     var ticket: TicketDTO? = nil
@@ -33,6 +36,7 @@ struct NewConcertVisit: Identifiable, Equatable {
         self.notes = importeConcert.notes ?? ""
         self.rating = 0
 
+        self.tour = nil
         self.ticket = nil
         self.travel = nil
         self.venue = importeConcert.venue
@@ -48,6 +52,7 @@ struct NewConcertVisit: Identifiable, Equatable {
         self.notes = ""
         self.rating = nil
 
+        self.tour = nil
         self.ticket = nil
         self.travel = nil
         self.venue = nil
@@ -63,6 +68,7 @@ struct NewConcertVisit: Identifiable, Equatable {
         self.notes = ""
         self.rating = nil
 
+        self.tour = nil
         self.ticket = nil
         self.travel = nil
         self.venue = nil
@@ -92,6 +98,7 @@ extension View {
 class ConcertSheetState {
     var selectArtist = false
     var selectVenue = false
+    var selectTour = false
     var addSupportAct = false
     var createSetlist = false
     var editTicket = false
@@ -195,6 +202,7 @@ struct CreateConcertVisitView: View {
             VStack(alignment: .leading, spacing: 20) {
                 ArtistHeader(artist: artist)
                 ConcertTimeSection(draft: $draft, openingTime: $openingTime, titleFocused: $titleFocused)
+                ConcertTourSection(draft: $draft, onSelect: { sheets.selectTour = true })
                 ConcertSupportActsSection(draft: $draft, onAdd: { sheets.addSupportAct = true })
                 ConcertVenueSection(draft: $draft, onSelect: { sheets.selectVenue = true })
                 ConcertTravelSection(draft: $draft, onEdit: { sheets.travel = true })
@@ -353,6 +361,13 @@ private struct ConcertSheetsModifier: ViewModifier {
                     draft.venue = venue
                 }
             }
+            .sheet(isPresented: $sheets.selectTour) {
+                SelectTourView { tour in
+                    draft.tour = tour.objectID
+                    draft.tourName = tour.name
+                }
+                .presentationDetents([.medium, .large])
+            }
             .sheet(isPresented: $sheets.selectBuddies) {
                 BuddyAttendeePickerSheet(
                     selectedAttendees: draft.buddyAttendees,
@@ -430,6 +445,37 @@ struct ConcertTimeSection: View {
                 .padding()
                 .glassEffect()
                 .padding()
+        }
+    }
+}
+
+struct ConcertTourSection: View {
+    @Binding var draft: NewConcertVisit
+
+    var onSelect: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading) {
+            CJDivider(title: "Tour", image: nil)
+                .padding(.horizontal)
+
+            if let artist = draft.artist, let tourName = draft.tourName {
+                Text("\(artist.name): \(tourName)")
+                    .font(.cjTitleF)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding()
+                    .glassEffect()
+            }
+
+            Button {
+                onSelect()
+            } label: {
+                Text("Tour hinzufügen")
+                    .font(.cjBody)
+            }
+            .padding()
+            .glassEffect()
+            .padding(.horizontal)
         }
     }
 }

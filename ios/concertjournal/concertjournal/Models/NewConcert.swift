@@ -8,6 +8,7 @@
 import Supabase
 import Foundation
 import UIKit
+import CoreData
 
 struct CreateConcertDTO {
 
@@ -23,7 +24,7 @@ struct CreateConcertDTO {
     let venue: VenueDTO?
     let setlistItems: [TempCeateSetlistItem]
 
-    // Travel
+    let tour: NSManagedObjectID?
     let travel: TravelDTO?
     let ticket: TicketDTO?
     let images: [UIImage]
@@ -40,6 +41,7 @@ struct CreateConcertDTO {
         self.rating = newConcertVisit.rating
         self.title = newConcertVisit.title
         self.venue = newConcertVisit.venue
+        self.tour = newConcertVisit.tour
         self.travel = newConcertVisit.travel
         self.ticket = newConcertVisit.ticket
         self.setlistItems = newConcertVisit.setlistItems

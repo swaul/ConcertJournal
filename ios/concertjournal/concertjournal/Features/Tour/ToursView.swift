@@ -45,7 +45,9 @@ struct ToursView: View {
                         .padding()
                     }
                     .sheet(isPresented: $showCreateTour) {
-                        CreateTourView(viewModel: viewModel)
+                        CreateTourView {
+                            viewModel.loadTours()
+                        }
                     }
                 } else {
                     LoadingView()
@@ -91,11 +93,9 @@ struct TourCard: View {
                     Text(tour.name)
                         .font(.cjHeadline)
 
-                    if let artist = tour.artist {
-                        Text(artist.name)
-                            .font(.cjBody)
-                            .foregroundStyle(.secondary)
-                    }
+                    Text(tour.artist.name)
+                        .font(.cjBody)
+                        .foregroundStyle(.secondary)
                 }
 
                 Spacer()

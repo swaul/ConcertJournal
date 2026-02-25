@@ -9,7 +9,11 @@ import CoreData
 import Foundation
 
 protocol OfflineTourRepositoryProtocol {
-    func createTour(name: String, startDate: Date, endDate: Date, artist: Artist?, description: String?) -> Tour
+    func createTour(name: String,
+                    startDate: Date,
+                    endDate: Date,
+                    artist: ArtistDTO,
+                    description: String?) async throws -> CreateTourDTO
     func getAllTours() throws -> [Tour]
     func getToursByArtist(_ artist: Artist) throws -> [Tour]
     func getToursByStatus(_ status: TourStatus) throws -> [Tour]
@@ -21,21 +25,24 @@ protocol OfflineTourRepositoryProtocol {
 }
 
 class OfflineTourRepository: OfflineTourRepositoryProtocol {
-    let coreDataStack: CoreDataStack
+    private let coreDataStack: CoreDataStack
+    private let apiClient: BFFClient
 
-    init(coreDataStack: CoreDataStack) {
+    init(coreDataStack: CoreDataStack, apiClient: BFFClient) {
         self.coreDataStack = coreDataStack
+        self.apiClient = apiClient
     }
 
     // MARK: - Create
-    func createTour(name: String, startDate: Date, endDate: Date, artist: Artist? = nil, description: String? = nil) -> Tour {
-        let tour = Tour(context: coreDataStack.viewContext)
+    func createTour(name: String, startDate: Date, endDate: Date, artist: ArtistDTO, description: String? = nil) async throws -> CreateTourDTO {
+        let context = coreDataStack.viewContext
+        let tour = Tour(context: context)
         tour.id = UUID()
         tour.name = name
         tour.startDate = startDate
         tour.endDate = endDate
         tour.tourDescription = description
-        tour.artist = artist
+        tour.artist = await fetchOrCreateArtist(from: artist, context: context)
         tour.ownerId = UserDefaults.standard.string(forKey: "userId") ?? "local"
         tour.isOwner = true
         tour.syncStatus = SyncStatus.pending.rawValue
@@ -43,7 +50,14 @@ class OfflineTourRepository: OfflineTourRepositoryProtocol {
         tour.syncVersion = 1
 
         save()
-        return tour
+
+        guard let artistServerId = tour.artist.serverId else { throw SyncError.missingServerId }
+        return CreateTourDTO(name: tour.name,
+                             tourDescription: tour.tourDescription,
+                             startDate: tour.startDate.supabseDateString,
+                             endDate: tour.endDate.supabseDateString,
+                             artistId: artistServerId,
+                             ownerId: tour.ownerId)
     }
 
     // MARK: - Read
@@ -124,4 +138,71 @@ class OfflineTourRepository: OfflineTourRepositoryProtocol {
     private func save() {
         coreDataStack.save()
     }
+
+    private func fetchOrCreateArtist(
+        from dto: ArtistDTO,
+        context: NSManagedObjectContext
+    ) async -> Artist {
+
+        // 1. Server fragen via spotifyId
+        if let spotifyId = dto.spotifyArtistId, !spotifyId.isEmpty {
+            if let serverArtist: ArtistDTO = try? await apiClient.get("/artists/\(spotifyId)") {
+                // Server kennt ihn – lokal nach serverId suchen oder neu anlegen
+                if let existing = fetchLocalArtistIfExists(serverArtist: serverArtist, context: context) {
+                    return existing
+                }
+
+                // Server kennt ihn aber lokal noch nicht → mit serverId anlegen
+                let artist = Artist(context: context)
+                artist.id = UUID()
+                artist.name = serverArtist.name
+                artist.imageUrl = serverArtist.imageUrl
+                artist.spotifyArtistId = serverArtist.spotifyArtistId
+                artist.serverId = serverArtist.id  // ← direkt mit serverId
+                artist.syncStatus = SyncStatus.synced.rawValue  // ← schon synced!
+                return artist
+            }
+        }
+
+        // 2. Lokal nach spotifyId suchen (Server offline oder kein spotifyId)
+        if let spotifyId = dto.spotifyArtistId, !spotifyId.isEmpty {
+            let request: NSFetchRequest<Artist> = Artist.fetchRequest()
+            request.predicate = NSPredicate(format: "spotifyArtistId == %@", spotifyId)
+            request.fetchLimit = 1
+            if let existing = try? context.fetch(request).first {
+                return existing
+            }
+        }
+
+        // 3. Neu anlegen (wirklich unbekannt)
+        let artist = Artist(context: context)
+        artist.id = UUID()
+        artist.name = dto.name
+        artist.imageUrl = dto.imageUrl
+        artist.spotifyArtistId = dto.spotifyArtistId
+        artist.syncStatus = SyncStatus.pending.rawValue
+        return artist
+    }
+
+    private func fetchLocalArtistIfExists(serverArtist: ArtistDTO, context: NSManagedObjectContext) -> Artist? {
+        let request: NSFetchRequest<Artist> = Artist.fetchRequest()
+        request.predicate = NSPredicate(format: "serverId == %@", serverArtist.id)
+        request.fetchLimit = 1
+
+        if let existing = try? context.fetch(request).first {
+            return existing
+        }
+
+        guard let spotifyId = serverArtist.spotifyArtistId, !spotifyId.isEmpty else { return nil }
+        request.predicate = NSPredicate(format: "spotifyArtistId == %@", spotifyId)
+
+        if let existing = try? context.fetch(request).first {
+            existing.serverId = serverArtist.id
+            existing.syncStatus = SyncStatus.synced.rawValue
+            return existing
+        }
+
+        return nil
+    }
+
 }

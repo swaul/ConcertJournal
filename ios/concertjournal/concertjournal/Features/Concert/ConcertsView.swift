@@ -13,13 +13,13 @@ enum ScrollOffsetNamespace {
 }
 
 struct ConcertsView: View {
-    @Environment(\.dependencies) private var dependencies
-    @Environment(\.navigationManager) private var navigationManager
+    @Environment(\.dependencies) var dependencies
+    @Environment(\.navigationManager) var navigationManager
 
     @State private var viewModel: ConcertsViewModel? = nil
 
     @State private var chooseCreateFlowPresenting: Bool = false
-    @State private var concertToDelete: Concert? = nil
+    @State var concertToDelete: Concert? = nil
     @State private var confirmationText: ConfirmationMessage? = nil
     @State private var confirmationTextPresenting: Bool = false
 
@@ -55,7 +55,7 @@ struct ConcertsView: View {
                                                            color: dependencies.colorThemeManager.appTint))
                         }
                         .padding()
-                    } else if viewModel.futureConcerts.isEmpty && viewModel.pastConcerts.isEmpty {
+                    } else if viewModel.futureConcerts.isEmpty && viewModel.allConcerts.isEmpty && viewModel.concertToday == nil {
                         VStack(spacing: 24) {
                             Spacer()
 
@@ -262,66 +262,10 @@ struct ConcertsView: View {
                         .scrollClipDisabled()
                     }
                 }
-
-                if !viewModel.pastConcerts.isEmpty {
-                    Text(TextKey.pastConcerts.localized)
-                        .font(.cjTitle)
-                        .padding(.horizontal, 20)
-                        .padding(.top, 8)
-                }
                 
-                ForEach(viewModel.pastConcerts.enumerated().map({ $0 }), id: \.element.id) { index, visit in
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text(visit.title ?? visit.artist.name)
-                                .font(.cjCaption)
-                                .foregroundStyle(.secondary)
-                                .multilineTextAlignment(.leading)
-                                .lineLimit(2)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                concertsGroupedSection(viewModel: viewModel)
 
-                            Text(visit.date.shortDateOnlyString)
-                                .font(.cjCaption)
-                                .foregroundStyle(dependencies.colorThemeManager.appTint)
-                        }
-                        .padding(.horizontal, 20)
-
-                        Button {
-                            HapticManager.shared.impact(.light)
-                            navigationManager.push(.concertDetail(visit))
-                        } label: {
-                            PastConcertView(concert: visit)
-                        }
-                        .buttonStyle(CardButtonStyle())
-                        .contextMenu {
-                            Button {
-                                HapticManager.shared.impact(.light)
-                                navigationManager.push(.concertDetail(visit))
-                            } label: {
-                                Label(TextKey.detailPage.localized, systemImage: "info.circle")
-                            }
-                            .font(.cjBody)
-
-                            Divider()
-
-                            Button(role: .destructive) {
-                                HapticManager.shared.impact(.medium)
-                                concertToDelete = visit
-                            } label: {
-                                Label(TextKey.concertDelete.localized, systemImage: "trash")
-                            }
-                            .font(.cjBody)
-                        }
-                        .padding(.horizontal, 20)
-                    }
-
-                    if index != 0, index % 5 == 0 {
-                        AdaptiveBannerAdView()
-                            .padding(.vertical, 8)
-                    }
-                }
-
-                if viewModel.pastConcerts.count < 5 {
+                if viewModel.allConcerts.count < 5 {
                     AdaptiveBannerAdView()
                         .padding(.horizontal, 20)
                 }
