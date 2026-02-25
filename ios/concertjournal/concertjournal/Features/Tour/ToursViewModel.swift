@@ -42,8 +42,12 @@ class ToursViewModel {
     }
 
     func createTour(name: String, startDate: Date, endDate: Date, artist: ArtistDTO, description: String? = nil) async {
-        _ = await tourRepository.createTour(name: name, startDate: startDate, endDate: endDate, artist: artist, description: description)
-        loadTours()
+        do {
+            _ = try await tourRepository.createTour(name: name, startDate: startDate, endDate: endDate, artist: artist, description: description)
+            loadTours()
+        } catch {
+            logError("Error creating tour", error: error)
+        }
     }
 
     func updateTour(_ tour: Tour, name: String, startDate: Date, endDate: Date, description: String? = nil) {

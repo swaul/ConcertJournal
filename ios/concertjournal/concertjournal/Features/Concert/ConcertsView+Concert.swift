@@ -69,27 +69,44 @@ extension ConcertsView {
                         .padding(.horizontal, 20)
                     }
 
-                    VStack(spacing: 20) {
-                        if artistGroup.concerts.contains(where: { $0.tour != nil }) {
-                            tourGroupedConcerts(artistGroup)
-                        } else {
-                            simpleGroupedConcerts(artistGroup)
-                        }
+                    GroupedConcerts(artistGroup: artistGroup) { concert in
+                        concertToDelete = concert
                     }
-                    .padding(.horizontal, 20)
                 }
-
                 //                    AdaptiveBannerAdView()
                 //                        .padding(.horizontal, 20)
             }
         }
     }
 
+}
+
+struct GroupedConcerts: View {
+
+    @Environment(\.dependencies) var dependencies
+    @Environment(\.navigationManager) var navigationManager
+
+    @State var artistGroup: ArtistGroupedConcerts
+    @State var isExpanded: Bool = true
+
+    var selectConcertToDelete: (Concert) -> Void
+
+    var body: some View {
+        VStack(spacing: 20) {
+            if artistGroup.concerts.contains(where: { $0.tour != nil }) {
+                tourGroupedConcerts(artistGroup)
+            } else {
+                simpleGroupedConcerts(artistGroup)
+            }
+        }
+        .padding(.horizontal, 20)
+    }
+
     @ViewBuilder
     private func simpleGroupedConcerts(_ artistGroup: ArtistGroupedConcerts) -> some View {
         VStack(spacing: 8) {
             ForEach(artistGroup.concertsSorted, id: \.id) { concert in
-                concertRowInGroup(concert)
+                ConcertRowInGroup(concert: concert, tour: concert.tour, selectConcertToDelete: selectConcertToDelete)
             }
         }
     }
@@ -97,9 +114,30 @@ extension ConcertsView {
     @ViewBuilder
     private func tourGroupedConcerts(_ artistGroup: ArtistGroupedConcerts) -> some View {
         ForEach(artistGroup.concertsByTour) { tourGroup in
-            VStack(alignment: .leading, spacing: 12) {
-                // Tour Header (wenn nicht "Keine Tour")
-                if !tourGroup.hasNoTour {
+            TourGroupedConcerts(tourGroup: tourGroup, selectConcertToDelete: selectConcertToDelete)
+        }
+    }
+}
+
+struct TourGroupedConcerts: View {
+
+    @Environment(\.dependencies) var dependencies
+    @Environment(\.navigationManager) var navigationManager
+
+    let tourGroup: TourGroup
+    var selectConcertToDelete: (Concert) -> Void
+
+    @State var isExpanded: Bool = true
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Tour Header (wenn nicht "Keine Tour")
+            if !tourGroup.hasNoTour {
+                Button {
+                    withAnimation {
+                        isExpanded.toggle()
+                    }
+                } label: {
                     HStack {
                         Image(systemName: "tag.fill")
                             .font(.caption)
@@ -115,52 +153,73 @@ extension ConcertsView {
                             .foregroundStyle(.secondary)
 
                         Spacer()
+
+                        Image(systemName: "chevron.up")
+                            .rotationEffect(isExpanded ? .zero : .degrees(180))
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
                     .background(dependencies.colorThemeManager.appTint.opacity(0.1))
                     .cornerRadius(20)
                 }
+                .buttonStyle(.plain)
+            }
 
-                if tourGroup.hasNoTour {
-                    VStack(spacing: 8) {
-                        ForEach(tourGroup.futureConcerts + tourGroup.pastConcerts, id: \.id) { concert in
-                            concertRowInGroup(concert)
-                        }
+            if tourGroup.hasNoTour {
+                VStack(spacing: 8) {
+                    ForEach(tourGroup.futureConcerts + tourGroup.pastConcerts, id: \.id) { concert in
+                        ConcertRowInGroup(concert: concert, tour: concert.tour, selectConcertToDelete: selectConcertToDelete)
                     }
-                } else {
+                }
+            }
+
+            if !tourGroup.hasNoTour, isExpanded == true {
+                VStack(alignment: .leading, spacing: 12) {
                     if !tourGroup.futureConcerts.isEmpty {
                         Text("Bevorstehende Konzerte dieser Tour")
                             .font(.cjCaption)
                             .foregroundStyle(.secondary)
+                            .padding(.leading)
                         VStack(spacing: 8) {
                             ForEach(tourGroup.futureConcerts, id: \.id) { concert in
-                                concertRowInGroup(concert)
+                                ConcertRowInGroup(concert: concert, tour: concert.tour, selectConcertToDelete: selectConcertToDelete)
                             }
                         }
+                        .padding(.leading)
                     }
 
                     if !tourGroup.pastConcerts.isEmpty {
                         Text("Vergangene Konzerte dieser Tour")
                             .font(.cjCaption)
                             .foregroundStyle(.secondary)
+                            .padding(.leading)
                         VStack(spacing: 8) {
                             ForEach(tourGroup.pastConcerts, id: \.id) { concert in
-                                concertRowInGroup(concert)
+                                ConcertRowInGroup(concert: concert, tour: concert.tour, selectConcertToDelete: selectConcertToDelete)
                             }
                         }
+                        .padding(.leading)
                     }
                 }
+                .transition(.push(from: .trailing))
             }
-            .padding(8)
-            .background(dependencies.colorThemeManager.appTint.opacity(0.1))
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-            .padding(.leading)
         }
+        .padding(8)
+        .background(dependencies.colorThemeManager.appTint.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
     }
+}
 
-    @ViewBuilder
-    private func concertRowInGroup(_ concert: Concert, specialColor: Color? = nil) -> some View {
+struct ConcertRowInGroup: View {
+
+    @Environment(\.dependencies) var dependencies
+    @Environment(\.navigationManager) var navigationManager
+
+    let concert: Concert
+    let tour: Tour?
+    var selectConcertToDelete: (Concert) -> Void
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
@@ -228,7 +287,20 @@ extension ConcertsView {
             HapticManager.shared.impact(.light)
             navigationManager.push(.concertDetail(concert))
         }
+        .contentShape(Rectangle())
         .contextMenu {
+            if let tour {
+                Button {
+                    HapticManager.shared.impact(.medium)
+                    navigationManager.presentSheet(.tourDetail(tour))
+                } label: {
+                    Label("Tour anzeigen", systemImage: "tag.fill")
+                }
+                .font(.cjBody)
+
+                Divider()
+            }
+
             Button {
                 HapticManager.shared.impact(.light)
                 navigationManager.push(.concertDetail(concert))
@@ -241,7 +313,7 @@ extension ConcertsView {
 
             Button(role: .destructive) {
                 HapticManager.shared.impact(.medium)
-                concertToDelete = concert
+                selectConcertToDelete(concert)
             } label: {
                 Label(TextKey.concertDelete.localized, systemImage: "trash")
             }

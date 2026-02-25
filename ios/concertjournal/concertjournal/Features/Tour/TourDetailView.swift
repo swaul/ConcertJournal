@@ -14,79 +14,81 @@ struct TourDetailView: View {
     @State private var showAddConcert = false
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                // Tour Header
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(tour.name)
-                        .font(.cjTitle)
-
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    // Tour Header
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(tour.name)
+                            .font(.cjTitle)
+                        
                         Text(tour.artist.name)
                             .font(.cjHeadline)
                             .foregroundStyle(.secondary)
-
-                    HStack {
-                        Text("\(tour.startDate.formatted(date: .abbreviated, time: .omitted)) - \(tour.endDate.formatted(date: .abbreviated, time: .omitted))")
-                            .font(.cjBody)
-
-                        Spacer()
-
-                        TourStatusBadge(status: tour.status)
-                    }
-                }
-                .padding()
-
-                // Tour Beschreibung
-                if let description = tour.tourDescription, !description.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Beschreibung")
-                            .font(.cjHeadline)
-                        Text(description)
-                            .font(.cjBody)
-                    }
-                    .padding()
-                }
-
-                // Konzerte dieser Tour
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Text("Konzerte (\(tour.concertCount))")
-                            .font(.cjHeadline)
-
-                        Spacer()
-
-                        Button(action: { showAddConcert = true }) {
-                            Image(systemName: "plus.circle.fill")
+                        
+                        HStack {
+                            Text("\(tour.startDate.formatted(date: .abbreviated, time: .omitted)) - \(tour.endDate.formatted(date: .abbreviated, time: .omitted))")
+                                .font(.cjBody)
+                            
+                            Spacer()
+                            
+                            TourStatusBadge(status: tour.status)
                         }
                     }
-
-                    if tour.concertsArray.isEmpty {
-                        Text("Keine Konzerte dieser Tour zugeordnet")
-                            .font(.cjBody)
-                            .foregroundStyle(.secondary)
-                    } else {
-                        VStack(spacing: 12) {
-                            ForEach(tour.concertsArray, id: \.id) { concert in
-                                ConcertRowInTour(concert: concert, tour: tour)
+                    .padding()
+                    
+                    // Tour Beschreibung
+                    if let description = tour.tourDescription, !description.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Beschreibung")
+                                .font(.cjHeadline)
+                            Text(description)
+                                .font(.cjBody)
+                        }
+                        .padding()
+                    }
+                    
+                    // Konzerte dieser Tour
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text("Konzerte (\(tour.concertCount))")
+                                .font(.cjHeadline)
+                            
+                            Spacer()
+                            
+                            Button(action: { showAddConcert = true }) {
+                                Image(systemName: "plus.circle.fill")
+                            }
+                        }
+                        
+                        if tour.concertsArray.isEmpty {
+                            Text("Keine Konzerte dieser Tour zugeordnet")
+                                .font(.cjBody)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            VStack(spacing: 12) {
+                                ForEach(tour.concertsArray, id: \.id) { concert in
+                                    ConcertRowInTour(concert: concert, tour: tour)
+                                }
                             }
                         }
                     }
+                    .padding()
                 }
-                .padding()
             }
-        }
-        .navigationTitle("Tour")
-        .toolbar {
-            Button(action: { showEditTour = true }) {
-                Image(systemName: "pencil.circle.fill")
+            .navigationTitle("Tour")
+            .toolbar {
+                Button(action: { showEditTour = true }) {
+                    Image(systemName: "pencil.circle.fill")
+                }
             }
+            //        .sheet(isPresented: $showEditTour) {
+            //            EditTourView(tour: tour)
+            //        }
+            //        .sheet(isPresented: $showAddConcert) {
+            //            AddConcertToTourView(tour: tour)
+            //        }
         }
-        //        .sheet(isPresented: $showEditTour) {
-        //            EditTourView(tour: tour)
-        //        }
-        //        .sheet(isPresented: $showAddConcert) {
-        //            AddConcertToTourView(tour: tour)
-        //        }
     }
 }
 

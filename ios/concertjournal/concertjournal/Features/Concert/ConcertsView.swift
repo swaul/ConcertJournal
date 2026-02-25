@@ -173,6 +173,14 @@ struct ConcertsView: View {
             .navigationDestination(for: NavigationRoute.self) { route in
                 navigationDestination(for: route)
             }
+            .sheet(item: $navigationManager.presentedSheet) { route in
+                switch route {
+                case let .tourDetail(tour):
+                    TourDetailView(tour: tour)
+                default:
+                    EmptyView()
+                }
+            }
             .toolbar {
                 #if DEBUG
                 ToolbarItem(placement: .topBarLeading) {

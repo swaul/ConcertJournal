@@ -156,6 +156,7 @@ class SyncManager {
                 let problem = try await mergeConcertFromServerSync(serverConcert, context: context)
                 if let problem {
                     problems.append(problem)
+                    pulledConcerts += 1
                 } else {
                     pulledConcerts += 1
                 }
@@ -181,6 +182,8 @@ class SyncManager {
 
         logSuccess("Pulled \(pulledConcerts) concerts", category: .sync)
 
+        guard pulledConcerts == response.concerts.count else { return }
+        
         await MainActor.run {
             UserDefaults.standard.set(Date(), forKey: "lastSyncDate")
         }

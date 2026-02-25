@@ -36,7 +36,9 @@ enum NavigationRoute: Hashable {
     case orderSetlist(CreateSetlistViewModel)
 
     case playlist
-    
+
+    case tourDetail(Tour)
+
     // Profile
     case profile
     case settings
@@ -216,6 +218,7 @@ extension NavigationRoute: Identifiable {
         case .completion: return "completion"
         case .search: return "search"
         case .buddies: return "buddies"
+        case .tourDetail(let tour): return "tourDetail-\(tour.name)"
             #if DEBUG
         case .testView: return "testView"
             #endif

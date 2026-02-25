@@ -103,7 +103,7 @@ class SelectTourViewModel {
         do {
             tours = try tourRepository.getAllTours()
         } catch {
-
+            logError("Error loading tours", error: error)
         }
     }
 }

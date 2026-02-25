@@ -214,6 +214,12 @@ struct ProfileView: View {
                     }
                     .buttonStyle(.glass)
                     .tint(.orange)
+
+                    Button("Last sync date zurücksetzen") {
+                        UserDefaults.setValue(Date.distantPast, forKey: "lastSyncDate")
+                    }
+                    .buttonStyle(.glass)
+                    .tint(.orange)
 #endif
 
                     // ── Account-Aktionen ──────────────────────────────
