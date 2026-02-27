@@ -38,6 +38,8 @@ final class BuddiesViewModel {
     // Fehler
     var errorMessage: String? = nil
     
+    var profile: Profile?
+        
     private var currentUserId: String {
         userProvider.user?.id.uuidString.lowercased() ?? ""
     }
@@ -66,12 +68,18 @@ final class BuddiesViewModel {
             loadingState = .notLoggedIn
             return
         }
+        async let profileTask: () = loadProfile()
         async let buddiesTask: () = fetchBuddies()
         async let requestsTask: () = fetchRequests()
         async let codeTask: () = fetchOrCreateBuddyCode()
-        _ = await (buddiesTask, requestsTask, codeTask)
+        _ = await (buddiesTask, requestsTask, codeTask, profileTask)
         logInfo("Finished loading BuddiesViewModel state")
         loadingState = .loaded
+    }
+    
+    @MainActor
+    private func loadProfile() async {
+        profile = await userProvider.getUserProfile()
     }
     
     @MainActor
@@ -330,7 +338,9 @@ final class BuddiesViewModel {
                     recipientId: userId,
                     type: "buddy_request",
                     title: "\(senderName) möchte dein Buddy werden!",
-                    body: "Tippe hier um die Anfrage anzunehmen."
+                    body: "Tippe hier um die Anfrage anzunehmen.",
+                    senderAvatarUrl: senderAvatarUrl,
+                    concertId: nil
                 ))
                 .execute()
 
@@ -360,7 +370,9 @@ final class BuddiesViewModel {
                     recipientId: request.userId,
                     type: "buddy_accepted",
                     title: "\(senderName) hat deine Anfrage angenommen!",
-                    body: "Ihr seid jetzt Buddies 🎉"
+                    body: "Ihr seid jetzt Buddies 🎉",
+                    senderAvatarUrl: senderAvatarUrl,
+                    concertId: nil
                 ))
                 .execute()
 
@@ -372,9 +384,16 @@ final class BuddiesViewModel {
     }
 
     private var senderName: String {
-        userProvider.user?.userMetadata["display_name"]?.stringValue ?? "Jemand"
+        if let profile {
+            return profile.displayName ?? "Jemand"
+        }
+        return userProvider.user?.userMetadata["display_name"]?.stringValue ?? "Jemand"
     }
-
+    
+    private var senderAvatarUrl: String? {
+        profile?.avatarURL
+    }
+    
     @MainActor
     func declineRequest(_ request: BuddyRequest) async {
         logInfo("Declining request id: \(request.id)")
@@ -502,19 +521,5 @@ private struct BuddyCodeRow: Decodable {
     let buddyCode: String?
     enum CodingKeys: String, CodingKey {
         case buddyCode = "buddy_code"
-    }
-}
-
-private struct BuddyNotificationRow: Encodable {
-    let recipientId: String
-    let type: String
-    let title: String
-    let body: String
-    let isRead: Bool = false
-
-    enum CodingKeys: String, CodingKey {
-        case recipientId = "recipient_id"
-        case type, title, body
-        case isRead = "is_read"
     }
 }

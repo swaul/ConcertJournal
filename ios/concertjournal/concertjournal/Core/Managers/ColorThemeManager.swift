@@ -41,7 +41,7 @@ private extension Color {
 
 // MARK: - Persistence API
 struct ColorPersistence {
-    private static let defaults = UserDefaults(suiteName: "group.de.kuehnel.concertjournal")!
+    private static let defaults = UserDefaults(suiteName: "group.com.kuehnel.concertjournal")!
 
     static func saveAppTint(_ color: Color) {
         guard let rgba = color.toRGBA() else { return }

@@ -4,21 +4,26 @@
 <dict>
 	<key>CFBundleIconFile</key>
 	<string>icon</string>
+	<key>CFBundleURLSchemes</key>
+	<array>
+		<string>concertjournal</string>
+	</array>
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionAttributes</key>
 		<dict>
-			<key>NSExtensionActivationRule</key>
-			<string>TRUEPREDICATE</string>
+            <key>NSExtensionActivationRule</key>
+            <dict>
+                <key>NSExtensionActivationSupportsText</key>
+                <true/>
+                <key>NSExtensionActivationSupportsURL</key>
+                <true/>
+            </dict>
 		</dict>
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.share-services</string>
 		<key>NSExtensionPrincipalClass</key>
 		<string>$(PRODUCT_MODULE_NAME).ShareViewController</string>
 	</dict>
-    <key>CFBundleURLSchemes</key>
-    <array>
-        <string>concertjournal</string>
-    </array>
 </dict>
 </plist>

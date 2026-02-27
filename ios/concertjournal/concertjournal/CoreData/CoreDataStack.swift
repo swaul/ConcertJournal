@@ -19,7 +19,7 @@ class CoreDataStack {
     init() {
         persistentContainer = NSPersistentContainer(name: "CJModels")
 
-        let appGroupID = "group.de.kuehnel.concertjournal"
+        let appGroupID = "group.com.kuehnel.concertjournal"
         let storeURL = FileManager.default
             .containerURL(forSecurityApplicationGroupIdentifier: appGroupID)!
             .appendingPathComponent("CJModels.sqlite")

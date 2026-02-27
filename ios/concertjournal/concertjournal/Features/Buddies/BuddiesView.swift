@@ -16,7 +16,9 @@ struct BuddiesView: View {
     @State private var showLoginSheet: Bool = false
 
     @State private var showSharedConcerts: Buddy? = nil
-
+    
+    @State private var pendingNotificationRequestId: String?
+    
     var body: some View {
         @Bindable var navigationManager = navigationManager
 
@@ -45,6 +47,18 @@ struct BuddiesView: View {
             .onReceive(NotificationCenter.default.publisher(for: .loggedInChanged)) { _ in
                 Task {
                     await viewModel?.load()
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .openBuddies)) { notification in
+                if let requestId = notification.object as? String {
+                    pendingNotificationRequestId = requestId
+                }
+            }
+            .onChange(of: viewModel?.loadingState) { oldValue, newValue in
+                if newValue == .loaded, let requestId = pendingNotificationRequestId {
+                    navigationManager.presentedSheet = .showRequestsSheet(id: requestId)
+                    pendingNotificationRequestId = nil
+                    UNUserNotificationCenter.current().setBadgeCount(0)
                 }
             }
             .task {
@@ -91,6 +105,8 @@ struct BuddiesView: View {
     
     @ViewBuilder
     private func loadingView() -> some View {
+        @Bindable var navigationManager = navigationManager
+
         VStack(spacing: 12) {
             ProgressView()
             Text(TextKey.buddiesLoading.localized)
@@ -141,6 +157,7 @@ struct BuddiesView: View {
     
     @ViewBuilder
     private func loadedView(viewModel: BuddiesViewModel) -> some View {
+        @Bindable var navigationManager = navigationManager
         ZStack(alignment: .bottom) {
             ScrollView {
                 LazyVStack(spacing: 12) {
@@ -184,6 +201,16 @@ struct BuddiesView: View {
         }
         .sheet(isPresented: $showAddBuddySheet) {
             AddBuddySheet(viewModel: viewModel)
+        }
+        .sheet(item: $navigationManager.presentedSheet) { route in
+            switch route {
+            case let .showRequestsSheet(id):
+                SingleRequestSheet(requestId: id, viewModel: viewModel)
+            default:
+                Text("Das sollte nicht passieren..")
+                    .font(.cjTitleF)
+                    .padding()
+            }
         }
         .alert(TextKey.errorGeneric.localized, isPresented: .init(
             get: { viewModel.errorMessage != nil },
@@ -547,6 +574,47 @@ private struct RequestRow: View {
         .padding(12)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
         .overlay { RoundedRectangle(cornerRadius: 16).stroke(.white.opacity(0.1), lineWidth: 0.5) }
+    }
+}
+
+private struct SingleRequestSheet: View {
+    
+    let requestId: String?
+    var viewModel: BuddiesViewModel
+    
+    var body: some View {
+        if let requestId, let request = viewModel.incomingRequests.first(where: { $0.id == requestId }) {
+            VStack {
+                HStack {
+                    AvatarView(url: request.avatarURL, name: request.displayName, size: 46)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(request.displayName).font(.cjHeadline)
+                        Text(request.createdAt.formatted(.relative(presentation: .named)))
+                            .font(.cjFootnote).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                }
+            }
+        } else {
+            ScrollView {
+                VStack(spacing: 20) {
+                    if !viewModel.incomingRequests.isEmpty {
+                        requestSection(title: TextKey.incoming.localized, icon: "arrow.down.circle.fill",
+                                       iconColor: .green, requests: viewModel.incomingRequests)
+                    }
+                }
+                .padding()
+            }
+            .scrollIndicators(.hidden)
+        }
+    }
+    
+    @ViewBuilder
+    private func requestSection(title: String, icon: String, iconColor: Color, requests: [BuddyRequest]) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(title, systemImage: icon).font(.cjHeadline).foregroundStyle(iconColor).padding(.leading, 4)
+            ForEach(requests) { request in RequestRow(request: request, viewModel: viewModel) }
+        }
     }
 }
 

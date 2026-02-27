@@ -60,7 +60,7 @@ class DependencyContainer {
         self.syncManager = SyncManager(apiClient: bffClient, userSessionManager: userSessionManager)
         self.tourSyncManager = TourSyncManager(supabaseClient: supabaseClient, apiClient: bffClient, coreData: coreData)
         self.appState = AppState()
-        self.buddyNotificationService = BuddyNotificationService(supabaseClient: supabaseClient)
+        self.buddyNotificationService = BuddyNotificationService(supabaseClient: supabaseClient, userProvider: userSessionManager)
         self.pushNotificationManager = PushNotificationManager(supabaseClient: supabaseClient)
 
         // ✅ BFF Client needs auth token
@@ -121,7 +121,7 @@ class DependencyContainer {
         userSessionManager.profileChanged
             .sink { [weak self] profile in
                 guard let self, let profile else { return }
-                self.buddyNotificationService.currentUserName = profile.displayName
+                self.buddyNotificationService.profile = profile
             }
             .store(in: &cancellables)
     }
@@ -135,7 +135,7 @@ class DependencyContainer {
         }
 
         let storeURL = FileManager.default
-            .containerURL(forSecurityApplicationGroupIdentifier: "group.de.kuehnel.concertjournal")!
+            .containerURL(forSecurityApplicationGroupIdentifier: "group.com.kuehnel.concertjournal")!
             .appendingPathComponent("CJModels.sqlite")
 
         try? FileManager.default.removeItem(at: storeURL)
@@ -200,4 +200,6 @@ extension Notification.Name {
     static let syncingProblem = Notification.Name("SyncingProblem")
     static let resetAppState = Notification.Name("ResetAppState")
     static let loggedInChanged = Notification.Name("LoggedInChanged")
+    static let openBuddies = Notification.Name("openBuddies")
+    static let openConcert = Notification.Name("openConcert")
 }
