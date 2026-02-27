@@ -17,6 +17,7 @@ protocol UserSessionManagerProtocol {
 
     func start() async throws
     func loadUser() async throws -> User
+    func getUserProfile() async -> Profile?
     func refreshSpotifyProviderTokenIfNeeded() async throws
     func ensureValidProviderToken() async throws -> String
     func spotifyAccessToken() async throws -> String
@@ -242,6 +243,16 @@ final class UserSessionManager: UserSessionManagerProtocol {
             )
         }
         userSessionChangedSubject.send(self.user)
+    }
+    
+    func getUserProfile() async -> Profile? {
+        if let profile {
+            return profile
+        }
+        
+        guard let user else { return nil }
+        await loadProfile(for: user.id)
+        return profile
     }
     
     var isLoadingProfile: Bool = false

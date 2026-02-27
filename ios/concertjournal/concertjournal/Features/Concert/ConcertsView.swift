@@ -450,6 +450,10 @@ struct ConcertsView: View {
         case .concertDetail(let concert):
             ConcertDetailView(concert: concert)
                 .toolbarVisibility(.hidden, for: .tabBar)
+            
+        case .concertDetailAsync(let id):
+            ConcertDetailAsyncView(id: id)
+                .toolbarVisibility(.hidden, for: .tabBar)
 
         case .colorPicker:
             ColorSetView()

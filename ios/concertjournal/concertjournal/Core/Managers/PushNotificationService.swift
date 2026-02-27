@@ -42,7 +42,7 @@ final class PushNotificationManager: PushNotificationManagerProtocol {
     }
 
     private func upsertToken(_ token: String, for userId: UUID) async {
-        let row = DeviceTokenRow(userId: userId, token: token)
+        let row = DeviceTokenRow(userId: userId, token: token, environment: DeviceTokenRow.currentEnvironment)
         do {
             try await supabaseClient.client
                 .from("device_tokens")
@@ -76,9 +76,18 @@ private struct DeviceTokenRow: Encodable {
     let userId: UUID
     let token: String
     let platform: String = "ios"
-
+    let environment: String
+    
+    static var currentEnvironment: String {
+#if DEBUG
+        return "development"
+#else
+        return "production"
+#endif
+    }
+    
     enum CodingKeys: String, CodingKey {
         case userId = "user_id"
-        case token, platform
+        case token, platform, environment
     }
 }

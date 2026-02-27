@@ -11,7 +11,7 @@ import CoreData
 
 // MARK: - CoreData Stack (shared with main app via App Group)
 
-private let appGroupID = "group.de.kuehnel.concertjournal" // ← anpassen
+private let appGroupID = "group.com.kuehnel.concertjournal" // ← anpassen
 
 private var sharedContainer: NSPersistentContainer = {
     let container = NSPersistentContainer(name: "CJModels")
