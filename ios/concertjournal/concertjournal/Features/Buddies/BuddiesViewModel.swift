@@ -218,7 +218,7 @@ final class BuddiesViewModel {
         logSuccess("QR code image generated successfully")
         return UIImage(cgImage: cgImage)
     }
-    
+
     // MARK: - QR Scan Result verarbeiten
     
     @MainActor

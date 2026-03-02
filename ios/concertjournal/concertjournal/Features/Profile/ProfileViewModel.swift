@@ -7,6 +7,7 @@
 
 import Observation
 import Supabase
+import UIKit
 
 
 struct Profile: Decodable {
@@ -74,7 +75,22 @@ final class ProfileViewModel {
         
         self.profile = profile
     }
-    
+
+    private func generateQRCodeToApp(from string: String) -> UIImage? {
+        logInfo("Generating QR code for string length: \(string.count)")
+        let context = CIContext()
+        let filter = CIFilter.qrCodeGenerator()
+        // Deep-Link damit die App ihn direkt verarbeiten kann
+        filter.message = Data("concertjournal://buddy/\(string)".utf8)
+        filter.correctionLevel = "M"
+
+        guard let output = filter.outputImage else { return nil }
+        let scaled = output.transformed(by: CGAffineTransform(scaleX: 10, y: 10))
+        guard let cgImage = context.createCGImage(scaled, from: scaled.extent) else { return nil }
+        logSuccess("QR code image generated successfully")
+        return UIImage(cgImage: cgImage)
+    }
+
     // Justin.shima@appsflyer.com
     
     func signOut() {
