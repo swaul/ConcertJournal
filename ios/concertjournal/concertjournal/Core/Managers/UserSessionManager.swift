@@ -12,7 +12,7 @@ protocol UserSessionManagerProtocol {
     var providerRefreshToken: String? { get }
 
     var profileChanged: AnyPublisher<Profile?, Never> { get }
-    var userSessionChanged: AnyPublisher<User?, Never> { get }
+    var userSessionChanged: AnyPublisher<Session?, Never> { get }
     var state: UserSessionState { get }
 
     func start() async throws
@@ -93,11 +93,11 @@ final class UserSessionManager: UserSessionManagerProtocol {
 
     // MARK: - Publishers
 
-    var userSessionChanged: AnyPublisher<User?, Never> {
+    var userSessionChanged: AnyPublisher<Session?, Never> {
         userSessionChangedSubject.eraseToAnyPublisher()
     }
 
-    let userSessionChangedSubject = PassthroughSubject<User?, Never>()
+    let userSessionChangedSubject = PassthroughSubject<Session?, Never>()
     
     // MARK: - Private Properties
 
@@ -242,7 +242,7 @@ final class UserSessionManager: UserSessionManagerProtocol {
                 object: nil
             )
         }
-        userSessionChangedSubject.send(self.user)
+        userSessionChangedSubject.send(session)
     }
     
     func getUserProfile() async -> Profile? {

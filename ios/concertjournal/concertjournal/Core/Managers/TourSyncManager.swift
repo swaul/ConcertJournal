@@ -93,7 +93,7 @@ class TourSyncManager: TourSyncManagerProtocol {
 
             let context = coreData.viewContext
 
-            let request: NSFetchRequest<Tour> = NSFetchRequest()
+            let request: NSFetchRequest<Tour> = Tour.fetchRequest()
             request.predicate = NSPredicate(format: "name == %@", tour.name)
             request.fetchLimit = 1
 

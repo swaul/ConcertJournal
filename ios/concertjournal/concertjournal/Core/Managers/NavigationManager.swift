@@ -42,6 +42,7 @@ enum NavigationRoute: Hashable {
     case playlist
 
     case tourDetail(Tour)
+    case toursView
 
     // Profile
     case profile
@@ -229,6 +230,7 @@ extension NavigationRoute: Identifiable {
         case .buddies: return "buddies"
         case .showRequestsSheet: return "showRequestsSheet"
         case .tourDetail(let tour): return "tourDetail-\(tour.name)"
+        case .toursView: return "toursView"
             #if DEBUG
         case .testView: return "testView"
             #endif

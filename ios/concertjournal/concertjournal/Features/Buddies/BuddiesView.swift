@@ -5,6 +5,10 @@
 
 import SwiftUI
 
+struct BuddyRequestID: Identifiable {
+    let id: String
+}
+
 struct BuddiesView: View {
     
     @Environment(\.dependencies) var dependencies
@@ -12,6 +16,7 @@ struct BuddiesView: View {
 
     @State private var viewModel: BuddiesViewModel?
     @State private var showRequestsSheet = false
+    @State private var showSingleRequestSheet: BuddyRequestID? = nil
     @State private var showAddBuddySheet = false
     @State private var showLoginSheet: Bool = false
 
@@ -53,11 +58,13 @@ struct BuddiesView: View {
                 if let requestId = notification.object as? String {
                     pendingNotificationRequestId = requestId
                 }
+                Task {
+                    await viewModel?.load()
+                }
             }
             .onChange(of: viewModel?.loadingState) { oldValue, newValue in
                 if newValue == .loaded, let requestId = pendingNotificationRequestId {
-                    navigationManager.presentedSheet = .showRequestsSheet(id: requestId)
-                    pendingNotificationRequestId = nil
+                    showSingleRequestSheet = BuddyRequestID(id: requestId)
                     UNUserNotificationCenter.current().setBadgeCount(0)
                 }
             }
@@ -202,15 +209,8 @@ struct BuddiesView: View {
         .sheet(isPresented: $showAddBuddySheet) {
             AddBuddySheet(viewModel: viewModel)
         }
-        .sheet(item: $navigationManager.presentedSheet) { route in
-            switch route {
-            case let .showRequestsSheet(id):
-                SingleRequestSheet(requestId: id, viewModel: viewModel)
-            default:
-                Text("Das sollte nicht passieren..")
-                    .font(.cjTitleF)
-                    .padding()
-            }
+        .sheet(item: $showSingleRequestSheet) { requestId in
+            SingleRequestSheet(requestId: requestId.id, viewModel: viewModel)
         }
         .alert(TextKey.errorGeneric.localized, isPresented: .init(
             get: { viewModel.errorMessage != nil },
@@ -632,29 +632,42 @@ private struct SingleRequestSheet: View {
     var viewModel: BuddiesViewModel
     
     var body: some View {
-        if let requestId, let request = viewModel.incomingRequests.first(where: { $0.id == requestId }) {
-            VStack {
-                HStack {
-                    AvatarView(url: request.avatarURL, name: request.displayName, size: 46)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(request.displayName).font(.cjHeadline)
-                        Text(request.createdAt.formatted(.relative(presentation: .named)))
-                            .font(.cjFootnote).foregroundStyle(.secondary)
+        NavigationStack {
+            VStack(alignment: .leading) {
+                Text("Du hast eine Neue Buddy Anfrage!")
+                    .font(.cjTitleF)
+                    .padding(.horizontal)
+                
+                Text("Nimm die Anfrage an, um deinen Buddy in Konzerten zu taggen.")
+                    .font(.cjBody)
+                    .padding(.horizontal)
+
+                if let requestId, let request = viewModel.incomingRequests.first(where: { $0.id == requestId }) {
+                    VStack {
+                        HStack {
+                            AvatarView(url: request.avatarURL, name: request.displayName, size: 46)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(request.displayName).font(.cjHeadline)
+                                Text(request.createdAt.formatted(.relative(presentation: .named)))
+                                    .font(.cjFootnote).foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                        }
                     }
-                    Spacer()
+                } else {
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            if !viewModel.incomingRequests.isEmpty {
+                                requestSection(title: TextKey.incoming.localized, icon: "arrow.down.circle.fill",
+                                               iconColor: .green, requests: viewModel.incomingRequests)
+                            }
+                        }
+                        .padding()
+                    }
+                    .scrollIndicators(.hidden)
                 }
             }
-        } else {
-            ScrollView {
-                VStack(spacing: 20) {
-                    if !viewModel.incomingRequests.isEmpty {
-                        requestSection(title: TextKey.incoming.localized, icon: "arrow.down.circle.fill",
-                                       iconColor: .green, requests: viewModel.incomingRequests)
-                    }
-                }
-                .padding()
-            }
-            .scrollIndicators(.hidden)
+            .navigationTitle("Buddy Anfrage")
         }
     }
     

@@ -13,59 +13,77 @@ struct ToursView: View {
     @State private var viewModel: ToursViewModel?
     @State private var selectedTab: TourTab = .upcoming
     @State private var showCreateTour = false
-
+    
     enum TourTab {
         case upcoming, ongoing, past, all
     }
-
+    
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                if let viewModel {
-                    // Picker
-                    Picker("", selection: $selectedTab) {
-                        Text("Kommend").tag(TourTab.upcoming)
-                        Text("Aktuell").tag(TourTab.ongoing)
-                        Text("Beendet").tag(TourTab.past)
-                        Text("Alle").tag(TourTab.all)
-                    }
-                    .pickerStyle(.segmented)
-                    .padding()
-
-                    // Tour List
-                    ScrollView {
-                        VStack(spacing: 12) {
+        VStack(spacing: 0) {
+            if let viewModel {
+                // Picker
+                Picker("", selection: $selectedTab) {
+                    Text("Kommend").tag(TourTab.upcoming)
+                    Text("Aktuell").tag(TourTab.ongoing)
+                    Text("Beendet").tag(TourTab.past)
+                    Text("Alle").tag(TourTab.all)
+                }
+                .pickerStyle(.segmented)
+                .padding()
+                
+                // Tour List
+                ScrollView {
+                    VStack(spacing: 12) {
+                        if !filteredTours.isEmpty {
                             ForEach(filteredTours, id: \.id) { tour in
                                 TourCard(tour: tour)
                                     .onTapGesture {
                                         // Navigation zu Tour-Detail
                                     }
                             }
-                        }
-                        .padding()
-                    }
-                    .sheet(isPresented: $showCreateTour) {
-                        CreateTourView {
-                            viewModel.loadTours()
+                        } else {
+                            Text("Keine Tours!")
+                                .font(.cjBody)
                         }
                     }
-                } else {
-                    LoadingView()
+                    .padding()
                 }
-            }
-            .task {
-                guard viewModel == nil else { return }
-                viewModel = ToursViewModel(tourRepository: dependencies.offlineTourRepository, concertRepository: dependencies.offlineConcertRepository)
-            }
-            .navigationTitle("Touren")
-            .toolbar {
-                Button(action: { showCreateTour = true }) {
-                    Image(systemName: "plus.circle.fill")
+                .sheet(isPresented: $showCreateTour) {
+                    CreateTourView {
+                        viewModel.loadTours()
+                    }
                 }
+            } else {
+                LoadingView()
+            }
+        }
+        .background {
+            Color.background
+                .ignoresSafeArea()
+        }
+        .task {
+            guard viewModel == nil else { return }
+            viewModel = ToursViewModel(tourRepository: dependencies.offlineTourRepository, concertRepository: dependencies.offlineConcertRepository)
+        }
+        .onChange(of: viewModel?.tours) { _, allTours in
+            if viewModel?.upcomingTours.isEmpty == false {
+                selectedTab = .upcoming
+            } else if viewModel?.ongoingTours.isEmpty == false {
+                selectedTab = .ongoing
+            } else if viewModel?.pastTours.isEmpty == false {
+                selectedTab = .past
+            } else if viewModel?.tours.isEmpty == false {
+                selectedTab = .all
+            }
+        }
+        .navigationTitle("Touren")
+        .toolbar {
+            Button(action: { showCreateTour = true }) {
+                Image(systemName: "plus.circle.fill")
             }
         }
     }
-
+    
     private var filteredTours: [Tour] {
         guard let viewModel else { return [] }
         switch selectedTab {
@@ -84,7 +102,7 @@ struct ToursView: View {
 struct TourCard: View {
     let tour: Tour
     @Environment(\.dependencies) private var dependencies
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Header mit Status
@@ -92,19 +110,19 @@ struct TourCard: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(tour.name)
                         .font(.cjHeadline)
-
+                    
                     Text(tour.artist.name)
                         .font(.cjBody)
                         .foregroundStyle(.secondary)
                 }
-
+                
                 Spacer()
-
+                
                 TourStatusBadge(status: tour.status)
             }
-
+            
             Divider()
-
+            
             // Dates und Concerts
             HStack(spacing: 20) {
                 VStack(alignment: .leading, spacing: 4) {
@@ -114,10 +132,10 @@ struct TourCard: View {
                     Text(tour.duration)
                         .font(.cjBody)
                 }
-
+                
                 Divider()
                     .frame(height: 30)
-
+                
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Konzerte")
                         .font(.caption)
@@ -125,7 +143,7 @@ struct TourCard: View {
                     Text("\(tour.concertCount)")
                         .font(.cjBody)
                 }
-
+                
                 Spacer()
             }
         }
@@ -141,7 +159,7 @@ struct TourCard: View {
 
 struct TourStatusBadge: View {
     let status: TourStatus
-
+    
     var body: some View {
         Text(statusText)
             .font(.caption)
@@ -152,7 +170,7 @@ struct TourStatusBadge: View {
             .background(statusColor)
             .cornerRadius(8)
     }
-
+    
     private var statusText: String {
         switch status {
         case .upcoming: return "Kommend"
@@ -160,7 +178,7 @@ struct TourStatusBadge: View {
         case .finished: return "Beendet"
         }
     }
-
+    
     private var statusColor: Color {
         switch status {
         case .upcoming: return .blue

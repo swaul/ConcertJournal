@@ -1,31 +1,30 @@
 //
-//  UserSetupView.swift
+//  EditProfileView.swift
 //  concertjournal
 //
-//  Created by Paul Arbetit on 19.02.26.
+//  Created by Paul Arbetit on 01.03.26.
 //
 
 import PhotosUI
 import SwiftUI
 
-struct UserSetupView: View {
+struct EditProfileView: View {
     
     @Environment(\.dependencies) var dependencies
-    @State private var viewModel: UserSetupViewModel?
+    @Environment(\.dismiss) var dismiss
+    @State private var viewModel: EditProfileViewModel?
     
-    // Callback wenn Setup abgeschlossen
     let onComplete: () -> Void
-    
+
     var body: some View {
         if let viewModel {
-            UserSetupContent(viewModel: viewModel)
+            EditProfileContent(viewModel: viewModel, onComplete: onComplete)
         } else {
             LoadingView()
                 .task {
-                    viewModel = UserSetupViewModel(
+                    viewModel = EditProfileViewModel(
                         supabaseClient: dependencies.supabaseClient,
-                        userProvider: dependencies.userSessionManager,
-                        onComplete: onComplete
+                        userProvider: dependencies.userSessionManager
                     )
                 }
         }
@@ -34,16 +33,19 @@ struct UserSetupView: View {
 
 // MARK: - Content
 
-private struct UserSetupContent: View {
+private struct EditProfileContent: View {
     
     @Environment(\.dependencies) var dependencies
+    @Environment(\.dismiss) var dismiss
     
-    var viewModel: UserSetupViewModel
+    var viewModel: EditProfileViewModel
     @FocusState private var nameFocused: Bool
+    
+    let onComplete: () -> Void
     
     var body: some View {
         ZStack {
-            // Background – gleich wie im Onboarding
+            // Background
             LinearGradient(
                 colors: [
                     dependencies.colorThemeManager.appTint.opacity(0.3),
@@ -55,15 +57,32 @@ private struct UserSetupContent: View {
             .ignoresSafeArea()
             
             VStack(spacing: 0) {
+                // ── Close Button ────────────────────────────────────
+                HStack {
+                    Button {
+                        nameFocused = false
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    
+                    Spacer()
+                }
+                .padding(.horizontal, 32)
+                .padding(.vertical, 16)
+                
                 Spacer()
                 
                 // ── Header ────────────────────────────────────────────
                 VStack(spacing: 12) {
-                    Text(TextKey.almostDone.localized)
+                    Text("Profil bearbeiten")
                         .font(.custom("PlayfairDisplay-Bold", size: 36))
                         .multilineTextAlignment(.center)
                     
-                    Text(TextKey.nameQuestion.localized)
+                    Text("Aktualisiere dein Profilbild und den Namen, den andere Nutzer sehen wenn sie dich markieren.")
                         .font(.cjBody)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -84,19 +103,6 @@ private struct UserSetupContent: View {
                 // ── CTA ───────────────────────────────────────────────
                 VStack(spacing: 12) {
                     saveButton()
-                    
-                    // Skip-Option ohne Foto
-                    if viewModel.selectedImage == nil && !viewModel.displayName.isEmpty {
-                        Button {
-                            nameFocused = false
-                        } label: {
-                            Text(TextKey.addPhotoLater.localized)
-                                .font(.cjFootnote)
-                                .foregroundStyle(.secondary)
-                        }
-                        .buttonStyle(.plain)
-                        .transition(.opacity)
-                    }
                 }
                 .padding(.horizontal, 32)
                 .padding(.bottom, 48)
@@ -114,7 +120,10 @@ private struct UserSetupContent: View {
     private func saveButton() -> some View {
         Button {
             nameFocused = false
-            Task { await viewModel.save() }
+            Task {
+                await viewModel.save()
+                onComplete()
+            }
         } label: {
             ZStack {
                 if case .loading = viewModel.state {
@@ -132,9 +141,9 @@ private struct UserSetupContent: View {
                     .foregroundStyle(.green)
                 } else {
                     HStack {
-                        Text(TextKey.letsGo.localized)
+                        Text(TextKey.save.localized)
                             .font(.cjTitle2)
-                        Image(systemName: "arrow.right")
+                        Image(systemName: "checkmark")
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -142,7 +151,7 @@ private struct UserSetupContent: View {
             .padding(.vertical, 4)
         }
         .buttonStyle(.glassProminent)
-        .disabled(!viewModel.canProceed || {
+        .disabled(!viewModel.canProceed || viewModel.hasChanges == false || {
             if case .loading = viewModel.state { return true }
             if case .success = viewModel.state { return true }
             return false
@@ -165,8 +174,8 @@ private struct UserSetupContent: View {
 
 private struct AvatarPickerSection: View {
     @Environment(\.dependencies) var dependencies
-
-    @State var viewModel: UserSetupViewModel
+    
+    @State var viewModel: EditProfileViewModel
     @State private var isPressed = false
     
     var body: some View {
@@ -178,6 +187,16 @@ private struct AvatarPickerSection: View {
             ZStack {
                 // Avatar oder Placeholder
                 if let image = viewModel.selectedImage {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 120, height: 120)
+                        .clipShape(Circle())
+                        .overlay {
+                            Circle()
+                                .stroke(.white.opacity(0.3), lineWidth: 2)
+                        }
+                } else if let image = viewModel.currentImage {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFill()
@@ -215,7 +234,7 @@ private struct AvatarPickerSection: View {
                     .fill(dependencies.colorThemeManager.appTint)
                     .frame(width: 34, height: 34)
                     .overlay {
-                        Image(systemName: viewModel.selectedImage != nil ? "pencil" : "plus")
+                        Image(systemName: "pencil")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(.white)
                     }
@@ -238,8 +257,8 @@ private struct AvatarPickerSection: View {
 
 private struct NameInputSection: View {
     @Environment(\.dependencies) var dependencies
-
-    @State var viewModel: UserSetupViewModel
+    
+    @State var viewModel: EditProfileViewModel
     var nameFocused: FocusState<Bool>.Binding
     
     private var characterCount: Int { viewModel.displayName.count }
@@ -306,3 +325,4 @@ private struct NameInputSection: View {
         }
     }
 }
+

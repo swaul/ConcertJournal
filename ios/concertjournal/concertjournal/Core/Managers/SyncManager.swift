@@ -74,7 +74,7 @@ class SyncManager {
         }
 
         isSyncing = true
-        defer { isSyncing = false }
+        NotificationCenter.default.post(name: .syncInProgress, object: true)
 
         await resetOldErrorStates()
         
@@ -86,6 +86,9 @@ class SyncManager {
         try await pushChanges()
 
         logSuccess("Full sync completed", category: .sync)
+        
+        isSyncing = false
+        NotificationCenter.default.post(name: .syncInProgress, object: false)
     }
 
     func resetOldErrorStates() async {
@@ -181,6 +184,10 @@ class SyncManager {
         }
 
         logSuccess("Pulled \(pulledConcerts) concerts", category: .sync)
+        
+        if pulledConcerts > 0 {
+            coreData.didChange.send()
+        }
 
         guard pulledConcerts == response.concerts.count else { return }
         
@@ -317,12 +324,12 @@ class SyncManager {
         }
 
         // ENCRYPTION
-        payload.title = try ConcertEncryptionHelper.shared.encrypt(payload.title)
+        payload.title = try CredentialEncryption.shared.encryptWithCredentials(payload.title)
         if let notes = payload.notes {
-            payload.notes = try ConcertEncryptionHelper.shared.encrypt(notes)
+            payload.notes = try CredentialEncryption.shared.encryptWithCredentials(notes)
         }
         if let ticketNotes = payload.ticketNotes {
-            payload.ticketNotes = try ConcertEncryptionHelper.shared.encrypt(ticketNotes)
+            payload.ticketNotes = try CredentialEncryption.shared.encryptWithCredentials(ticketNotes)
         }
 
         if let serverId = payload.serverId {
@@ -413,16 +420,18 @@ class SyncManager {
         var problem: SyncingProblem? = nil
         do {
             if let title = server.title {
-                if let decrypted = try? ConcertEncryptionHelper.shared.decrypt(title) {
-                    concert.title   = decrypted
+                if let decrypted = try? CredentialEncryption.shared.decryptWithCredentials(title) {
+                    concert.title = decrypted
                 } else {
+                    concert.title = String.randomGibberish(length: 12) + " Entschlüsselung Fehlgeschlagen"
                     problem = SyncingProblem.decryptionFailed
                 }
             }
             if let notes = server.notes {
-                if let decrypted = try? ConcertEncryptionHelper.shared.decrypt(notes) {
+                if let decrypted = try? CredentialEncryption.shared.decryptWithCredentials(notes) {
                     concert.notes   = decrypted
                 } else {
+                    concert.notes = String.randomGibberish(length: 20) + "\nEntschlüsselung Fehlgeschlagen"
                     problem = SyncingProblem.decryptionFailed
                 }
             }
@@ -479,16 +488,18 @@ class SyncManager {
         var problem: SyncingProblem? = nil
         do {
             if let title = server.title {
-                if let decrypted = try? ConcertEncryptionHelper.shared.decrypt(title) {
+                if let decrypted = try? CredentialEncryption.shared.decryptWithCredentials(title) {
                     concert.title   = decrypted
                 } else {
+                    concert.title = String.randomGibberish(length: 12) + " Entschlüsselung Fehlgeschlagen"
                     problem = SyncingProblem.decryptionFailed
                 }
             }
             if let notes = server.notes {
-                if let decrypted = try? ConcertEncryptionHelper.shared.decrypt(notes) {
+                if let decrypted = try? CredentialEncryption.shared.decryptWithCredentials(notes) {
                     concert.notes   = decrypted
                 } else {
+                    concert.notes = String.randomGibberish(length: 20) + "\nEntschlüsselung Fehlgeschlagen"
                     problem = SyncingProblem.decryptionFailed
                 }
             }
@@ -591,9 +602,10 @@ class SyncManager {
         ticket.seatNumber       = server.seatNumber
         ticket.standingPosition = server.standingPosition
         if let ticketNotes = server.ticketNotes {
-            if let decrypted = try? ConcertEncryptionHelper.shared.decrypt(ticketNotes) {
+            if let decrypted = try? CredentialEncryption.shared.decryptWithCredentials(ticketNotes) {
                 ticket.notes    = decrypted
             } else {
+                ticket.notes = String.randomGibberish(length: 12) + "\nEntschlüsselung Fehlgeschlagen"
                 problem = SyncingProblem.decryptionFailed
             }
         }

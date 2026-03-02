@@ -29,7 +29,7 @@ struct ProfileView: View {
     }
     
     @State private var isLoggedIn: Bool = false
-    
+    @State private var showSetup = false
     @State private var signOutShowing: Bool = false
     
     var body: some View {
@@ -155,6 +155,19 @@ struct ProfileView: View {
             ScrollView {
                 VStack {
                     // ── Nutzer-Sektion ────────────────────────────────
+                    if isLoggedIn {
+                        HStack {
+                            Spacer()
+                            Button {
+                                showSetup = true
+                            } label: {
+                                Text("Profil bearbeiten")
+                                    .font(.cjCaption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    
                     Group {
                         if isOffline {
                             offlineView()
@@ -225,7 +238,7 @@ struct ProfileView: View {
                     .tint(.orange)
 
                     Button("Last sync date zurücksetzen") {
-                        UserDefaults.setValue(Date.distantPast, forKey: "lastSyncDate")
+                        UserDefaults.standard.set(Date.distantPast, forKey: "lastSyncDate")
                     }
                     .buttonStyle(.glass)
                     .tint(.orange)
@@ -281,23 +294,28 @@ struct ProfileView: View {
 
     @ViewBuilder
     func loggedInUserSection(profile: Profile) -> some View {
-        HStack(spacing: 16) {
-            AvatarView(url: URL(string: profile.avatarURL ?? ""), name: profile.displayName ?? "", size: 64)
-            .frame(width: 64, height: 64)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(profile.displayName ?? "")
-                    .font(.cjTitle2)
-                    .fontWeight(.semibold)
-                if let email = profile.email {
-                    Text(email)
-                        .font(.cjBody)
-                        .foregroundStyle(.secondary)
+            HStack(spacing: 16) {
+                AvatarView(url: URL(string: profile.avatarURL ?? ""), name: profile.displayName ?? "", size: 64)
+                    .frame(width: 64, height: 64)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(profile.displayName ?? "")
+                        .font(.cjTitle2)
+                        .fontWeight(.semibold)
+                    if let email = profile.email {
+                        Text(email)
+                            .font(.cjBody)
+                            .foregroundStyle(.secondary)
+                    }
                 }
+                Spacer()
             }
-            Spacer()
-        }
         .padding(.vertical, 4)
+        .sheet(isPresented: $showSetup) {
+            EditProfileView {
+                showSetup = false
+            }
+        }
     }
 
     // MARK: - Not Logged-in Section

@@ -66,17 +66,20 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 struct ConcertJournalApp: App {
 
     init() {
-        let appearance = UINavigationBarAppearance()
-        appearance.titleTextAttributes = [
-            .font: UIFont(name: "Manrope-SemiBold", size: 18)!
-        ]
-        appearance.largeTitleTextAttributes = [
-            .font: UIFont(name: "Manrope-Bold", size: 34)!
-        ]
-        UINavigationBar.appearance().standardAppearance   = appearance
-        UINavigationBar.appearance().scrollEdgeAppearance = appearance
-        UINavigationBar.appearance().compactAppearance    = appearance
-
+        if let semiBold = UIFont(name: "Manrope-SemiBold", size: 18),
+            let bold = UIFont(name: "Manrope-Bold", size: 34) {
+            let appearance = UINavigationBarAppearance()
+            appearance.titleTextAttributes = [
+                .font: semiBold
+            ]
+            appearance.largeTitleTextAttributes = [
+                .font: bold
+            ]
+            UINavigationBar.appearance().standardAppearance   = appearance
+            UINavigationBar.appearance().scrollEdgeAppearance = appearance
+            UINavigationBar.appearance().compactAppearance    = appearance
+        }
+        
         AdMobManager.shared.initialize()
     }
 

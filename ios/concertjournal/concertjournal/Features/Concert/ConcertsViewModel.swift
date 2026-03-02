@@ -19,6 +19,8 @@ class ConcertsViewModel: NSObject {
     var isSyncing = false
     var errorMessage: String?
     var lastSyncDate: Date?
+    
+    var hasTours: Bool = false
 
     // MARK: - Dependencies
 
@@ -29,6 +31,8 @@ class ConcertsViewModel: NSObject {
 
     private let coreData = CoreDataStack.shared
     private var fetchedResultsController: NSFetchedResultsController<Concert>?
+
+    private var cancellables = Set<AnyCancellable>()
 
     init(repository: OfflineConcertRepositoryProtocol, syncManager: SyncManager) {
         self.repository = repository
@@ -42,6 +46,14 @@ class ConcertsViewModel: NSObject {
         Task {
             await autoSync()
         }
+        
+        coreData.didChange
+            .sink { [weak self] in
+                guard let self else { return }
+                try? self.fetchedResultsController?.performFetch()
+                self.updateConcerts()
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - Setup
@@ -77,6 +89,7 @@ class ConcertsViewModel: NSObject {
         let calendar = Calendar.current
 
         concertToday = concerts.first(where: { calendar.isDateInToday($0.date) })
+        hasTours = concerts.contains(where: { $0.tour != nil })
 
         let concertsWithoutToday = concerts.filter {
             guard let todayId = concertToday?.id else { return true }

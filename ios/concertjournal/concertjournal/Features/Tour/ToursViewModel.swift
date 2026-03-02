@@ -35,10 +35,11 @@ class ToursViewModel {
             ongoingTours = try tourRepository.getToursByStatus(.ongoing)
             pastTours = try tourRepository.getToursByStatus(.finished)
             errorMessage = nil
+            isLoading = false
         } catch {
             errorMessage = "Fehler beim Laden der Touren: \(error.localizedDescription)"
+            isLoading = false
         }
-        isLoading = false
     }
 
     func createTour(name: String, startDate: Date, endDate: Date, artist: ArtistDTO, description: String? = nil) async {

@@ -954,6 +954,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = concertjournal/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Concert Journal";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "Wir benötigen Zugriff auf deinen Kalender, um Konzerte zu speichern.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "ConcertJournal benötigt Zugriff auf die Kamera, um Tickets und QR Codes von Buddies zu scannen.";
@@ -974,7 +975,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
-				MARKETING_VERSION = 0.0.1;
+				MARKETING_VERSION = 0.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kuehnel.concertjournal;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -1007,6 +1008,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = concertjournal/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Concert Journal";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "Wir benötigen Zugriff auf deinen Kalender, um Konzerte zu speichern.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "ConcertJournal benötigt Zugriff auf die Kamera, um Tickets und QR Codes von Buddies zu scannen.";
@@ -1027,7 +1029,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
-				MARKETING_VERSION = 0.0.1;
+				MARKETING_VERSION = 0.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kuehnel.concertjournal;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;

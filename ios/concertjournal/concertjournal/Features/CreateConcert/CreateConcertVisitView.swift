@@ -362,11 +362,13 @@ private struct ConcertSheetsModifier: ViewModifier {
                 }
             }
             .sheet(isPresented: $sheets.selectTour) {
-                SelectTourView { tour in
-                    draft.tour = tour.objectID
-                    draft.tourName = tour.name
+                if let tempArtist = viewModel?.artist {
+                    SelectTourWithTempArtist(tempArtist: tempArtist) { tour in
+                        draft.tour = tour.objectID
+                        draft.tourName = tour.name
+                    }
+                    .presentationDetents([.medium, .large])
                 }
-                .presentationDetents([.medium, .large])
             }
             .sheet(isPresented: $sheets.selectBuddies) {
                 BuddyAttendeePickerSheet(

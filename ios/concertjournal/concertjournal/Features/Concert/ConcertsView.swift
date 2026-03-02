@@ -25,6 +25,8 @@ struct ConcertsView: View {
 
     @State var fullSizeTodaysConcert = true
 
+    @State private var isSyncingWithServer = false
+
     var body: some View {
         @Bindable var navigationManager = navigationManager
 
@@ -101,6 +103,26 @@ struct ConcertsView: View {
                                                   syncManager: dependencies.syncManager)
                 } else {
                     viewModel?.updateConcerts()
+                }
+            }
+            .overlay(alignment: .top) {
+                if isSyncingWithServer {
+                    HStack {
+                        ProgressView()
+                            .frame(width: 48, height: 48)
+                            .tint(dependencies.colorThemeManager.appTint)
+                        
+                        Text("Synce mit dem Server...")
+                    }
+                    .padding(8)
+                    .rectangleGlass()
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .syncInProgress)) { notification in
+                guard let isSyncingWithServer = notification.object as? Bool else { return }
+                withAnimation(.bouncy) {
+                    self.isSyncingWithServer = isSyncingWithServer
                 }
             }
             .adaptiveSheet(isPresented: $chooseCreateFlowPresenting) {
@@ -193,6 +215,17 @@ struct ConcertsView: View {
                     }
                 }
                 #endif
+                if let viewModel, viewModel.hasTours {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            HapticManager.shared.impact(.light)
+                            navigationManager.push(.toursView)
+                        } label: {
+                            Image(systemName: "tag.fill")
+                                .font(.title3)
+                        }
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         HapticManager.shared.impact(.light)
@@ -274,7 +307,7 @@ struct ConcertsView: View {
                 concertsGroupedSection(viewModel: viewModel)
 
                 if viewModel.allConcerts.count < 5 {
-                    AdaptiveBannerAdView()
+                    AdaptiveBannerAdView(horizontalPadding: 40)
                         .padding(.horizontal, 20)
                 }
             }
@@ -478,7 +511,11 @@ struct ConcertsView: View {
         case .artistDetail(let artist):
             ArtistDetailView(artist: artist)
                 .toolbarVisibility(.hidden, for: .tabBar)
-
+            
+        case .toursView:
+            ToursView()
+                .toolbarVisibility(.hidden, for: .tabBar)
+            
             #if DEBUG
         case .testView:
             TestView()
