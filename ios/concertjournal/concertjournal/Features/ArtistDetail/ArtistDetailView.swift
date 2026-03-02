@@ -31,15 +31,17 @@ struct ArtistDetailView: View {
             Color.background
                 .ignoresSafeArea()
 
-            AsyncImage(url: URL(string: artist.imageUrl ?? "")) { result in
-                result.image?
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(maxHeight: .infinity)
-                    .background { Color.black }
-                    .ignoresSafeArea()
-                    .blur(radius: 10)
-                    .opacity(0.8)
+            if !isLandscape {
+                AsyncImage(url: URL(string: artist.imageUrl ?? "")) { result in
+                    result.image?
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(maxHeight: .infinity)
+                        .background { Color.black }
+                        .ignoresSafeArea()
+                        .blur(radius: 10)
+                        .opacity(0.8)
+                }
             }
 
             VStack {
@@ -55,7 +57,7 @@ struct ArtistDetailView: View {
                     LoadingView()
                 }
             }
-            .frame(width: UIScreen.screenWidth)
+            .frame(maxWidth: isLandscape ? .infinity : UIScreen.screenWidth)
         }
         .navigationTitle(artist.name)
         .task {

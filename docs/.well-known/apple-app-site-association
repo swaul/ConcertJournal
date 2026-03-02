@@ -1,0 +1,10 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["36Q6ZL7D2C.com.kuehnel.concertjournal"],
+        "paths": [ "/app/*" ]
+      }
+    ]
+  }
+}

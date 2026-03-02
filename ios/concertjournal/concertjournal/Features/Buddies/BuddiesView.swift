@@ -16,7 +16,7 @@ struct BuddiesView: View {
     @State private var showLoginSheet: Bool = false
 
     @State private var showSharedConcerts: Buddy? = nil
-
+    
     var body: some View {
         @Bindable var navigationManager = navigationManager
 
@@ -260,32 +260,42 @@ struct BuddiesView: View {
     
     @ViewBuilder
     private func addBuddyFAB() -> some View {
-        Button {
-            HapticManager.shared.buttonTap()
-            showAddBuddySheet = true
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "person.badge.plus")
-                
-                Text(TextKey.addBuddy.localized)
-                    .font(.cjBody)
-                    .fontWeight(.semibold)
+        HStack {
+            Button {
+                HapticManager.shared.buttonTap()
+                showAddBuddySheet = true
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "person.badge.plus")
+
+                    Text(TextKey.addBuddy.localized)
+                        .font(.cjBody)
+                        .fontWeight(.semibold)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 14)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 14)
+            .buttonStyle(.glassProminent)
+            .padding(.bottom, 24)
+            .shadow(radius: 12, y: 4)
         }
-        .buttonStyle(.glassProminent)
-        .padding(.bottom, 24)
-        .shadow(radius: 12, y: 4)
     }
 }
 
 // MARK: - MyCodeCard
 
 private struct MyCodeCard: View {
+
+    @Environment(\.verticalSizeClass) var verticalSizeClass
+
+    var isLandscape: Bool {
+        verticalSizeClass != .regular
+    }
+
     var viewModel: BuddiesViewModel
     @State private var showQR = false
-    
+    @State private var showQRLandscpae = false
+
     var body: some View {
         VStack(spacing: 0) {
             // Header
@@ -295,8 +305,12 @@ private struct MyCodeCard: View {
                 Spacer()
                 Button {
                     HapticManager.shared.buttonTap()
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
-                        showQR.toggle()
+                    if isLandscape {
+                        showQRLandscpae = true
+                    } else {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+                            showQR.toggle()
+                        }
                     }
                 } label: {
                     Image(systemName: showQR ? "chevron.up" : "qrcode.viewfinder")
@@ -344,7 +358,7 @@ private struct MyCodeCard: View {
             }
             
             // QR-Code (aufklappbar)
-            if showQR {
+            if !isLandscape, showQR {
                 VStack(spacing: 14) {
                     Divider().padding(.vertical, 6)
                     
@@ -393,6 +407,41 @@ private struct MyCodeCard: View {
         .overlay {
             RoundedRectangle(cornerRadius: 20)
                 .stroke(.white.opacity(0.1), lineWidth: 0.5)
+        }
+        .sheet(isPresented: $showQRLandscpae) {
+            VStack {
+                HStack {
+                    Spacer()
+                    Button {
+                        showQRLandscpae = false
+                    } label: {
+                        Text("Fertig")
+                            .padding(8)
+                    }
+                    .buttonStyle(.glassProminent)
+                    .padding()
+                }
+                HStack {
+                    if let qr = viewModel.qrImage {
+                        Image(uiImage: qr)
+                            .resizable()
+                            .interpolation(.none)
+                            .scaledToFit()
+                            .frame(maxWidth: 200, maxHeight: 200)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .padding(8)
+                            .background(.white, in: RoundedRectangle(cornerRadius: 16))
+                            .padding(.leading)
+                    } else {
+                        ProgressView()
+                            .frame(width: 200, height: 200)
+                    }
+
+                    Text("Lass deinen Buddy diesen QR Code Scannen um dich schneller zu finden")
+                        .font(.cjBody)
+                        .padding()
+                }
+            }
         }
     }
 }
