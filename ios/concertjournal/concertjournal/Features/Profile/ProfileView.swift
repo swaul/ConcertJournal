@@ -203,7 +203,16 @@ struct ProfileView: View {
                     }
                     .accessibilityIdentifier("colorButton")
                     .buttonStyle(.glass)
-                    
+
+                    Button {
+                        HapticManager.shared.navigationTap()
+                        navigationManager.push(.shareApp)
+                    } label: {
+                        Text("App teilen")
+                    }
+                    .accessibilityIdentifier("colorButton")
+                    .buttonStyle(.glass)
+
 #if DEBUG
                     Button("🛠 Setup zurücksetzen") {
                         Task {

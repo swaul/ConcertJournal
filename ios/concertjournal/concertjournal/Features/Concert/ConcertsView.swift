@@ -467,9 +467,14 @@ struct ConcertsView: View {
             AccountSettingsView()
                 .toolbarVisibility(.hidden, for: .tabBar)
 
+        case .shareApp:
+            ShareAppView()
+                .toolbarVisibility(.hidden, for: .tabBar)
+
         case .artistDetail(let artist):
             ArtistDetailView(artist: artist)
                 .toolbarVisibility(.hidden, for: .tabBar)
+
             #if DEBUG
         case .testView:
             TestView()
