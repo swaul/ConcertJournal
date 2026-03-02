@@ -47,6 +47,13 @@ struct SelectTourView: View {
                     } label: {
                         makeTourView(tour: tour)
                     }
+                    .contextMenu {
+                        Button {
+                            viewModel.deleteTour(tour: tour)
+                        } label: {
+                            Text("Tour löschen")
+                        }
+                    }
                 }
             }
             .padding()
@@ -101,9 +108,18 @@ class SelectTourViewModel {
 
     func loadTours() {
         do {
-            tours = try tourRepository.getAllTours()
+            let tours = try tourRepository.getAllTours()
+            self.tours = tours
         } catch {
             logError("Error loading tours", error: error)
+        }
+    }
+
+    func deleteTour(tour: Tour) {
+        do {
+            try tourRepository.deleteTour(tour)
+        } catch {
+            print("Error", error)
         }
     }
 }
@@ -187,14 +203,16 @@ struct CreateTourView: View {
                         ToolbarItem(placement: .confirmationAction) {
                             Button("Erstellen") {
                                 guard let selectedArtist else { return }
-                                viewModel.createTour(
-                                    name: tourName,
-                                    startDate: startDate,
-                                    endDate: endDate,
-                                    artist: selectedArtist,
-                                    description: tourDescription.isEmpty ? nil : tourDescription
-                                )
-                                dismiss()
+                                Task {
+                                    await viewModel.createTour(
+                                        name: tourName,
+                                        startDate: startDate,
+                                        endDate: endDate,
+                                        artist: selectedArtist,
+                                        description: tourDescription.isEmpty ? nil : tourDescription
+                                    )
+                                    onCreate()
+                                }
                             }
                             .disabled(tourName.isEmpty || selectedArtist == nil || viewModel.isLoading)
                         }
@@ -237,19 +255,17 @@ class CreateTourViewModel {
         self.tourSyncManager = tourSyncManager
     }
 
-    func createTour(name: String, startDate: Date, endDate: Date, artist: ArtistDTO, description: String? = nil) {
-        Task {
-            isLoading = true
-            async let createTask = tourRepository.createTour(name: name, startDate: startDate, endDate: endDate, artist: artist, description: description)
-            async let minWaitTask: Void = Task.sleep(for: .seconds(2))
+    func createTour(name: String, startDate: Date, endDate: Date, artist: ArtistDTO, description: String? = nil) async {
+        isLoading = true
+        async let createTask = tourRepository.createTour(name: name, startDate: startDate, endDate: endDate, artist: artist, description: description)
+        async let minWaitTask: Void = Task.sleep(for: .seconds(2))
 
-            do {
-                let (tour, _) = try await (createTask, minWaitTask)
-                let serverTour = try await tourSyncManager.createTour(tour)
-                isLoading = false
-            } catch {
+        do {
+            let (tour, _) = try await (createTask, minWaitTask)
+            let serverTour = try await tourSyncManager.createTour(tour)
+            isLoading = false
+        } catch {
 
-            }
         }
     }
 

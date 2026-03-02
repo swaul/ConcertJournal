@@ -64,7 +64,10 @@ class OfflineTourRepository: OfflineTourRepositoryProtocol {
     func getAllTours() throws -> [Tour] {
         let request = Tour.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(keyPath: \Tour.startDate, ascending: false)]
-        return try coreDataStack.viewContext.fetch(request)
+        let allTours = try coreDataStack.viewContext.fetch(request)
+
+        logSuccess("Found \(allTours.count) tours")
+        return allTours
     }
 
     func getToursByArtist(_ artist: Artist) throws -> [Tour] {
@@ -127,9 +130,12 @@ class OfflineTourRepository: OfflineTourRepositoryProtocol {
     // MARK: - Delete
     func deleteTour(_ tour: Tour) throws {
         // Entferne die Tour-Zuordnung von allen Konzerten
-        tour.concertsArray.forEach { concert in
-            concert.tour = nil
+        coreDataStack.viewContext.perform {
+            tour.concertsArray.forEach { concert in
+                concert.tour = nil
+            }
         }
+
         coreDataStack.viewContext.delete(tour)
         save()
     }

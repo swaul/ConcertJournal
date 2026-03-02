@@ -85,11 +85,24 @@ struct GroupedConcerts: View {
 
     @Environment(\.dependencies) var dependencies
     @Environment(\.navigationManager) var navigationManager
+    @Environment(\.verticalSizeClass) var verticalSizeClass
 
     @State var artistGroup: ArtistGroupedConcerts
     @State var isExpanded: Bool = true
 
     var selectConcertToDelete: (Concert) -> Void
+
+    var isLandscape: Bool {
+        verticalSizeClass != .regular
+    }
+
+    var columns: [GridItem] {
+        if isLandscape {
+            return [GridItem(.flexible()), GridItem(.flexible())]
+        } else {
+            return [GridItem(.flexible())]
+        }
+    }
 
     var body: some View {
         VStack(spacing: 20) {
@@ -104,7 +117,7 @@ struct GroupedConcerts: View {
 
     @ViewBuilder
     private func simpleGroupedConcerts(_ artistGroup: ArtistGroupedConcerts) -> some View {
-        VStack(spacing: 8) {
+        LazyVGrid(columns: columns) {
             ForEach(artistGroup.concertsSorted, id: \.id) { concert in
                 ConcertRowInGroup(concert: concert, tour: concert.tour, selectConcertToDelete: selectConcertToDelete)
             }
@@ -123,11 +136,24 @@ struct TourGroupedConcerts: View {
 
     @Environment(\.dependencies) var dependencies
     @Environment(\.navigationManager) var navigationManager
+    @Environment(\.verticalSizeClass) var verticalSizeClass
 
     let tourGroup: TourGroup
     var selectConcertToDelete: (Concert) -> Void
 
     @State var isExpanded: Bool = true
+
+    var isLandscape: Bool {
+        verticalSizeClass != .regular
+    }
+
+    var columns: [GridItem] {
+        if isLandscape {
+            return [GridItem(.flexible()), GridItem(.flexible())]
+        } else {
+            return [GridItem(.flexible())]
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -166,7 +192,7 @@ struct TourGroupedConcerts: View {
             }
 
             if tourGroup.hasNoTour {
-                VStack(spacing: 8) {
+                LazyVGrid(columns: columns) {
                     ForEach(tourGroup.futureConcerts + tourGroup.pastConcerts, id: \.id) { concert in
                         ConcertRowInGroup(concert: concert, tour: concert.tour, selectConcertToDelete: selectConcertToDelete)
                     }
@@ -180,12 +206,13 @@ struct TourGroupedConcerts: View {
                             .font(.cjCaption)
                             .foregroundStyle(.secondary)
                             .padding(.leading)
-                        VStack(spacing: 8) {
-                            ForEach(tourGroup.futureConcerts, id: \.id) { concert in
-                                ConcertRowInGroup(concert: concert, tour: concert.tour, selectConcertToDelete: selectConcertToDelete)
+
+                            LazyVGrid(columns: columns) {
+                                ForEach(tourGroup.futureConcerts, id: \.id) { concert in
+                                    ConcertRowInGroup(concert: concert, tour: concert.tour, selectConcertToDelete: selectConcertToDelete)
+                                }
                             }
-                        }
-                        .padding(.leading)
+                            .padding(.leading)
                     }
 
                     if !tourGroup.pastConcerts.isEmpty {
@@ -193,12 +220,12 @@ struct TourGroupedConcerts: View {
                             .font(.cjCaption)
                             .foregroundStyle(.secondary)
                             .padding(.leading)
-                        VStack(spacing: 8) {
-                            ForEach(tourGroup.pastConcerts, id: \.id) { concert in
-                                ConcertRowInGroup(concert: concert, tour: concert.tour, selectConcertToDelete: selectConcertToDelete)
+                            LazyVGrid(columns: columns) {
+                                ForEach(tourGroup.pastConcerts, id: \.id) { concert in
+                                    ConcertRowInGroup(concert: concert, tour: concert.tour, selectConcertToDelete: selectConcertToDelete)
+                                }
                             }
-                        }
-                        .padding(.leading)
+                            .padding(.leading)
                     }
                 }
                 .transition(.push(from: .trailing))
@@ -281,13 +308,14 @@ struct ConcertRowInGroup: View {
                 .cornerRadius(6)
             }
         }
+        .frame(maxWidth: .infinity)
         .padding(12)
         .rectangleGlass()
+        .contentShape(Rectangle())
         .onTapGesture {
             HapticManager.shared.impact(.light)
             navigationManager.push(.concertDetail(concert))
         }
-        .contentShape(Rectangle())
         .contextMenu {
             if let tour {
                 Button {

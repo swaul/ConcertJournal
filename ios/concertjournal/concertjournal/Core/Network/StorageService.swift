@@ -13,6 +13,7 @@ protocol StorageServiceProtocol {
     func uploadImage(_ image: UIImage, to bucket: String, path: String) async throws -> URL
     func deleteImage(from bucket: String, path: String) async throws
     func getPublicURL(bucket: String, path: String) throws -> URL
+    func deleteAllImages(from bucket: String, paths: [String]) async throws -> [FileObject]
 }
 
 class StorageService: StorageServiceProtocol {
@@ -49,9 +50,15 @@ class StorageService: StorageServiceProtocol {
     }
 
     func getPublicURL(bucket: String, path: String) throws -> URL {
-        return try supabaseClient.client.storage
+        try supabaseClient.client.storage
             .from(bucket)
             .getPublicURL(path: path)
+    }
+
+    func deleteAllImages(from bucket: String, paths: [String]) async throws -> [FileObject] {
+        try await supabaseClient.client.storage
+            .from(bucket)
+            .remove(paths: paths)
     }
 }
 

@@ -47,6 +47,7 @@ enum NavigationRoute: Hashable {
     case about
     case privacy
     case impressum
+    case accountSettings
 
     // Onboarding
     case trackingPermission
@@ -192,6 +193,7 @@ extension NavigationRoute: Identifiable {
         case .concerts: return "concerts"
         case .map: return "map"
         case .profile: return "profile"
+        case .accountSettings: return "account-ettings"
         case .concertDetail(let concert): return "concert-\(concert.id)"
         case .createConcert: return "create-concert"
         case .ticketScan: return "ticket-scan"

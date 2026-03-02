@@ -10,6 +10,7 @@ import SwiftUI
 struct ArtistDetailView: View {
 
     @Environment(\.dependencies) var dependencies
+    @Environment(\.verticalSizeClass) var verticalSizeClass
 
     @State var viewModel: ArtistDetailViewModel?
 
@@ -19,6 +20,10 @@ struct ArtistDetailView: View {
 
     init(artist: Artist) {
         self.artist = artist
+    }
+
+    var isLandscape: Bool {
+        verticalSizeClass != .regular
     }
 
     var body: some View {

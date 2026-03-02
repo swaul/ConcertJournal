@@ -12,6 +12,7 @@ protocol PhotoRepositoryProtocol {
     func uploadPhoto(image: UIImage, concertVisitId: String, userId: String) async throws -> ConcertPhoto
     func fetchPhotos(for concertVisitId: String) async throws -> [ConcertPhoto]
     func deletePhoto(id: String, storagePath: String) async throws
+    func deleteAllPhotos(for userId: String) async throws
 }
 
 class PhotoRepository: PhotoRepositoryProtocol {
@@ -80,5 +81,16 @@ class PhotoRepository: PhotoRepositoryProtocol {
             .delete()
             .eq("id", value: id)
             .execute()
+    }
+
+    func deleteAllPhotos(for userId: String) async throws {
+        let photos: [ConcertPhoto] = try await supabaseClient.client
+        .from("concert_photos")
+        .select()
+        .eq("user_id", value: userId)
+        .execute()
+        .value
+
+        _ = try await storageService.deleteAllImages(from: bucketName, paths: photos.map { $0.storagePath })
     }
 }

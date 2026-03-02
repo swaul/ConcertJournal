@@ -224,6 +224,17 @@ struct ProfileView: View {
 
                     // ── Account-Aktionen ──────────────────────────────
                     if isLoggedIn {
+                        Button {
+                            HapticManager.shared.buttonTap()
+                            navigationManager.push(.accountSettings)
+                        } label: {
+                            Label("Account", systemImage: "person")
+                                .font(.cjBody)
+                                .padding(8)
+                        }
+                        .accessibilityIdentifier("accountSettingsButton")
+                        .buttonStyle(.glass)
+
                         Button(role: .destructive) {
                             HapticManager.shared.buttonTap()
                             signOutShowing = true
