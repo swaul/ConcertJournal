@@ -13,17 +13,19 @@ enum ScrollOffsetNamespace {
 }
 
 struct ConcertsView: View {
-    @Environment(\.dependencies) private var dependencies
-    @Environment(\.navigationManager) private var navigationManager
+    @Environment(\.dependencies) var dependencies
+    @Environment(\.navigationManager) var navigationManager
 
     @State private var viewModel: ConcertsViewModel? = nil
 
     @State private var chooseCreateFlowPresenting: Bool = false
-    @State private var concertToDelete: Concert? = nil
+    @State var concertToDelete: Concert? = nil
     @State private var confirmationText: ConfirmationMessage? = nil
     @State private var confirmationTextPresenting: Bool = false
 
     @State var fullSizeTodaysConcert = true
+
+    @State private var isSyncingWithServer = false
 
     var body: some View {
         @Bindable var navigationManager = navigationManager
@@ -55,7 +57,7 @@ struct ConcertsView: View {
                                                            color: dependencies.colorThemeManager.appTint))
                         }
                         .padding()
-                    } else if viewModel.futureConcerts.isEmpty && viewModel.pastConcerts.isEmpty {
+                    } else if viewModel.futureConcerts.isEmpty && viewModel.allConcerts.isEmpty && viewModel.concertToday == nil {
                         VStack(spacing: 24) {
                             Spacer()
 
@@ -101,6 +103,26 @@ struct ConcertsView: View {
                                                   syncManager: dependencies.syncManager)
                 } else {
                     viewModel?.updateConcerts()
+                }
+            }
+            .overlay(alignment: .top) {
+                if isSyncingWithServer {
+                    HStack {
+                        ProgressView()
+                            .frame(width: 48, height: 48)
+                            .tint(dependencies.colorThemeManager.appTint)
+                        
+                        Text("Synce mit dem Server...")
+                    }
+                    .padding(8)
+                    .rectangleGlass()
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .syncInProgress)) { notification in
+                guard let isSyncingWithServer = notification.object as? Bool else { return }
+                withAnimation(.bouncy) {
+                    self.isSyncingWithServer = isSyncingWithServer
                 }
             }
             .adaptiveSheet(isPresented: $chooseCreateFlowPresenting) {
@@ -173,6 +195,14 @@ struct ConcertsView: View {
             .navigationDestination(for: NavigationRoute.self) { route in
                 navigationDestination(for: route)
             }
+            .sheet(item: $navigationManager.presentedSheet) { route in
+                switch route {
+                case let .tourDetail(tour):
+                    TourDetailView(tour: tour)
+                default:
+                    EmptyView()
+                }
+            }
             .toolbar {
                 #if DEBUG
                 ToolbarItem(placement: .topBarLeading) {
@@ -185,6 +215,17 @@ struct ConcertsView: View {
                     }
                 }
                 #endif
+                if let viewModel, viewModel.hasTours {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            HapticManager.shared.impact(.light)
+                            navigationManager.push(.toursView)
+                        } label: {
+                            Image(systemName: "tag.fill")
+                                .font(.title3)
+                        }
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         HapticManager.shared.impact(.light)
@@ -262,67 +303,11 @@ struct ConcertsView: View {
                         .scrollClipDisabled()
                     }
                 }
-
-                if !viewModel.pastConcerts.isEmpty {
-                    Text(TextKey.pastConcerts.localized)
-                        .font(.cjTitle)
-                        .padding(.horizontal, 20)
-                        .padding(.top, 8)
-                }
                 
-                ForEach(viewModel.pastConcerts.enumerated().map({ $0 }), id: \.element.id) { index, visit in
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text(visit.title ?? visit.artist.name)
-                                .font(.cjCaption)
-                                .foregroundStyle(.secondary)
-                                .multilineTextAlignment(.leading)
-                                .lineLimit(2)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                concertsGroupedSection(viewModel: viewModel)
 
-                            Text(visit.date.shortDateOnlyString)
-                                .font(.cjCaption)
-                                .foregroundStyle(dependencies.colorThemeManager.appTint)
-                        }
-                        .padding(.horizontal, 20)
-
-                        Button {
-                            HapticManager.shared.impact(.light)
-                            navigationManager.push(.concertDetail(visit))
-                        } label: {
-                            PastConcertView(concert: visit)
-                        }
-                        .buttonStyle(CardButtonStyle())
-                        .contextMenu {
-                            Button {
-                                HapticManager.shared.impact(.light)
-                                navigationManager.push(.concertDetail(visit))
-                            } label: {
-                                Label(TextKey.detailPage.localized, systemImage: "info.circle")
-                            }
-                            .font(.cjBody)
-
-                            Divider()
-
-                            Button(role: .destructive) {
-                                HapticManager.shared.impact(.medium)
-                                concertToDelete = visit
-                            } label: {
-                                Label(TextKey.concertDelete.localized, systemImage: "trash")
-                            }
-                            .font(.cjBody)
-                        }
-                        .padding(.horizontal, 20)
-                    }
-
-                    if index != 0, index % 5 == 0 {
-                        AdaptiveBannerAdView()
-                            .padding(.vertical, 8)
-                    }
-                }
-
-                if viewModel.pastConcerts.count < 5 {
-                    AdaptiveBannerAdView()
+                if viewModel.allConcerts.count < 5 {
+                    AdaptiveBannerAdView(horizontalPadding: 40)
                         .padding(.horizontal, 20)
                 }
             }
@@ -498,6 +483,10 @@ struct ConcertsView: View {
         case .concertDetail(let concert):
             ConcertDetailView(concert: concert)
                 .toolbarVisibility(.hidden, for: .tabBar)
+            
+        case .concertDetailAsync(let id):
+            ConcertDetailAsyncView(id: id)
+                .toolbarVisibility(.hidden, for: .tabBar)
 
         case .colorPicker:
             ColorSetView()
@@ -511,9 +500,22 @@ struct ConcertsView: View {
             ProfileView()
                 .toolbarVisibility(.hidden, for: .tabBar)
 
+        case .accountSettings:
+            AccountSettingsView()
+                .toolbarVisibility(.hidden, for: .tabBar)
+
+        case .shareApp:
+            ShareAppView()
+                .toolbarVisibility(.hidden, for: .tabBar)
+
         case .artistDetail(let artist):
             ArtistDetailView(artist: artist)
                 .toolbarVisibility(.hidden, for: .tabBar)
+            
+        case .toursView:
+            ToursView()
+                .toolbarVisibility(.hidden, for: .tabBar)
+            
             #if DEBUG
         case .testView:
             TestView()

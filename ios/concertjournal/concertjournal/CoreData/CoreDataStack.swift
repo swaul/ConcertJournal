@@ -14,12 +14,12 @@ class CoreDataStack {
 
     let didChange = PassthroughSubject<Void, Never>()
 
-    let persistentContainer: NSPersistentContainer
+    var persistentContainer: NSPersistentContainer
 
     init() {
         persistentContainer = NSPersistentContainer(name: "CJModels")
 
-        let appGroupID = "group.de.kuehnel.concertjournal"
+        let appGroupID = "group.com.kuehnel.concertjournal"
         let storeURL = FileManager.default
             .containerURL(forSecurityApplicationGroupIdentifier: appGroupID)!
             .appendingPathComponent("CJModels.sqlite")
@@ -88,6 +88,34 @@ class CoreDataStack {
                     print("Error saving background context: \(error)")
                 }
             }
+        }
+    }
+        
+    func nukeAllData() {
+        logInfo("🗑️ Nuking all Core Data entities...", category: .coreData)
+        
+        let context = viewContext
+        let entities = persistentContainer.managedObjectModel.entities
+        
+        for entity in entities {
+            guard let entityName = entity.name else { continue }
+            
+            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
+            let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+            
+            do {
+                try context.execute(deleteRequest)
+                logInfo("🗑️ Deleted all \(entityName) entities", category: .coreData)
+            } catch {
+                logError("Failed to delete \(entityName)", error: error, category: .coreData)
+            }
+        }
+        
+        do {
+            try context.save()
+            logSuccess("✅ All data deleted and saved", category: .coreData)
+        } catch {
+            logError("Failed to save after delete", error: error, category: .coreData)
         }
     }
 }

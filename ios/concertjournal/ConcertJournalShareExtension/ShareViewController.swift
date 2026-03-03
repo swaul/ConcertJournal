@@ -254,7 +254,7 @@ class ShareViewController: UIViewController {
 
     private func saveConcertToSharedContainer(_ concert: ExtractedConcertInfo) {
         guard let sharedContainer = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: "group.de.kuehnel.concertjournal"
+            forSecurityApplicationGroupIdentifier: "group.com.kuehnel.concertjournal"
         ) else {
             print("Failed to access shared container")
             return

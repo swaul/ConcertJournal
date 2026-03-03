@@ -7,6 +7,7 @@
 
 import Observation
 import Supabase
+import UIKit
 
 
 struct Profile: Decodable {
@@ -74,7 +75,7 @@ final class ProfileViewModel {
         
         self.profile = profile
     }
-    
+
     // Justin.shima@appsflyer.com
     
     func signOut() {

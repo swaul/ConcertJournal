@@ -5,6 +5,10 @@
 
 import SwiftUI
 
+struct BuddyRequestID: Identifiable {
+    let id: String
+}
+
 struct BuddiesView: View {
     
     @Environment(\.dependencies) var dependencies
@@ -12,11 +16,14 @@ struct BuddiesView: View {
 
     @State private var viewModel: BuddiesViewModel?
     @State private var showRequestsSheet = false
+    @State private var showSingleRequestSheet: BuddyRequestID? = nil
     @State private var showAddBuddySheet = false
     @State private var showLoginSheet: Bool = false
 
     @State private var showSharedConcerts: Buddy? = nil
-
+    
+    @State private var pendingNotificationRequestId: String?
+    
     var body: some View {
         @Bindable var navigationManager = navigationManager
 
@@ -45,6 +52,20 @@ struct BuddiesView: View {
             .onReceive(NotificationCenter.default.publisher(for: .loggedInChanged)) { _ in
                 Task {
                     await viewModel?.load()
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .openBuddies)) { notification in
+                if let requestId = notification.object as? String {
+                    pendingNotificationRequestId = requestId
+                }
+                Task {
+                    await viewModel?.load()
+                }
+            }
+            .onChange(of: viewModel?.loadingState) { oldValue, newValue in
+                if newValue == .loaded, let requestId = pendingNotificationRequestId {
+                    showSingleRequestSheet = BuddyRequestID(id: requestId)
+                    UNUserNotificationCenter.current().setBadgeCount(0)
                 }
             }
             .task {
@@ -91,6 +112,8 @@ struct BuddiesView: View {
     
     @ViewBuilder
     private func loadingView() -> some View {
+        @Bindable var navigationManager = navigationManager
+
         VStack(spacing: 12) {
             ProgressView()
             Text(TextKey.buddiesLoading.localized)
@@ -141,6 +164,7 @@ struct BuddiesView: View {
     
     @ViewBuilder
     private func loadedView(viewModel: BuddiesViewModel) -> some View {
+        @Bindable var navigationManager = navigationManager
         ZStack(alignment: .bottom) {
             ScrollView {
                 LazyVStack(spacing: 12) {
@@ -184,6 +208,9 @@ struct BuddiesView: View {
         }
         .sheet(isPresented: $showAddBuddySheet) {
             AddBuddySheet(viewModel: viewModel)
+        }
+        .sheet(item: $showSingleRequestSheet) { requestId in
+            SingleRequestSheet(requestId: requestId.id, viewModel: viewModel)
         }
         .alert(TextKey.errorGeneric.localized, isPresented: .init(
             get: { viewModel.errorMessage != nil },
@@ -260,32 +287,42 @@ struct BuddiesView: View {
     
     @ViewBuilder
     private func addBuddyFAB() -> some View {
-        Button {
-            HapticManager.shared.buttonTap()
-            showAddBuddySheet = true
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "person.badge.plus")
-                
-                Text(TextKey.addBuddy.localized)
-                    .font(.cjBody)
-                    .fontWeight(.semibold)
+        HStack {
+            Button {
+                HapticManager.shared.buttonTap()
+                showAddBuddySheet = true
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "person.badge.plus")
+
+                    Text(TextKey.addBuddy.localized)
+                        .font(.cjBody)
+                        .fontWeight(.semibold)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 14)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 14)
+            .buttonStyle(.glassProminent)
+            .padding(.bottom, 24)
+            .shadow(radius: 12, y: 4)
         }
-        .buttonStyle(.glassProminent)
-        .padding(.bottom, 24)
-        .shadow(radius: 12, y: 4)
     }
 }
 
 // MARK: - MyCodeCard
 
 private struct MyCodeCard: View {
+
+    @Environment(\.verticalSizeClass) var verticalSizeClass
+
+    var isLandscape: Bool {
+        verticalSizeClass != .regular
+    }
+
     var viewModel: BuddiesViewModel
     @State private var showQR = false
-    
+    @State private var showQRLandscpae = false
+
     var body: some View {
         VStack(spacing: 0) {
             // Header
@@ -295,8 +332,12 @@ private struct MyCodeCard: View {
                 Spacer()
                 Button {
                     HapticManager.shared.buttonTap()
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
-                        showQR.toggle()
+                    if isLandscape {
+                        showQRLandscpae = true
+                    } else {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+                            showQR.toggle()
+                        }
                     }
                 } label: {
                     Image(systemName: showQR ? "chevron.up" : "qrcode.viewfinder")
@@ -344,7 +385,7 @@ private struct MyCodeCard: View {
             }
             
             // QR-Code (aufklappbar)
-            if showQR {
+            if !isLandscape, showQR {
                 VStack(spacing: 14) {
                     Divider().padding(.vertical, 6)
                     
@@ -393,6 +434,41 @@ private struct MyCodeCard: View {
         .overlay {
             RoundedRectangle(cornerRadius: 20)
                 .stroke(.white.opacity(0.1), lineWidth: 0.5)
+        }
+        .sheet(isPresented: $showQRLandscpae) {
+            VStack {
+                HStack {
+                    Spacer()
+                    Button {
+                        showQRLandscpae = false
+                    } label: {
+                        Text("Fertig")
+                            .padding(8)
+                    }
+                    .buttonStyle(.glassProminent)
+                    .padding()
+                }
+                HStack {
+                    if let qr = viewModel.qrImage {
+                        Image(uiImage: qr)
+                            .resizable()
+                            .interpolation(.none)
+                            .scaledToFit()
+                            .frame(maxWidth: 200, maxHeight: 200)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .padding(8)
+                            .background(.white, in: RoundedRectangle(cornerRadius: 16))
+                            .padding(.leading)
+                    } else {
+                        ProgressView()
+                            .frame(width: 200, height: 200)
+                    }
+
+                    Text("Lass deinen Buddy diesen QR Code Scannen um dich schneller zu finden")
+                        .font(.cjBody)
+                        .padding()
+                }
+            }
         }
     }
 }
@@ -547,6 +623,60 @@ private struct RequestRow: View {
         .padding(12)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
         .overlay { RoundedRectangle(cornerRadius: 16).stroke(.white.opacity(0.1), lineWidth: 0.5) }
+    }
+}
+
+private struct SingleRequestSheet: View {
+    
+    let requestId: String?
+    var viewModel: BuddiesViewModel
+    
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading) {
+                Text("Du hast eine Neue Buddy Anfrage!")
+                    .font(.cjTitleF)
+                    .padding(.horizontal)
+                
+                Text("Nimm die Anfrage an, um deinen Buddy in Konzerten zu taggen.")
+                    .font(.cjBody)
+                    .padding(.horizontal)
+
+                if let requestId, let request = viewModel.incomingRequests.first(where: { $0.id == requestId }) {
+                    VStack {
+                        HStack {
+                            AvatarView(url: request.avatarURL, name: request.displayName, size: 46)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(request.displayName).font(.cjHeadline)
+                                Text(request.createdAt.formatted(.relative(presentation: .named)))
+                                    .font(.cjFootnote).foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                        }
+                    }
+                } else {
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            if !viewModel.incomingRequests.isEmpty {
+                                requestSection(title: TextKey.incoming.localized, icon: "arrow.down.circle.fill",
+                                               iconColor: .green, requests: viewModel.incomingRequests)
+                            }
+                        }
+                        .padding()
+                    }
+                    .scrollIndicators(.hidden)
+                }
+            }
+            .navigationTitle("Buddy Anfrage")
+        }
+    }
+    
+    @ViewBuilder
+    private func requestSection(title: String, icon: String, iconColor: Color, requests: [BuddyRequest]) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(title, systemImage: icon).font(.cjHeadline).foregroundStyle(iconColor).padding(.leading, 4)
+            ForEach(requests) { request in RequestRow(request: request, viewModel: viewModel) }
+        }
     }
 }
 

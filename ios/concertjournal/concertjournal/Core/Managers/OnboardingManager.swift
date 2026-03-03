@@ -77,8 +77,9 @@ class OnboardingManager {
 
     func requestNotificationPermission() async {
         do {
-            let granted = try await UNUserNotificationCenter.current().requestAuthorization()
-
+            let center = UNUserNotificationCenter.current()
+            let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
+            
             notificationStatus = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
             guard granted == true else { return }
             await MainActor.run {

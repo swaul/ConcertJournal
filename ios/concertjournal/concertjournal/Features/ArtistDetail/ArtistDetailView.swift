@@ -10,6 +10,7 @@ import SwiftUI
 struct ArtistDetailView: View {
 
     @Environment(\.dependencies) var dependencies
+    @Environment(\.verticalSizeClass) var verticalSizeClass
 
     @State var viewModel: ArtistDetailViewModel?
 
@@ -21,20 +22,26 @@ struct ArtistDetailView: View {
         self.artist = artist
     }
 
+    var isLandscape: Bool {
+        verticalSizeClass != .regular
+    }
+
     var body: some View {
         ZStack {
             Color.background
                 .ignoresSafeArea()
 
-            AsyncImage(url: URL(string: artist.imageUrl ?? "")) { result in
-                result.image?
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(maxHeight: .infinity)
-                    .background { Color.black }
-                    .ignoresSafeArea()
-                    .blur(radius: 10)
-                    .opacity(0.8)
+            if !isLandscape {
+                AsyncImage(url: URL(string: artist.imageUrl ?? "")) { result in
+                    result.image?
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(maxHeight: .infinity)
+                        .background { Color.black }
+                        .ignoresSafeArea()
+                        .blur(radius: 10)
+                        .opacity(0.8)
+                }
             }
 
             VStack {
@@ -50,7 +57,7 @@ struct ArtistDetailView: View {
                     LoadingView()
                 }
             }
-            .frame(width: UIScreen.screenWidth)
+            .frame(maxWidth: isLandscape ? .infinity : UIScreen.screenWidth)
         }
         .navigationTitle(artist.name)
         .task {
@@ -243,6 +250,7 @@ struct ArtistDetailView: View {
 
 extension UIScreen{
     static let screenWidth = UIScreen.main.bounds.size.width
+    static let screenHeight = UIScreen.main.bounds.size.height
 }
 
 struct ShouldAddMoreInfoItem: Identifiable {

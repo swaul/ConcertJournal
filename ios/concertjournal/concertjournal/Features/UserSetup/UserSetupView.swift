@@ -21,7 +21,7 @@ struct UserSetupView: View {
             UserSetupContent(viewModel: viewModel)
         } else {
             LoadingView()
-                .onAppear {
+                .task {
                     viewModel = UserSetupViewModel(
                         supabaseClient: dependencies.supabaseClient,
                         userProvider: dependencies.userSessionManager,

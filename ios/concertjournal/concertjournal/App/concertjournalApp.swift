@@ -6,8 +6,17 @@
 import SwiftUI
 import Combine
 
-class AppDelegate: NSObject, UIApplicationDelegate {
+class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+    
     var pushManager: PushNotificationManagerProtocol?
+    
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
+        UNUserNotificationCenter.current().delegate = self
+        return true
+    }
 
     func application(
         _ application: UIApplication,
@@ -24,23 +33,53 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     ) {
         logError("Push registration failed", error: error, category: .auth)
     }
+    
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification
+    ) async -> UNNotificationPresentationOptions {
+        return [.banner, .sound, .badge]
+    }
+    
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse
+    ) async {
+        let userInfo = response.notification.request.content.userInfo
+        guard let type = userInfo["type"] as? String else { return }
+        
+        switch type {
+        case "buddy_request", "buddy_accepted":
+            let requestId = userInfo["request_id"] as? String
+            NotificationCenter.default.post(name: .openBuddies, object: requestId)
+        case "concert_tagged":
+            if let concertId = userInfo["concert_id"] as? String {
+                NotificationCenter.default.post(name: .openConcert, object: concertId)
+            }
+        default:
+            break
+        }
+    }
 }
 
 @main
 struct ConcertJournalApp: App {
 
     init() {
-        let appearance = UINavigationBarAppearance()
-        appearance.titleTextAttributes = [
-            .font: UIFont(name: "Manrope-SemiBold", size: 18)!
-        ]
-        appearance.largeTitleTextAttributes = [
-            .font: UIFont(name: "Manrope-Bold", size: 34)!
-        ]
-        UINavigationBar.appearance().standardAppearance   = appearance
-        UINavigationBar.appearance().scrollEdgeAppearance = appearance
-        UINavigationBar.appearance().compactAppearance    = appearance
-
+        if let semiBold = UIFont(name: "Manrope-SemiBold", size: 18),
+            let bold = UIFont(name: "Manrope-Bold", size: 34) {
+            let appearance = UINavigationBarAppearance()
+            appearance.titleTextAttributes = [
+                .font: semiBold
+            ]
+            appearance.largeTitleTextAttributes = [
+                .font: bold
+            ]
+            UINavigationBar.appearance().standardAppearance   = appearance
+            UINavigationBar.appearance().scrollEdgeAppearance = appearance
+            UINavigationBar.appearance().compactAppearance    = appearance
+        }
+        
         AdMobManager.shared.initialize()
     }
 
@@ -137,6 +176,15 @@ struct RootView: View {
                 showBuddySheetWithCode = BuddyCode(code: code)
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .openBuddies)) { notification in
+            navigationManager.selectedTab = .buddies
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openConcert)) { notification in
+            if let concertId = notification.object as? String {
+                navigationManager.selectedTab = .concerts
+                navigationManager.push(.concertDetailAsync(concertId))
+            }
+        }
         .task {
             try? await dependencies.userSessionManager.start()
         }
@@ -165,7 +213,7 @@ struct RootView: View {
     private func handleConcertImport() {
         guard dependencies.userSessionManager.session != nil else { return }
         guard let sharedContainer = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: "group.de.kuehnel.concertjournal"
+            forSecurityApplicationGroupIdentifier: "group.com.kuehnel.concertjournal"
         ) else { return }
 
         let fileURL = sharedContainer.appendingPathComponent("pending_import.json")

@@ -34,15 +34,35 @@ class BFFClient {
         configuration.timeoutIntervalForRequest = 30
         self.session = URLSession(configuration: configuration)
     }
-
+    
     // MARK: - Generic Request
     
+    private func executeRequest<T: Decodable>(
+        urlRequest: URLRequest
+    ) async throws -> T {
+        let (data, response) = try await session.data(for: urlRequest)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw BFFError.invalidResponse
+        }
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
+                throw BFFError.serverError(errorResponse.error)
+            }
+            throw BFFError.httpError(httpResponse.statusCode)
+        }
+        
+        return try JSONDecoder().decode(T.self, from: data)
+    }
+    
+    // Dann beide request() Methoden vereinfachen:
     func request<T: Decodable>(
         method: HTTPMethod,
         path: String,
-        body: Encodable? = nil
+        body: Encodable? = nil,
+        additionalHeaders: [String: String] = [:]
     ) async throws -> T {
-        
         guard let url = URL(string: baseURL + path) else {
             throw BFFError.invalidURL
         }
@@ -51,43 +71,24 @@ class BFFClient {
         request.httpMethod = method.rawValue
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
+        // Standard Header
         if let token = try? await getAuthToken?() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
-
+        
+        // Additional headers (z.B. für Spotify)
+        additionalHeaders.forEach { key, value in
+            request.setValue(value, forHTTPHeaderField: key)
+        }
+        
         if let body = body {
             request.httpBody = try JSONEncoder().encode(body)
         }
         
-        let (data, response) = try await session.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            print("LOG: Response is no HTTPURLResponse", response)
-            throw BFFError.invalidResponse
-        }
-        
-        guard (200...299).contains(httpResponse.statusCode) else {
-            // Try to decode error
-            if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
-                let error = BFFError.serverError(errorResponse.error)
-                logError("Could not fetch resource for \(request.url?.absoluteString). Response code: \(httpResponse.statusCode)", function: "request")
-                throw error
-            }
-            throw BFFError.httpError(httpResponse.statusCode)
-        }
-
-        do {
-            let result: T = try JSONDecoder().decode(T.self, from: data)
-
-            return result
-        } catch let error as DecodingError {
-            logError("Decoding error", error: error)
-            throw error
-        } catch {
-            throw error
-        }
+        return try await executeRequest(urlRequest: request)
     }
-
+    
+    // requestSpotify wird dann einfach:
     func requestSpotify<T: Decodable>(
         method: HTTPMethod,
         url: String,
@@ -97,42 +98,19 @@ class BFFClient {
         guard let url = URL(string: url) else {
             throw BFFError.invalidURL
         }
-
+        
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
+        
         if let body = body {
             request.httpBody = try JSONEncoder().encode(body)
         }
-
-        let (data, response) = try await session.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            print("LOG: Response is no HTTPURLResponse", response)
-            throw BFFError.invalidResponse
-        }
-
-        guard (200...299).contains(httpResponse.statusCode) else {
-            // Try to decode error
-            if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
-                let error = BFFError.serverError(errorResponse.error)
-                logError("Could not fetch resource for \(request.url?.absoluteString). Response code: \(httpResponse.statusCode)", function: "request")
-                throw error
-            }
-            throw BFFError.httpError(httpResponse.statusCode)
-        }
-
-        do {
-            let decoded: T = try JSONDecoder().decode(T.self, from: data)
-            
-            return decoded
-        } catch {
-            throw NetworkError.decodingError
-        }
+        
+        return try await executeRequest(urlRequest: request)
     }
-
+    
     // MARK: - Helper Methods
     
     func get<T: Decodable>(_ path: String, proiderToken: String? = nil) async throws -> T {
@@ -142,15 +120,15 @@ class BFFClient {
     func post<T: Decodable>(_ path: String, body: Encodable?) async throws -> T {
         try await request(method: .post, path: path, body: body)
     }
-
+    
     func put<T: Decodable>(_ path: String, body: Encodable?) async throws -> T {
-       try await request(
+        try await request(
             method: .put,
             path: path,
             body: body
         )
     }
-
+    
     func patch<T: Decodable>(_ path: String, body: Encodable?) async throws -> T {
         try await request(method: .patch, path: path, body: body)
     }

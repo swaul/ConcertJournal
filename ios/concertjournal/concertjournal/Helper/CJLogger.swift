@@ -39,6 +39,7 @@ enum LogCategory: String {
     case app = "App"
     case auth = "Auth"
     case concert = "Concert"
+    case coreData = "CoreData"
     case database = "Database"
     case setlist = "Setlist"
     case network = "Network"

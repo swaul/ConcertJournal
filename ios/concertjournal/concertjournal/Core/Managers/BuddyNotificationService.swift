@@ -10,11 +10,13 @@ import Supabase
 final class BuddyNotificationService {
     
     private let supabaseClient: SupabaseClientManagerProtocol
+    private let userProvider: UserSessionManagerProtocol
     
-    var currentUserName: String? = nil
+    var profile: Profile? = nil
     
-    init(supabaseClient: SupabaseClientManagerProtocol) {
+    init(supabaseClient: SupabaseClientManagerProtocol, userProvider: UserSessionManagerProtocol) {
         self.supabaseClient = supabaseClient
+        self.userProvider = userProvider
     }
     
     @MainActor
@@ -24,14 +26,15 @@ final class BuddyNotificationService {
         concertTitle: String,
     ) async {
         let buddyAttendees = attendees.filter { $0.isBuddy }
-        guard !buddyAttendees.isEmpty, let currentUserName else { return }
+        guard !buddyAttendees.isEmpty, let currentUserName = profile?.displayName else { return }
         
         let notifications = buddyAttendees.map { attendee in
-            ConcertNotificationRow(
+            BuddyNotificationRow(
                 recipientId: attendee.id,
                 type: "concert_tagged",
                 title: "\(currentUserName) hat dich markiert!",
                 body: "Du warst beim Konzert \"\(concertTitle)\" dabei.",
+                senderAvatarUrl: profile?.avatarURL,
                 concertId: concertId
             )
         }
@@ -45,22 +48,35 @@ final class BuddyNotificationService {
             print("Error sending buddy notifications: \(error)")
         }
     }
+    
+    private var senderName: String {
+        if let profile {
+            return profile.displayName ?? "Jemand"
+        }
+        return userProvider.user?.userMetadata["display_name"]?.stringValue ?? "Jemand"
+    }
+    
+    private var senderAvatarUrl: String? {
+        profile?.avatarURL
+    }
 }
 
 // MARK: - Supabase Row
 
-private struct ConcertNotificationRow: Encodable {
+struct BuddyNotificationRow: Encodable {
     let recipientId: String
     let type: String
     let title: String
     let body: String
-    let concertId: String
     let isRead: Bool = false
+    let senderAvatarUrl: String?
+    let concertId: String?
     
     enum CodingKeys: String, CodingKey {
         case recipientId = "recipient_id"
         case type, title, body
-        case concertId = "concert_id"
         case isRead = "is_read"
+        case senderAvatarUrl = "sender_avatar_url"
+        case concertId = "concert_id"
     }
 }

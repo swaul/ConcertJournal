@@ -16,6 +16,7 @@ struct ConcertUpdate {
     let venue: VenueDTO?
     let city: String?
     let rating: Int?
+    let tour: Tour?
 
     let buddyAttendees: [BuddyAttendee]?
     let travel: TravelDTO?

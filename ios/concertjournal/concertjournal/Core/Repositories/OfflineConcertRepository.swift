@@ -110,6 +110,9 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
         concert.isOwner = true
         concert.canEdit = true
 
+        if let tour = dto.tour {
+            concert.tour = context.object(with: tour) as? Tour
+        }
         // Artist & Venue
         concert.artist = await fetchOrCreateArtist(from: dto.artist, context: context)
 
@@ -165,6 +168,10 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
         // 1. Update in Core Data
         if let title = dto.title {
             concert.title = title
+        }
+
+        if let tour = dto.tour {
+            concert.tour = tour
         }
 
         concert.date        = dto.date
@@ -287,6 +294,7 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
     }
 
     // MARK: - Helpers
+
     private func fetchOrCreateArtist(
         from dto: ArtistDTO,
         context: NSManagedObjectContext
@@ -296,7 +304,7 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
         if let spotifyId = dto.spotifyArtistId, !spotifyId.isEmpty {
             if let serverArtist: ArtistDTO = try? await syncManager.apiClient.get("/artists/\(spotifyId)") {
                 // Server kennt ihn – lokal nach serverId suchen oder neu anlegen
-                if let existing = fetchLocalArtistIfExists(serverArtist: serverArtist, context: context) {
+                if let existing = fetchLocalArtistIfExists(artistDto: serverArtist, context: context) {
                     return existing
                 }
 
@@ -306,19 +314,24 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
                 artist.name = serverArtist.name
                 artist.imageUrl = serverArtist.imageUrl
                 artist.spotifyArtistId = serverArtist.spotifyArtistId
-                artist.serverId = serverArtist.id  // ← direkt mit serverId
-                artist.syncStatus = SyncStatus.synced.rawValue  // ← schon synced!
+                artist.serverId = serverArtist.id
+                artist.syncStatus = SyncStatus.synced.rawValue
                 return artist
-            }
-        }
+            } else {
+                let request: NSFetchRequest<Artist> = Artist.fetchRequest()
+                request.predicate = NSPredicate(format: "spotifyArtistId == %@", spotifyId)
+                request.fetchLimit = 1
+                if let existing = try? context.fetch(request).first {
+                    return existing
+                }
 
-        // 2. Lokal nach spotifyId suchen (Server offline oder kein spotifyId)
-        if let spotifyId = dto.spotifyArtistId, !spotifyId.isEmpty {
-            let request: NSFetchRequest<Artist> = Artist.fetchRequest()
-            request.predicate = NSPredicate(format: "spotifyArtistId == %@", spotifyId)
-            request.fetchLimit = 1
-            if let existing = try? context.fetch(request).first {
-                return existing
+                let artist = Artist(context: context)
+                artist.id = UUID()
+                artist.name = dto.name
+                artist.imageUrl = dto.imageUrl
+                artist.spotifyArtistId = dto.spotifyArtistId
+                artist.syncStatus = SyncStatus.pending.rawValue
+                return artist
             }
         }
 
@@ -332,20 +345,20 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
         return artist
     }
 
-    private func fetchLocalArtistIfExists(serverArtist: ArtistDTO, context: NSManagedObjectContext) -> Artist? {
+    private func fetchLocalArtistIfExists(artistDto: ArtistDTO, context: NSManagedObjectContext) -> Artist? {
         let request: NSFetchRequest<Artist> = Artist.fetchRequest()
-        request.predicate = NSPredicate(format: "serverId == %@", serverArtist.id)
+        request.predicate = NSPredicate(format: "serverId == %@", artistDto.id)
         request.fetchLimit = 1
 
         if let existing = try? context.fetch(request).first {
             return existing
         }
 
-        guard let spotifyId = serverArtist.spotifyArtistId, !spotifyId.isEmpty else { return nil }
+        guard let spotifyId = artistDto.spotifyArtistId, !spotifyId.isEmpty else { return nil }
         request.predicate = NSPredicate(format: "spotifyArtistId == %@", spotifyId)
 
         if let existing = try? context.fetch(request).first {
-            existing.serverId = serverArtist.id
+            existing.serverId = artistDto.id
             existing.syncStatus = SyncStatus.synced.rawValue
             return existing
         }
@@ -378,17 +391,26 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
                 venue.serverId = serverVenue.id
                 venue.syncStatus = SyncStatus.pending.rawValue
                 return venue
-            }
-        }
-
-        if let appleMapsId = dto.appleMapsId, !appleMapsId.isEmpty {
-            request.predicate = NSPredicate(format: "appleMapsId == %@", appleMapsId)
-            request.fetchLimit = 1
-            if let existing = try? context.fetch(request).first {
-                if existing.serverId == nil {
-                    existing.serverId = dto.id
+            } else {
+                request.predicate = NSPredicate(format: "appleMapsId == %@", appleMapsId)
+                request.fetchLimit = 1
+                if let existing = try? context.fetch(request).first {
+                    if existing.serverId == nil {
+                        existing.serverId = dto.id
+                    }
+                    return existing
                 }
-                return existing
+                let venue = Venue(context: context)
+                venue.id = UUID()
+                venue.name = dto.name
+                venue.city = dto.city
+                venue.formattedAddress = dto.formattedAddress
+                venue.latitude = dto.latitude ?? 0
+                venue.longitude = dto.longitude ?? 0
+                venue.appleMapsId = dto.appleMapsId
+                venue.serverId = dto.id
+                venue.syncStatus = SyncStatus.pending.rawValue
+                return venue
             }
         }
 
@@ -412,8 +434,8 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
 
         let request: NSFetchRequest<Venue> = Venue.fetchRequest()
         request.fetchLimit = 1
-
         request.predicate = NSPredicate(format: "serverId == %@", serverVenue.id)
+
         if let existing = try? context.fetch(request).first {
             return existing
         }

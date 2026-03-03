@@ -29,7 +29,7 @@ struct ProfileView: View {
     }
     
     @State private var isLoggedIn: Bool = false
-    
+    @State private var showSetup = false
     @State private var signOutShowing: Bool = false
     
     var body: some View {
@@ -155,6 +155,19 @@ struct ProfileView: View {
             ScrollView {
                 VStack {
                     // ── Nutzer-Sektion ────────────────────────────────
+                    if isLoggedIn {
+                        HStack {
+                            Spacer()
+                            Button {
+                                showSetup = true
+                            } label: {
+                                Text("Profil bearbeiten")
+                                    .font(.cjCaption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    
                     Group {
                         if isOffline {
                             offlineView()
@@ -203,7 +216,16 @@ struct ProfileView: View {
                     }
                     .accessibilityIdentifier("colorButton")
                     .buttonStyle(.glass)
-                    
+
+                    Button {
+                        HapticManager.shared.navigationTap()
+                        navigationManager.push(.shareApp)
+                    } label: {
+                        Text("App teilen")
+                    }
+                    .accessibilityIdentifier("colorButton")
+                    .buttonStyle(.glass)
+
 #if DEBUG
                     Button("🛠 Setup zurücksetzen") {
                         Task {
@@ -214,10 +236,27 @@ struct ProfileView: View {
                     }
                     .buttonStyle(.glass)
                     .tint(.orange)
+
+                    Button("Last sync date zurücksetzen") {
+                        UserDefaults.standard.set(Date.distantPast, forKey: "lastSyncDate")
+                    }
+                    .buttonStyle(.glass)
+                    .tint(.orange)
 #endif
 
                     // ── Account-Aktionen ──────────────────────────────
                     if isLoggedIn {
+                        Button {
+                            HapticManager.shared.buttonTap()
+                            navigationManager.push(.accountSettings)
+                        } label: {
+                            Label("Account", systemImage: "person")
+                                .font(.cjBody)
+                                .padding(8)
+                        }
+                        .accessibilityIdentifier("accountSettingsButton")
+                        .buttonStyle(.glass)
+
                         Button(role: .destructive) {
                             HapticManager.shared.buttonTap()
                             signOutShowing = true
@@ -255,23 +294,28 @@ struct ProfileView: View {
 
     @ViewBuilder
     func loggedInUserSection(profile: Profile) -> some View {
-        HStack(spacing: 16) {
-            AvatarView(url: URL(string: profile.avatarURL ?? ""), name: profile.displayName ?? "", size: 64)
-            .frame(width: 64, height: 64)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(profile.displayName ?? "")
-                    .font(.cjTitle2)
-                    .fontWeight(.semibold)
-                if let email = profile.email {
-                    Text(email)
-                        .font(.cjBody)
-                        .foregroundStyle(.secondary)
+            HStack(spacing: 16) {
+                AvatarView(url: URL(string: profile.avatarURL ?? ""), name: profile.displayName ?? "", size: 64)
+                    .frame(width: 64, height: 64)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(profile.displayName ?? "")
+                        .font(.cjTitle2)
+                        .fontWeight(.semibold)
+                    if let email = profile.email {
+                        Text(email)
+                            .font(.cjBody)
+                            .foregroundStyle(.secondary)
+                    }
                 }
+                Spacer()
             }
-            Spacer()
-        }
         .padding(.vertical, 4)
+        .sheet(isPresented: $showSetup) {
+            EditProfileView {
+                showSetup = false
+            }
+        }
     }
 
     // MARK: - Not Logged-in Section

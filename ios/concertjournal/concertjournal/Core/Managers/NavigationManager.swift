@@ -17,6 +17,7 @@ enum NavigationRoute: Hashable {
 
     // Concert Related
     case concertDetail(Concert)
+    case concertDetailAsync(String)
     case createConcert
     case createConcertFromTicket(ExtendedTicketInfo?)
     case ticketScan
@@ -30,13 +31,19 @@ enum NavigationRoute: Hashable {
     // Venue Related
     case selectVenue
     case venueDetail(VenueDTO)
+    
+    // Buddies
+    case showRequestsSheet(requestId: String?)
 
     // Setlist
     case createSetlist(concertId: String)
     case orderSetlist(CreateSetlistViewModel)
 
     case playlist
-    
+
+    case tourDetail(Tour)
+    case toursView
+
     // Profile
     case profile
     case settings
@@ -45,6 +52,8 @@ enum NavigationRoute: Hashable {
     case about
     case privacy
     case impressum
+    case accountSettings
+    case shareApp
 
     // Onboarding
     case trackingPermission
@@ -190,7 +199,10 @@ extension NavigationRoute: Identifiable {
         case .concerts: return "concerts"
         case .map: return "map"
         case .profile: return "profile"
+        case .accountSettings: return "account-ettings"
+        case .shareApp: return "share-app"
         case .concertDetail(let concert): return "concert-\(concert.id)"
+        case .concertDetailAsync(let concertId): return "concert-async-\(concertId)"
         case .createConcert: return "create-concert"
         case .ticketScan: return "ticket-scan"
         case .createConcertFromTicket(let ticketInfos): return "create-oncert-from-ticket-\(ticketInfos?.artistName ?? "no-info")"
@@ -216,6 +228,9 @@ extension NavigationRoute: Identifiable {
         case .completion: return "completion"
         case .search: return "search"
         case .buddies: return "buddies"
+        case .showRequestsSheet: return "showRequestsSheet"
+        case .tourDetail(let tour): return "tourDetail-\(tour.name)"
+        case .toursView: return "toursView"
             #if DEBUG
         case .testView: return "testView"
             #endif

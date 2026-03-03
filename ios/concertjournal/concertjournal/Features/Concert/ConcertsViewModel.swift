@@ -8,17 +8,19 @@ import CoreData
 import Combine
 
 @Observable
-class ConcertsViewModel: NSObject, NSFetchedResultsControllerDelegate {
+class ConcertsViewModel: NSObject {
 
     // MARK: - State
 
     var concertToday: Concert? = nil
-    var pastConcerts: [Concert] = []
+    var allConcerts: [Concert] = []
     var futureConcerts: [Concert] = []
     var isLoading = false
     var isSyncing = false
     var errorMessage: String?
     var lastSyncDate: Date?
+    
+    var hasTours: Bool = false
 
     // MARK: - Dependencies
 
@@ -29,6 +31,8 @@ class ConcertsViewModel: NSObject, NSFetchedResultsControllerDelegate {
 
     private let coreData = CoreDataStack.shared
     private var fetchedResultsController: NSFetchedResultsController<Concert>?
+
+    private var cancellables = Set<AnyCancellable>()
 
     init(repository: OfflineConcertRepositoryProtocol, syncManager: SyncManager) {
         self.repository = repository
@@ -42,6 +46,14 @@ class ConcertsViewModel: NSObject, NSFetchedResultsControllerDelegate {
         Task {
             await autoSync()
         }
+        
+        coreData.didChange
+            .sink { [weak self] in
+                guard let self else { return }
+                try? self.fetchedResultsController?.performFetch()
+                self.updateConcerts()
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - Setup
@@ -65,15 +77,7 @@ class ConcertsViewModel: NSObject, NSFetchedResultsControllerDelegate {
             cacheName: nil
         )
 
-        fetchedResultsController?.delegate = self
-
         try? fetchedResultsController?.performFetch()
-        updateConcerts()
-    }
-
-    // MARK: - NSFetchedResultsControllerDelegate
-
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         updateConcerts()
     }
 
@@ -85,6 +89,7 @@ class ConcertsViewModel: NSObject, NSFetchedResultsControllerDelegate {
         let calendar = Calendar.current
 
         concertToday = concerts.first(where: { calendar.isDateInToday($0.date) })
+        hasTours = concerts.contains(where: { $0.tour != nil })
 
         let concertsWithoutToday = concerts.filter {
             guard let todayId = concertToday?.id else { return true }
@@ -92,11 +97,10 @@ class ConcertsViewModel: NSObject, NSFetchedResultsControllerDelegate {
         }
 
         let future = concertsWithoutToday.filter { $0.date > now }
-        let past   = concertsWithoutToday.filter { $0.date <= now }
 
         withAnimation {
             self.futureConcerts = future.sorted(by: { $0.date < $1.date })
-            self.pastConcerts   = past
+            self.allConcerts    = concertsWithoutToday
         }
     }
 

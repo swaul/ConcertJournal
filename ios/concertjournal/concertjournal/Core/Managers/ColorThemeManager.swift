@@ -41,13 +41,13 @@ private extension Color {
 
 // MARK: - Persistence API
 struct ColorPersistence {
-    private static let defaults = UserDefaults(suiteName: "group.de.kuehnel.concertjournal")!
+    private static let defaults = UserDefaults(suiteName: "group.com.kuehnel.concertjournal")
 
     static func saveAppTint(_ color: Color) {
         guard let rgba = color.toRGBA() else { return }
         do {
             let data = try JSONEncoder().encode(rgba)
-            defaults.set(data, forKey: ColorDefaultsKey.appTintColor)
+            defaults?.set(data, forKey: ColorDefaultsKey.appTintColor)
         } catch {
             // Silently ignore encoding errors in release builds
             #if DEBUG
@@ -57,7 +57,7 @@ struct ColorPersistence {
     }
 
     static func loadAppTint() -> Color? {
-        guard let data = defaults.data(forKey: ColorDefaultsKey.appTintColor) else { return nil }
+        guard let data = defaults?.data(forKey: ColorDefaultsKey.appTintColor) else { return nil }
         do {
             let rgba = try JSONDecoder().decode(RGBAColor.self, from: data)
             return Color(rgba: rgba)
@@ -70,7 +70,7 @@ struct ColorPersistence {
     }
 
     static func clearAppTint() {
-        defaults.removeObject(forKey: ColorDefaultsKey.appTintColor)
+        defaults?.removeObject(forKey: ColorDefaultsKey.appTintColor)
     }
 }
 

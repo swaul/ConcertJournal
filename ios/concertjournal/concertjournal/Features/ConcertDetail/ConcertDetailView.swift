@@ -25,20 +25,24 @@ struct ConcertImage: Identifiable {
 
 struct ConcertDetailView: View {
     @AppStorage("hidePrices") private var hidePrices = false
+    
+    let size: CGSize
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dependencies) private var dependencies
     @Environment(\.navigationManager) private var navigationManager
+    @Environment(\.verticalSizeClass) var verticalSizeClass
 
     @State var viewModel: ConcertDetailViewModel? = nil
     @State private var confirmationTextPresenting: Bool = false
-
+    
     let concert: Concert
-
+    
     init(concert: Concert) {
         self.concert = concert
+        self.size = UIScreen.main.bounds.size
     }
-
+    
     @State private var showCalendarSheet = false
     @State private var calendarEvent: EKEvent?
     @State private var confirmationText: ConfirmationMessage? = nil
@@ -47,15 +51,23 @@ struct ConcertDetailView: View {
     @State private var selectedImage: ConcertImage?
     @State private var savingConcertPresenting = false
     @State private var localHidePrices = false
-
+    
     @State private var errorMessage: String? = nil
-
+    
     let eventStore = EKEventStore()
-
+    
+    private var isLandscape: Bool {
+        verticalSizeClass == .compact
+    }
+    
     var body: some View {
         Group {
             if let viewModel {
-                viewWithViewModel(viewModel: viewModel)
+                if isLandscape {
+                    landscapeView(viewModel: viewModel)
+                } else {
+                    portraitView(viewModel: viewModel)
+                }
             } else {
                 LoadingView()
             }
@@ -66,33 +78,44 @@ struct ConcertDetailView: View {
                                                photoRepository: dependencies.offlinePhotoRepsitory)
         }
     }
-
+    
+    // MARK: - Portrait View (Original)
     @ViewBuilder
-    func viewWithViewModel(viewModel: ConcertDetailViewModel) -> some View {
-        BannerAdContainer(position: .bottom) {
-            ScrollView {
-                ParallaxHeader(
-                    coordinateSpace: CoordinateSpace.named("ScrollView"),
-                    defaultHeight: 400
-                ) {
-                    AsyncImage(url: URL(string: viewModel.concert.artist.imageUrl ?? "")) { result in
-                        result.image?
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    }
-                    .frame(height: 400)
-                    .frame(maxWidth: UIScreen.screenWidth)
+    private func portraitView(viewModel: ConcertDetailViewModel) -> some View {
+        portraitContent(viewModel: viewModel)
+    }
+    
+    // MARK: - Landscape View (Split Layout)
+    @ViewBuilder
+    private func landscapeView(viewModel: ConcertDetailViewModel) -> some View {
+        HStack(spacing: 0) {
+            // Left Side: Image (Fixed)
+            VStack {
+                AsyncImage(url: URL(string: viewModel.concert.artist.imageUrl ?? "")) { result in
+                    result.image?
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
                 }
-
+                .ignoresSafeArea()
+            }
+            .frame(width: size.getHigherValue / 2, height: size.getLowerValue)
+            .ignoresSafeArea()
+            .onAppear {
+                print("TEST 1", size.getHigherValue / 2)
+            }
+            
+            // Right Side: Scrollable Content
+            ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     header(viewModel: viewModel)
+                        .padding(.top, 40)
                         .frame(maxWidth: .infinity)
                         .zIndex(100)
-
+                    
                     if !viewModel.concert.supportActsArray.isEmpty {
                         supportActsSection(supportActs: viewModel.concert.supportActsArray)
                     }
-
+                    
                     if !viewModel.concert.buddiesArray.isEmpty {
                         buddiesSection(buddies: viewModel.concert.buddiesArray)
                     }
@@ -100,15 +123,15 @@ struct ConcertDetailView: View {
                     if let venue = viewModel.concert.venue {
                         venueSection(venue: venue, viewModel: viewModel)
                     }
-
+                    
                     if let notes = viewModel.concert.notes, !notes.isEmpty {
                         notesSection(notes: notes)
                     }
-
+                    
                     if let travel = viewModel.concert.travel {
                         travelSection(travel: travel)
                     }
-
+                    
                     if let ticket = viewModel.concert.ticket {
                         VStack(alignment: .leading, spacing: 12) {
                             sectionHeader(title: "Mein Ticket", icon: "ticket.fill")
@@ -116,16 +139,16 @@ struct ConcertDetailView: View {
                         }
                         .padding(.horizontal, 20)
                     }
-
+                    
                     if !viewModel.concert.setlistItemsArray.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
                             sectionHeader(title: "Setlist", icon: "music.note.list")
-
+                            
                             VStack(spacing: 12) {
                                 ForEach(viewModel.concert.setlistItemsArray, id: \.spotifyTrackId) { item in
                                     makeSetlistItemView(with: item)
                                 }
-
+                                
                                 if dependencies.userSessionManager.user?.identities?.contains(where: { $0.provider == "spotify" }) == true {
                                     CreatePlaylistButton(viewModel: viewModel)
                                         .padding(.top, 8)
@@ -134,26 +157,21 @@ struct ConcertDetailView: View {
                         }
                         .padding(.horizontal, 20)
                     }
-
+                    
                     if !viewModel.photos.isEmpty {
                         imageSection(images: viewModel.photos)
                     }
-
+                    
                     Color.clear.frame(height: 40)
                 }
-                .background {
-                    Rectangle()
-                        .fill(.clear)
-                        .glassEffect(in: Rectangle())
-                }
+                .frame(width: size.getHigherValue / 2)
             }
             .scrollIndicators(.hidden)
-            .ignoresSafeArea()
-            .coordinateSpace(name: CoordinateSpace.named("ScrollView"))
-            .frame(width: UIScreen.screenWidth)
+            .frame(width: size.getHigherValue / 2)
+            .safeAreaInset(edge: .top) {
+                toolbarContent(viewModel: viewModel)
+            }
         }
-        .ignoresSafeArea()
-        .frame(width: UIScreen.screenWidth)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 if viewModel.concert.date > Date.now {
@@ -164,7 +182,7 @@ struct ConcertDetailView: View {
                         Image(systemName: "calendar.badge.plus")
                     }
                 }
-
+                
                 Menu {
                     Button {
                         HapticManager.shared.impact(.light)
@@ -187,11 +205,6 @@ struct ConcertDetailView: View {
         .adaptiveSheet(isPresented: $showDeleteDialog) {
             deleteDialog(viewModel: viewModel)
         }
-        .adaptiveSheet(isPresented: $confirmationTextPresenting) {
-            if let confirmationText {
-                ConfirmationView(message: confirmationText, isPresented: $confirmationTextPresenting)
-            }
-        }
         .sheet(isPresented: $showCalendarSheet) {
             if let calendarEvent {
                 EventEditView(
@@ -213,14 +226,14 @@ struct ConcertDetailView: View {
                     Task {
                         savingConcertPresenting = true
                         await viewModel.applyUpdate(updatedConcert)
-
+                        
                         try? await Task.sleep(for: .seconds(2))
                         
                         savingConcertPresenting = false
                         HapticManager.shared.success()
-
+                        
                         try? await Task.sleep(for: .seconds(1))
-
+                        
                         confirmationText = ConfirmationMessage(message: "Updates gespeichert! 🎉")
                         confirmationTextPresenting = true
                     }
@@ -248,7 +261,193 @@ struct ConcertDetailView: View {
             hidePrices = newValue
         }
     }
-
+    
+    // MARK: - Original Portrait Content
+    @ViewBuilder
+    func portraitContent(viewModel: ConcertDetailViewModel) -> some View {
+        BannerAdContainer(position: .bottom, horizontalPadding: 40) {
+            ScrollView {
+                ParallaxHeader(
+                    coordinateSpace: CoordinateSpace.named("ScrollView"),
+                    defaultHeight: 400
+                ) {
+                    AsyncImage(url: URL(string: viewModel.concert.artist.imageUrl ?? "")) { result in
+                        result.image?
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    }
+                    .frame(height: 400)
+                    .frame(maxWidth: UIScreen.screenWidth)
+                }
+                
+                VStack(alignment: .leading, spacing: 24) {
+                    header(viewModel: viewModel)
+                        .frame(maxWidth: .infinity)
+                        .zIndex(100)
+                    
+                    if !viewModel.concert.supportActsArray.isEmpty {
+                        supportActsSection(supportActs: viewModel.concert.supportActsArray)
+                    }
+                    
+                    if !viewModel.concert.buddiesArray.isEmpty {
+                        buddiesSection(buddies: viewModel.concert.buddiesArray)
+                    }
+                    
+                    if let venue = viewModel.concert.venue {
+                        venueSection(venue: venue, viewModel: viewModel)
+                    }
+                    
+                    if let notes = viewModel.concert.notes, !notes.isEmpty {
+                        notesSection(notes: notes)
+                    }
+                    
+                    if let travel = viewModel.concert.travel {
+                        travelSection(travel: travel)
+                    }
+                    
+                    if let ticket = viewModel.concert.ticket {
+                        VStack(alignment: .leading, spacing: 12) {
+                            sectionHeader(title: "Mein Ticket", icon: "ticket.fill")
+                            ticketSection(ticket: ticket)
+                        }
+                        .padding(.horizontal, 20)
+                    }
+                    
+                    if !viewModel.concert.setlistItemsArray.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            sectionHeader(title: "Setlist", icon: "music.note.list")
+                            
+                            VStack(spacing: 12) {
+                                ForEach(viewModel.concert.setlistItemsArray, id: \.spotifyTrackId) { item in
+                                    makeSetlistItemView(with: item)
+                                }
+                                
+                                if dependencies.userSessionManager.user?.identities?.contains(where: { $0.provider == "spotify" }) == true {
+                                    CreatePlaylistButton(viewModel: viewModel)
+                                        .padding(.top, 8)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                    }
+                    
+                    if !viewModel.photos.isEmpty {
+                        imageSection(images: viewModel.photos)
+                    }
+                    
+                    Color.clear.frame(height: 40)
+                }
+                .background {
+                    Rectangle()
+                        .fill(.clear)
+                        .glassEffect(in: Rectangle())
+                }
+            }
+            .scrollIndicators(.hidden)
+            .ignoresSafeArea()
+            .coordinateSpace(name: CoordinateSpace.named("ScrollView"))
+            .frame(width: UIScreen.screenWidth)
+        }
+        .ignoresSafeArea()
+        .frame(width: UIScreen.screenWidth)
+        .toolbar {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                if viewModel.concert.date > Date.now {
+                    Button {
+                        HapticManager.shared.impact(.light)
+                        requestCalendarAccess()
+                    } label: {
+                        Image(systemName: "calendar.badge.plus")
+                    }
+                }
+                
+                Menu {
+                    Button {
+                        HapticManager.shared.impact(.light)
+                        showEditSheet = true
+                    } label: {
+                        Label("Bearbeiten", systemImage: "pencil")
+                    }
+                    Divider()
+                    Button(role: .destructive) {
+                        HapticManager.shared.impact(.medium)
+                        showDeleteDialog = true
+                    } label: {
+                        Label("Löschen", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+            }
+        }
+        .adaptiveSheet(isPresented: $showDeleteDialog) {
+            deleteDialog(viewModel: viewModel)
+        }
+        .sheet(isPresented: $showCalendarSheet) {
+            if let calendarEvent {
+                EventEditView(
+                    eventStore: eventStore,
+                    event: calendarEvent
+                ) { action in
+                    if action == .saved {
+                        HapticManager.shared.success()
+                        confirmationText = ConfirmationMessage(message: "Event gespeichert 🎉")
+                        confirmationTextPresenting = true
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showEditSheet) {
+            ConcertEditView(
+                concert: viewModel.concert,
+                onSave: { updatedConcert in
+                    Task {
+                        savingConcertPresenting = true
+                        await viewModel.applyUpdate(updatedConcert)
+                        
+                        try? await Task.sleep(for: .seconds(2))
+                        
+                        savingConcertPresenting = false
+                        HapticManager.shared.success()
+                        
+                        try? await Task.sleep(for: .seconds(1))
+                        
+                        confirmationText = ConfirmationMessage(message: "Updates gespeichert! 🎉")
+                        confirmationTextPresenting = true
+                    }
+                }
+            )
+        }
+        .adaptiveSheet(isPresented: $confirmationTextPresenting) {
+            if let confirmationText {
+                ConfirmationView(message: confirmationText, isPresented: $confirmationTextPresenting)
+            }
+        }
+        .fullScreenCover(item: $selectedImage) { item in
+            FullscreenImagePagerView(
+                imageUrls: viewModel.photos,
+                startIndex: item.index
+            )
+        }
+        .sheet(isPresented: $savingConcertPresenting) {
+            LoadingSheet(message: "Laden...")
+        }
+        .onAppear {
+            localHidePrices = hidePrices
+        }
+        .onChange(of: localHidePrices) { _, newValue in
+            hidePrices = newValue
+        }
+    }
+    
+    @ViewBuilder
+    private func toolbarContent(viewModel: ConcertDetailViewModel) -> some View {
+        HStack {
+            Spacer()
+        }
+        .frame(height: 0)
+    }
+    
     @ViewBuilder
     func deleteDialog(viewModel: ConcertDetailViewModel) -> some View {
         @State var loading: Bool = false
@@ -1169,5 +1368,15 @@ extension View {
         } else {
             self
         }
+    }
+}
+
+extension CGSize {
+    var getHigherValue: CGFloat {
+        height < width ? width : height
+    }
+    
+    var getLowerValue: CGFloat {
+        height > width ? width : height
     }
 }

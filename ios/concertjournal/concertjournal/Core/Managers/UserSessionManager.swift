@@ -12,11 +12,12 @@ protocol UserSessionManagerProtocol {
     var providerRefreshToken: String? { get }
 
     var profileChanged: AnyPublisher<Profile?, Never> { get }
-    var userSessionChanged: AnyPublisher<User?, Never> { get }
+    var userSessionChanged: AnyPublisher<Session?, Never> { get }
     var state: UserSessionState { get }
 
     func start() async throws
     func loadUser() async throws -> User
+    func getUserProfile() async -> Profile?
     func refreshSpotifyProviderTokenIfNeeded() async throws
     func ensureValidProviderToken() async throws -> String
     func spotifyAccessToken() async throws -> String
@@ -92,11 +93,11 @@ final class UserSessionManager: UserSessionManagerProtocol {
 
     // MARK: - Publishers
 
-    var userSessionChanged: AnyPublisher<User?, Never> {
+    var userSessionChanged: AnyPublisher<Session?, Never> {
         userSessionChangedSubject.eraseToAnyPublisher()
     }
 
-    let userSessionChangedSubject = PassthroughSubject<User?, Never>()
+    let userSessionChangedSubject = PassthroughSubject<Session?, Never>()
     
     // MARK: - Private Properties
 
@@ -241,7 +242,17 @@ final class UserSessionManager: UserSessionManagerProtocol {
                 object: nil
             )
         }
-        userSessionChangedSubject.send(self.user)
+        userSessionChangedSubject.send(session)
+    }
+    
+    func getUserProfile() async -> Profile? {
+        if let profile {
+            return profile
+        }
+        
+        guard let user else { return nil }
+        await loadProfile(for: user.id)
+        return profile
     }
     
     var isLoadingProfile: Bool = false

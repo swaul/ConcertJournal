@@ -21,14 +21,6 @@ struct CreateSetlistView: View {
     @State var songName: String = ""
     @State var hasText: Bool = false
     @State var showTextField: Bool = false
-    @State private var deleteSongDialog: Bool = false {
-        didSet {
-            if deleteSongDialog == false {
-                songToDelete = nil
-            }
-        }
-    }
-    @State private var songToDelete: String? = nil
 
     @FocusState var textFieldFocused: Bool
 
@@ -73,10 +65,6 @@ struct CreateSetlistView: View {
     @ViewBuilder
     func viewWithViewModel(viewModel: CreateSetlistViewModel) -> some View {
         VStack {
-            if !viewModel.selectedSongs.isEmpty && showTextField == false {
-                selectedSongsSection()
-            }
-
             CJDivider(title: "Suche nach Songs", image: Image(systemName: "magnifyingglass"))
                 .padding(.horizontal)
 
@@ -225,60 +213,7 @@ struct CreateSetlistView: View {
             Spacer()
         }
         .selectedGlass(selected: viewModel.selectedSongs.contains(where: { $0.id == song.id }))
-    }
-
-    @ViewBuilder
-    func selectedSongsSection() -> some View {
-        VStack {
-            CJDivider(title: "Hinzugefügte Songs", image: nil)
-                .padding(.horizontal)
-            VStack {
-                ScrollView {
-                    ForEach(viewModel.selectedSongs, id: \.id) { song in
-                        HStack {
-                            Text(song.name)
-                            Spacer()
-                            Button {
-                                HapticManager.shared.buttonTap()
-                                songToDelete = song.id
-                                deleteSongDialog = true
-                            } label: {
-                                Image(systemName: "trash")
-                            }
-                        }
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 4)
-                        .background {
-                            if song.id == songToDelete {
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(dependencies.colorThemeManager.appTint)
-                            }
-                        }
-                        .confirmationDialog("Diesen Song löschen", isPresented: $deleteSongDialog, titleVisibility: .visible) {
-                            Button(role: .destructive) {
-                                guard let songToDelete else { return }
-                                HapticManager.shared.buttonTap()
-                                withAnimation {
-                                    viewModel.selectedSongs.removeAll(where: { $0.id == songToDelete })
-                                }
-                                self.songToDelete = nil
-                            } label: {
-                                Text(TextKey.setlistDeleteConfirm.localized)
-                            }
-
-                            Button {
-                                HapticManager.shared.buttonTap()
-                                songToDelete = nil
-                            } label: {
-                                Text(TextKey.cancel.localized)
-                            }
-                        }
-                    }
-                }
-            }
-            .frame(height: 200)
-            .padding(.horizontal)
-        }
+        .contentShape(Rectangle())
     }
 }
 

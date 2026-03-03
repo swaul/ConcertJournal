@@ -24,6 +24,7 @@ class DependencyContainer {
     let storageService: StorageServiceProtocol
     let networkMonitor: NetworkMonitor
     let syncManager: SyncManager
+    let tourSyncManager: TourSyncManagerProtocol
     let appState: AppState
     let buddyNotificationService: BuddyNotificationService
     let pushNotificationManager: PushNotificationManagerProtocol
@@ -31,6 +32,7 @@ class DependencyContainer {
     // BFF Repositories
     let offlineConcertRepository: OfflineConcertRepositoryProtocol
     let offlinePhotoRepsitory: OfflinePhotoRepositoryProtocol
+    let offlineTourRepository: OfflineTourRepositoryProtocol
     let concertRepository: ConcertRepositoryProtocol
     let artistRepository: ArtistRepositoryProtocol
     let venueRepository: VenueRepositoryProtocol
@@ -56,8 +58,9 @@ class DependencyContainer {
         self.storageService = StorageService(supabaseClient: supabaseClient)
         self.networkMonitor = NetworkMonitor()
         self.syncManager = SyncManager(apiClient: bffClient, userSessionManager: userSessionManager)
+        self.tourSyncManager = TourSyncManager(supabaseClient: supabaseClient, apiClient: bffClient, coreData: coreData)
         self.appState = AppState()
-        self.buddyNotificationService = BuddyNotificationService(supabaseClient: supabaseClient)
+        self.buddyNotificationService = BuddyNotificationService(supabaseClient: supabaseClient, userProvider: userSessionManager)
         self.pushNotificationManager = PushNotificationManager(supabaseClient: supabaseClient)
 
         // ✅ BFF Client needs auth token
@@ -71,6 +74,7 @@ class DependencyContainer {
         // ✅ BFF Repositories
         self.offlineConcertRepository = OfflineConcertRepository(syncManager: syncManager, userSessionManager: userSessionManager)
         self.offlinePhotoRepsitory = OfflinePhotoRepository()
+        self.offlineTourRepository = OfflineTourRepository(coreDataStack: coreData, apiClient: bffClient)
         self.concertRepository = BFFConcertRepository(client: bffClient)
         self.artistRepository = BFFArtistRepository(client: bffClient)
         self.venueRepository = BFFVenueRepository(client: bffClient)
@@ -88,20 +92,20 @@ class DependencyContainer {
 
     func bindToAuthState() {
         userSessionManager.userSessionChanged
-            .sink { [weak self] user in
+            .sink { [weak self] session in
                 guard let self else { return }
-                if let user {
-                    self.previousUserId = user.id
+                if let session {
+                    CredentialEncryption.shared.setCurrentSession(session: session)
                     self.startFullSync()
+                    let user = session.user
+                    self.previousUserId = user.id
                     self.checkIfUserNeedsSetup(user: user)
-                    ConcertEncryptionHelper.shared.currentUserId = user.id.uuidString.lowercased()
-                    self.checkiCloudKeychainOnLogin(user: user)
                     Task { await self.pushNotificationManager.registerCachedTokenIfNeeded() }
                 } else {
+                    CredentialEncryption.shared.clearCredentials()
                     guard self.previousUserId != nil else { return }
                     self.previousUserId = nil
                     nukeLocalData()
-                    ConcertEncryptionHelper.shared.currentUserId = nil
                     Task { await self.pushNotificationManager.removeDeviceToken() }
                     UserDefaults.standard.removeObject(forKey: "lastSyncDate")
                     DispatchQueue.main.async {
@@ -117,26 +121,13 @@ class DependencyContainer {
         userSessionManager.profileChanged
             .sink { [weak self] profile in
                 guard let self, let profile else { return }
-                self.buddyNotificationService.currentUserName = profile.displayName
+                self.buddyNotificationService.profile = profile
             }
             .store(in: &cancellables)
     }
 
     func nukeLocalData() {
-        let container = CoreDataStack.shared.persistentContainer
-        container.viewContext.reset()
-
-        container.persistentStoreCoordinator.persistentStores.forEach { store in
-            try? container.persistentStoreCoordinator.remove(store)
-        }
-
-        let storeURL = FileManager.default
-            .containerURL(forSecurityApplicationGroupIdentifier: "group.de.kuehnel.concertjournal")!
-            .appendingPathComponent("CJModels.sqlite")
-
-        try? FileManager.default.removeItem(at: storeURL)
-        try? FileManager.default.removeItem(at: storeURL.appendingPathExtension("shm"))
-        try? FileManager.default.removeItem(at: storeURL.appendingPathExtension("wal"))
+        CoreDataStack.shared.nukeAllData()
     }
     
     private func checkIfUserNeedsSetup(user: User?) {
@@ -145,22 +136,6 @@ class DependencyContainer {
         if needsSetup {
             logInfo("User has not setup his profile yet")
             self.needsSetup = needsSetup
-        }
-    }
-    
-    func checkiCloudKeychainOnLogin(user: User?) {
-        guard let user, iCloudKeychainChecker.shared.shouldShowWarning() else { return }
-        
-        guard user.userMetadata["icloud_warning_seen"] != true else { return }
-        // Hinweis nur einmal zeigen
-        iCloudKeychainChecker.shared.markWarningAsShown()
-        
-        // An die UI weiterleiten – z.B. über einen Publisher oder Alert
-        DispatchQueue.main.async {
-            NotificationCenter.default.post(
-                name: .iCloudKeychainUnavailable,
-                object: nil
-            )
         }
     }
 
@@ -192,8 +167,10 @@ extension View {
 }
 
 extension Notification.Name {
-    static let iCloudKeychainUnavailable = Notification.Name("iCloudKeychainUnavailable")
     static let syncingProblem = Notification.Name("SyncingProblem")
     static let resetAppState = Notification.Name("ResetAppState")
     static let loggedInChanged = Notification.Name("LoggedInChanged")
+    static let openBuddies = Notification.Name("openBuddies")
+    static let openConcert = Notification.Name("openConcert")
+    static let syncInProgress = Notification.Name("SyncInProgress")
 }
