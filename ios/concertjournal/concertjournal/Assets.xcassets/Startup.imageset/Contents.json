@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "concert_journal_startup.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
