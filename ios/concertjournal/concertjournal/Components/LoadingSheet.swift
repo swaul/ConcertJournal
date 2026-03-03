@@ -16,13 +16,13 @@ struct LoadingSheet: View {
     var body: some View {
         ZStack {
             VStack {
-                ProgressView()
-                    .tint(dependencies.colorThemeManager.appTint)
+                FlowerLoading()
+
                 Text(message)
                     .font(.cjBody)
             }
         }
-        .frame(height: 250)
+        .frame(height: 300)
         .presentationDetents([.height(250)])
         .interactiveDismissDisabled()
     }

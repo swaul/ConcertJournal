@@ -23,6 +23,7 @@
 		879C562A2F4B8454008FCA09 /* concertjournal-widgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 879C56102F4B7E87008FCA09 /* concertjournal-widgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		87D2DAAD2F3BA0EC0002C037 /* ConcertJournalShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 87D2DAA12F3BA0EC0002C037 /* ConcertJournalShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		87D2DAC22F3DB84C0002C037 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 87D2DAC12F3DB84C0002C037 /* GoogleMobileAds */; };
+		87D85A312F577CC700140287 /* DotLottie in Frameworks */ = {isa = PBXBuildFile; productRef = 87D85A302F577CC700140287 /* DotLottie */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -228,6 +229,7 @@
 				2FBC28632EF56C3D00BEF981 /* Supabase in Frameworks */,
 				2FBC28592EF56A8500BEF981 /* Storage in Frameworks */,
 				87D2DAC22F3DB84C0002C037 /* GoogleMobileAds in Frameworks */,
+				87D85A312F577CC700140287 /* DotLottie in Frameworks */,
 				2FBC28572EF56A8500BEF981 /* PostgREST in Frameworks */,
 				2FBC28552EF56A8500BEF981 /* Auth in Frameworks */,
 				2FBC285C2EF56AE600BEF981 /* SpotifyiOS in Frameworks */,
@@ -386,6 +388,7 @@
 				2F68C7A62EF6374B000D9C1B /* Functions */,
 				2F49FD9E2F1C20B000B630EF /* Zoomable */,
 				87D2DAC12F3DB84C0002C037 /* GoogleMobileAds */,
+				87D85A302F577CC700140287 /* DotLottie */,
 			);
 			productName = concertjournal;
 			productReference = 2FBC28292EF568CC00BEF981 /* concertjournal.app */;
@@ -530,6 +533,7 @@
 				2FBC285A2EF56AE600BEF981 /* XCRemoteSwiftPackageReference "ios-sdk" */,
 				2F49FD9D2F1C20B000B630EF /* XCRemoteSwiftPackageReference "Zoomable" */,
 				87D2DAC02F3DB84C0002C037 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+				87D85A2F2F577CC700140287 /* XCRemoteSwiftPackageReference "dotlottie-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 2FBC282A2EF568CC00BEF981 /* Products */;
@@ -1413,6 +1417,14 @@
 				minimumVersion = 13.0.0;
 			};
 		};
+		87D85A2F2F577CC700140287 /* XCRemoteSwiftPackageReference "dotlottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/LottieFiles/dotlottie-ios";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1455,6 +1467,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 87D2DAC02F3DB84C0002C037 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
 			productName = GoogleMobileAds;
+		};
+		87D85A302F577CC700140287 /* DotLottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 87D85A2F2F577CC700140287 /* XCRemoteSwiftPackageReference "dotlottie-ios" */;
+			productName = DotLottie;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
