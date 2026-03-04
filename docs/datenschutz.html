@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>Datenschutzerklärung - ConcertJournal</title>
+  <title>Datenschutzerklärung - Concert Journal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     /* global box sizing & font smoothing */
@@ -18,162 +18,378 @@
       max-width: 900px;
       margin-inline: auto;
       width: 100%;
+      line-height: 1.6;
     }
 
-    footer { margin-top: 4rem; font-size: 0.9rem; opacity: 0.7; }
-    a { color: #8ab4f8; text-decoration: none; }
-    a:hover { text-decoration: underline; }
+    h1 {
+      font-size: 2.5rem;
+      margin: 0 0 0.5rem 0;
+      font-weight: 700;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      margin: 2rem 0 1rem 0;
+      font-weight: 600;
+      color: #8ab4f8;
+      border-bottom: 1px solid #333;
+      padding-bottom: 0.5rem;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      margin: 1.5rem 0 0.75rem 0;
+      font-weight: 600;
+      color: #a8c5f8;
+    }
+
+    p {
+      margin: 0 0 1rem 0;
+      text-align: justify;
+    }
+
+    ul {
+      margin: 0 0 1rem 1.5rem;
+      padding: 0;
+    }
+
+    li {
+      margin: 0.5rem 0;
+      line-height: 1.8;
+    }
+
+    strong {
+      color: #8ab4f8;
+      font-weight: 600;
+    }
+
+    .subtitle {
+      font-size: 0.95rem;
+      opacity: 0.7;
+      margin-bottom: 2rem;
+    }
+
+    .toc {
+      background: rgba(139, 180, 248, 0.05);
+      border-left: 3px solid #8ab4f8;
+      padding: 1.5rem;
+      margin: 2rem 0;
+      border-radius: 4px;
+    }
+
+    .toc h2 {
+      margin-top: 0;
+      border: none;
+      padding: 0;
+      font-size: 1.4rem;
+    }
+
+    .toc ol {
+      margin: 0;
+      padding-left: 1.5rem;
+    }
+
+    .toc li {
+      margin: 0.4rem 0;
+    }
+
+    .toc a {
+      color: #8ab4f8;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    .toc a:hover {
+      opacity: 0.8;
+      text-decoration: underline;
+    }
+
+    .highlight {
+      background: rgba(139, 180, 248, 0.1);
+      border-left: 3px solid #8ab4f8;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      border-radius: 4px;
+    }
+
+    .highlight p {
+      margin: 0;
+    }
+
+    a {
+      color: #8ab4f8;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    a:hover {
+      text-decoration: underline;
+      opacity: 0.8;
+    }
+
+    footer {
+      margin-top: 4rem;
+      font-size: 0.9rem;
+      opacity: 0.7;
+      border-top: 1px solid #333;
+      padding-top: 2rem;
+    }
+
+    .back-to-top {
+      text-align: center;
+      margin-top: 2rem;
+    }
+
+    .back-to-top a {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background: #8ab4f8;
+      color: #0f0f14;
+      border-radius: 4px;
+      font-weight: 600;
+      transition: opacity 0.2s;
+    }
+
+    .back-to-top a:hover {
+      opacity: 0.8;
+      text-decoration: none;
+    }
+
+    .section {
+      scroll-margin-top: 2rem;
+    }
 
     @media (max-width: 600px) {
       body { padding: 1rem; }
-      h1 { font-size: 1.25rem; }
+      h1 { font-size: 1.5rem; }
+      h2 { font-size: 1.3rem; }
+      h3 { font-size: 1rem; }
       footer { margin-top: 2.5rem; }
+      .toc { padding: 1rem; margin: 1.5rem 0; }
     }
   </style>
 </head>
-
 <body>
+  <h1>Datenschutzerklärung</h1>
 
-<h1>Datenschutzerklärung</h1>
+  <div class="toc">
+    <h2>Inhaltsverzeichnis</h2>
+    <ol>
+      <li><a href="#s1">Einleitung und Zweck</a></li>
+      <li><a href="#s2">Welche Daten wir sammeln</a></li>
+      <li><a href="#s3">Zweck der Datennutzung</a></li>
+      <li><a href="#s4">Datenfreigabe und Drittanbieter</a></li>
+      <li><a href="#s5">Ihre Rechte unter der DSGVO</a></li>
+      <li><a href="#s6">Datensicherheit</a></li>
+      <li><a href="#s7">Datenspeicherdauer</a></li>
+      <li><a href="#s8">Kinder und Minderjährige</a></li>
+      <li><a href="#s9">Änderungen dieser Richtlinie</a></li>
+      <li><a href="#s10">Kontaktinformationen</a></li>
+      <li><a href="#s11">Beschwerde bei der Aufsichtsbehörde</a></li>
+    </ol>
+  </div>
 
-<p>
-    Der Schutz Ihrer persönlichen Daten ist mir ein besonderes Anliegen.
-    Ich behandle Ihre personenbezogenen Daten vertraulich und entsprechend
-    der gesetzlichen Datenschutzvorschriften sowie dieser Datenschutzerklärung.
-</p>
+  <section id="s1" class="section">
+    <h2>1. Einleitung und Zweck</h2>
+    <p>
+      Diese Datenschutzerklärung („Richtlinie") erläutert, wie die Concert Journal App („App", „Dienst", „wir", „uns") 
+      personenbezogene Daten von Benutzern erfasst, nutzt, offenbart und schützt. Die Datenschutzerklärung gilt für alle Versionen der App auf iOS.
+    </p>
+  </section>
 
-<h2>1. Verantwortlicher</h2>
-<p>
-    Paul Kühnel<br>
-    <em>Straße Hausnummer</em><br>
-    38259 Salzgitter<br>
-    Deutschland
-</p>
-<p>
-    E-Mail:
-    <a href="mailto:concertjournalapp@gmail.com">
-        concertjournalapp@gmail.com
-    </a>
-</p>
+  <section id="s2" class="section">
+    <h2>2. Welche Daten wir sammeln</h2>
 
-<h2>2. Erhebung und Speicherung personenbezogener Daten</h2>
+    <h3>2.1 Kontoinformationen</h3>
+    <p><strong>Wenn Sie ein Konto erstellen, erfassen wir:</strong></p>
+    <ul>
+      <li>E-Mail-Adresse</li>
+      <li>Passwort (verschlüsselt gespeichert)</li>
+      <li>Benutzername/Anzeigename</li>
+      <li>Profilbild (optional)</li>
+    </ul>
 
-<h3>a) Beim Besuch der Website</h3>
-<p>
-    Beim Aufrufen dieser Website werden durch den Hosting-Anbieter (GitHub Pages)
-    automatisch Informationen erfasst, die Ihr Browser übermittelt.
-    Diese Informationen sind technisch erforderlich, um die Website korrekt
-    anzuzeigen, und fallen bei Nutzung des Internets zwingend an.
-</p>
-<p>
-    Erfasst werden insbesondere:
-</p>
-<ul>
-    <li>IP-Adresse</li>
-    <li>Datum und Uhrzeit der Anfrage</li>
-    <li>Browsertyp und -version</li>
-    <li>Betriebssystem</li>
-</ul>
-<p>
-    Eine Zusammenführung dieser Daten mit anderen Datenquellen erfolgt nicht.
-</p>
+    <h3>2.2 Konzertdaten</h3>
+    <p><strong>Folgende Informationen speichern Sie in der App:</strong></p>
+    <ul>
+      <li>Künstler und Künstlername</li>
+      <li>Veranstaltungsdatum und -zeit</li>
+      <li>Veranstaltungsort/Venue-Informationen</li>
+      <li>Bewertungen und persönliche Notizen (verschlüsselt)</li>
+      <li>Fotos von Konzerten</li>
+      <li>Setlisten und Liedtitel</li>
+      <li>Eintrittskartendaten (verschlüsselt)</li>
+      <li>Reise- und Unterkunftsinformationen</li>
+    </ul>
 
-<h3>b) Nutzung der App „ConcertJournal“</h3>
-<p>
-    Bei der Nutzung der App werden personenbezogene Daten verarbeitet,
-    soweit dies für die Bereitstellung der Funktionen erforderlich ist.
-</p>
+    <h3>2.3 Spotify-Integration</h3>
+    <p>Falls Sie sich über Spotify authentifizieren oder Spotify verknüpfen:</p>
+    <ul>
+      <li>Spotify-Benutzer-ID</li>
+      <li>Spotify-Token für Zugriff auf Playlists</li>
+      <li>Künstler- und Musikdaten aus Ihrem Profil</li>
+    </ul>
 
-<h2>3. Registrierung und Anmeldung (Supabase)</h2>
-<p>
-    Für die Nutzung bestimmter Funktionen ist eine Anmeldung erforderlich.
-    Die Authentifizierung erfolgt über den Dienst <strong>Supabase</strong>.
-</p>
-<p>
-    Dabei können folgende Daten verarbeitet werden:
-</p>
-<ul>
-    <li>E-Mail-Adresse</li>
-    <li>User-ID</li>
-    <li>Zeitpunkt der Registrierung</li>
-</ul>
-<p>
-    Die Verarbeitung erfolgt auf Grundlage von Art. 6 Abs. 1 lit. b DSGVO
-    (Vertragserfüllung).
-</p>
+    <h3>2.5 Fotodaten</h3>
+    <p>
+      Fotos von Konzerten werden lokal gespeichert und optional auf unseren Servern (Supabase Storage) synchronisiert, 
+      wenn Sie die Synchronisierung aktivieren, indem Sie sich anmelden.
+    </p>
 
-<h2>4. Spotify Login</h2>
-<p>
-    Die App bietet die Möglichkeit, sich über den Dienst <strong>Spotify</strong>
-    anzumelden. Dabei wird eine Verbindung zu den Servern von Spotify hergestellt.
-</p>
-<p>
-    Spotify erhält dadurch Informationen darüber, dass Sie die App nutzen.
-    Zudem werden bestimmte Profildaten übermittelt, wie z. B.:
-</p>
-<ul>
-    <li>Spotify Benutzer-ID</li>
-    <li>Anzeigename</li>
-    <li>Öffentliche Profildaten</li>
-</ul>
-<p>
-    Die Nutzung des Spotify-Logins erfolgt freiwillig und nur nach Ihrer
-    ausdrücklichen Einwilligung (Art. 6 Abs. 1 lit. a DSGVO).
-</p>
-<p>
-    Weitere Informationen zum Datenschutz bei Spotify finden Sie in der
-    Datenschutzerklärung von Spotify.
-</p>
+    <h3>2.6 Push-Benachrichtigungen</h3>
+    <p>Wenn Sie Push-Benachrichtigungen aktivieren, erfassen wir Ihr Push-Notification-Token.</p>
 
-<h2>5. Kontaktaufnahme per E-Mail</h2>
-<p>
-    Wenn Sie mich per E-Mail kontaktieren, werden Ihre Angaben zwecks
-    Bearbeitung der Anfrage gespeichert. Diese Daten gebe ich nicht ohne
-    Ihre Einwilligung weiter.
-</p>
+    <h3>2.7 Werbung und In-App-Käufe</h3>
+    <p>
+      <strong>Werbedaten:</strong> Die App nutzt Google AdMob für Anzeigen. Google erfasst Daten für Anzeigenzwecke. 
+      Weitere Informationen unter: <a href="https://policies.google.com/privacy" target="_blank">Google Privacy Policy</a>
+    </p>
+    <p><strong>In-App-Käufe:</strong> Werden über Apple verwaltet und verarbeitet.</p>
 
-<h2>6. Weitergabe von Daten</h2>
-<p>
-    Eine Übermittlung Ihrer persönlichen Daten an Dritte findet nicht statt,
-    außer:
-</p>
-<ul>
-    <li>Sie haben ausdrücklich eingewilligt</li>
-    <li>die Verarbeitung ist zur Vertragserfüllung erforderlich</li>
-    <li>es besteht eine gesetzliche Verpflichtung</li>
-</ul>
+    <h3>2.8 Technische Daten</h3>
+    <ul>
+      <li>iOS-Version und Gerätetyp</li>
+      <li>App-Version</li>
+      <li>Fehlerberichte und Crash-Logs</li>
+      <li>Nutzungsanalytik (anonymisiert)</li>
+    </ul>
+  </section>
 
-<h2>7. Speicherdauer</h2>
-<p>
-    Personenbezogene Daten werden nur so lange gespeichert, wie dies für die
-    jeweiligen Zwecke erforderlich ist oder gesetzliche Aufbewahrungspflichten
-    bestehen.
-</p>
+  <section id="s3" class="section">
+    <h2>3. Zweck der Datennutzung</h2>
+    <p><strong>• Bereitstellung der App:</strong> Um die Funktionen der App zu stellen, Ihr Konto zu verwalten und Ihre Daten zu synchronisieren.</p>
+    <p><strong>• Personalisierung:</strong> Um Ihre Erfahrung anzupassen, Ihre Vorlieben zu speichern und personalisierte Empfehlungen zu geben.</p>
+    <p><strong>• Sicherheit und Betrug:</strong> Um Ihren Account zu schützen, Missbrauch zu verhindern und die App-Sicherheit zu gewährleisten.</p>
+    <p><strong>• Werbung:</strong> Um relevante Anzeigen über AdMob bereitzustellen (basierend auf anonymisierten Daten).</p>
+    <p><strong>• Kommunikation:</strong> Um Sie über Updates, Sicherheitswarnungen und wichtige Änderungen zu benachrichtigen.</p>
+    <p><strong>• Rechtsverbindlichkeit:</strong> Um unsere rechtlichen Verpflichtungen zu erfüllen und bei rechtlichen Streitigkeiten zu helfen.</p>
+    <p><strong>• Verbesserung der App:</strong> Um die Performance zu analysieren, Bugs zu beheben und neue Features zu entwickeln.</p>
+  </section>
 
-<h2>8. Ihre Rechte</h2>
-<p>
-    Sie haben jederzeit das Recht auf:
-</p>
-<ul>
-    <li>Auskunft über Ihre gespeicherten Daten (Art. 15 DSGVO)</li>
-    <li>Berichtigung unrichtiger Daten (Art. 16 DSGVO)</li>
-    <li>Löschung Ihrer Daten (Art. 17 DSGVO)</li>
-    <li>Einschränkung der Verarbeitung (Art. 18 DSGVO)</li>
-    <li>Datenübertragbarkeit (Art. 20 DSGVO)</li>
-    <li>Widerruf erteilter Einwilligungen (Art. 7 Abs. 3 DSGVO)</li>
-</ul>
+  <section id="s4" class="section">
+    <h2>4. Datenfreigabe und Drittanbieter</h2>
 
-<h2>9. Beschwerderecht</h2>
-<p>
-    Ihnen steht ein Beschwerderecht bei der zuständigen Datenschutzaufsichtsbehörde zu.
-</p>
+    <h3>4.1 Supabase (Backend-Dienste)</h3>
+    <p>
+      Ihre Daten werden im Falle einer Registrierung auf Supabase-Servern synchronisiert und gespeichert. Supabase unterliegt dem Standard Contract Clauses (SCC) gemäß DSGVO. 
+      Datenschutz: <a href="https://supabase.com/privacy" target="_blank">supabase.com/privacy</a>
+    </p>
 
-<h2>10. Änderung dieser Datenschutzerklärung</h2>
-<p>
-    Ich behalte mir vor, diese Datenschutzerklärung anzupassen, damit sie stets
-    den aktuellen rechtlichen Anforderungen entspricht oder um Änderungen der
-    Leistungen umzusetzen.
-</p>
+    <h3>4.2 Spotify</h3>
+    <p>
+      Wenn Sie Spotify verknüpfen, gibt Spotify Ihre Künstler- und Musikdaten an die App weiter. 
+      Spotify-Datenschutz: <a href="https://www.spotify.com/privacy" target="_blank">spotify.com/privacy</a>
+    </p>
 
+    <h3>4.3 Google AdMob (Werbung)</h3>
+    <p>
+      Google erfasst Werbedaten für Anzeigenzwecke. Diese Daten können für Targeting verwendet werden. 
+      Google-Datenschutz: <a href="https://policies.google.com/privacy" target="_blank">policies.google.com/privacy</a>
+    </p>
+
+    <h3>4.4 Freunde und Networking</h3>
+    <p>
+      Wenn Sie Freunde („Buddies") hinzufügen oder Konzerte teilen, können diese Nutzer die von Ihnen geteilten Informationen sehen. 
+      Sie kontrollieren, welche Daten Sie teilen.
+    </p>
+  </section>
+
+  <section id="s5" class="section">
+    <h2>5. Ihre Rechte unter der DSGVO</h2>
+    <p><strong>• Auskunftsrecht:</strong> Sie können jederzeit erfragen, welche Daten wir über Sie haben.</p>
+    <p><strong>• Berichtigungsrecht:</strong> Sie können falsche oder unvollständige Daten korrigieren.</p>
+    <p><strong>• Löschungsrecht:</strong> Sie können die Löschung Ihrer Daten verlangen („Recht auf Vergessenwerden").</p>
+    <p><strong>• Widerspruchsrecht:</strong> Sie können der Verarbeitung widersprechen.</p>
+    <p><strong>• Datenportabilität:</strong> Sie können Ihre Daten in einem strukturierten Format exportieren.</p>
+    <p><strong>• Widerruf der Zustimmung:</strong> Sie können Ihre Einwilligung jederzeit widerrufen.</p>
+
+    <div class="highlight">
+      <p><strong>Um Ihre Rechte auszuüben, kontaktieren Sie uns unter: <a href="mailto:datenschutz@concertjournal.de">datenschutz@concertjournal.de</a></strong></p>
+    </div>
+  </section>
+
+  <section id="s6" class="section">
+    <h2>6. Datensicherheit</h2>
+    <ul>
+      <li>Verschlüsselte Übertragung aller Daten über HTTPS/TLS</li>
+      <li>End-to-End-Verschlüsselung für sensible Informationen (z.B. Passwörter)</li>
+      <li>Verschlüsselte Speicherung auf Servern</li>
+      <li>Zugangskontrollen und Authentifizierungsmechanismen</li>
+      <li>Regelmäßige Sicherheitsüberprüfungen und Updates</li>
+      <li>Begrenzte Zugriffe für Mitarbeiter (nach dem Prinzip „Least Privilege")</li>
+    </ul>
+
+    <p>
+      Trotz dieser Maßnahmen kann keine vollständige Sicherheit garantiert werden. 
+      Bei Sicherheitsverletzungen benachrichtigen wir Sie gemäß DSGVO.
+    </p>
+  </section>
+
+  <section id="s7" class="section">
+    <h2>7. Datenspeicherdauer</h2>
+    <ul>
+      <li><strong>Aktivkonto:</strong> Daten werden solange gespeichert, wie Ihr Konto aktiv ist</li>
+      <li><strong>Nach Kontolöschung:</strong> Daten werden innerhalb von 30 Tagen gelöscht</li>
+      <li><strong>Technische Logs:</strong> Werden nach 90 Tagen automatisch gelöscht</li>
+      <li><strong>Werbedaten:</strong> Google speichert diese nach eigenen Richtlinien</li>
+    </ul>
+
+    <p>
+      Sie können Ihr Konto jederzeit in den Einstellungen löschen. Dies führt zur Löschung aller Ihrer persönlichen Daten.
+    </p>
+  </section>
+
+  <section id="s8" class="section">
+    <h2>8. Kinder und Minderjährige</h2>
+    <p>
+      Diese App ist nicht für Personen unter 13 Jahren konzipiert. Wir sammeln wissentlich keine Daten von Personen unter 13 Jahren. 
+      Wenn wir feststellen, dass wir Daten von jemandem unter 13 Jahren haben, werden diese Daten sofort gelöscht.
+    </p>
+
+    <p>
+      Eltern oder Erziehungsberechtigte, die bemerken, dass ein Kind seine Daten eingegeben hat, sollten uns kontaktieren: 
+      <a href="mailto:datenschutz@concertjournal.de">datenschutz@concertjournal.de</a>
+    </p>
+  </section>
+
+  <section id="s9" class="section">
+    <h2>9. Änderungen dieser Datenschutzerklärung</h2>
+    <p>
+      Wir können diese Datenschutzerklärung jederzeit ändern. Bei wesentlichen Änderungen benachrichtigen wir Sie durch 
+      in-App-Benachrichtigungen oder E-Mail. Ihre fortgesetzte Nutzung der App nach Änderungen gilt als Annahme der neuen Bedingungen.
+    </p>
+  </section>
+
+  <section id="s10" class="section">
+    <h2>10. Kontaktinformationen</h2>
+    <p>Bei Fragen zu dieser Datenschutzerklärung kontaktieren Sie uns:</p>
+    <ul>
+      <li><strong>E-Mail:</strong> <a href="mailto:datenschutz@concertjournal.de">datenschutz@concertjournal.de</a></li>
+      <li><strong>Webseite:</strong> <a href="https://www.concertjournal.app" target="_blank">www.concertjournal.app</a></li>
+      <li><strong>Adresse:</strong> Concert Journal, Deutschland</li>
+    </ul>
+    <p>Oder nutzen Sie die „Kontakt"-Funktion in den App-Einstellungen.</p>
+  </section>
+
+  <section id="s11" class="section">
+    <h2>11. Beschwerde bei der Aufsichtsbehörde</h2>
+    <p>
+      Sie haben das Recht, eine Beschwerde bei der für Sie zuständigen Datenschutzaufsichtsbehörde einzureichen, 
+      wenn Sie der Ansicht sind, dass die Verarbeitung Ihrer personenbezogenen Daten gegen die DSGVO verstößt.
+    </p>
+
+    <p>
+      In Deutschland können Sie sich an den Datenschutzbeauftragten Ihres Bundeslandes wenden: 
+      <a href="https://www.bfdi.bund.de/DE/Infothek/Anschriften_Links/anschriften_links-node.html" target="_blank">BFDI Kontakte</a>
+    </p>
+
+    <div class="back-to-top">
+      <a href="#top">↑ Nach oben</a>
+    </div>
+  </section>
+
+  <footer>
+    © 2026 Concert Journal - Alle Rechte vorbehalten | <a href="mailto:datenschutz@concertjournal.de">Kontakt</a>
+  </footer>
 </body>
 </html>
