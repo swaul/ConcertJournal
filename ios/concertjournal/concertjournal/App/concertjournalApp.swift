@@ -161,6 +161,7 @@ struct RootView: View {
                                 .zIndex(100)
                         }
                     }
+                    .ignoresSafeArea()
             } else {
                 MainAppView()
                     .transition(.move(edge: .trailing).combined(with: .opacity))
@@ -177,6 +178,7 @@ struct RootView: View {
                                 .zIndex(100)
                         }
                     }
+                    .ignoresSafeArea()
             }
         }
         .animation(.easeInOut(duration: 0.35), value: onboardingManager.hasCompletedOnboarding)
@@ -190,7 +192,7 @@ struct RootView: View {
             TextManager.shared.configure(with: localizationManager)
             loadingLocalization = false
             
-            withAnimation(.easeOut(duration: 3)) {
+            withAnimation(.linear(duration: 1)) {
                 scale = 15.0
             } completion: {
                 startupVisible = false

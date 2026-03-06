@@ -136,7 +136,7 @@ class TicketTextParser {
             #"^[A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß\s\.\-]+?\s\d+[a-zA-Z]?,\s\d{4,5}\s[A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß\s\-]+$"#
         ) {
             for line in lines {
-                if let match = try? addressRegex.wholeMatch(in: line) {
+                if let _ = try? addressRegex.wholeMatch(in: line) {
                     return try await findOrCreateVenue(address: line)?.name
                 }
             }

@@ -327,9 +327,9 @@ extension ConcertFilters {
         case .artistZA:
             return concerts.sorted { $0.artist.name > $1.artist.name }
         case .ratingHighest:
-            return concerts.sorted { ($0.rating ?? 0) > ($1.rating ?? 0) }
+            return concerts.sorted { ($0.rating) > ($1.rating) }
         case .ratingLowest:
-            return concerts.sorted { ($0.rating ?? 0) < ($1.rating ?? 0) }
+            return concerts.sorted { ($0.rating) < ($1.rating) }
         case .cityAZ:
             return concerts.sorted { ($0.city ?? "") < ($1.city ?? "") }
         }

@@ -86,6 +86,8 @@ struct MainAppView: View {
     }
     
     func checkTermsUpdateRequired() async {
+        guard UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") else { return }
+
         do {
             let response = try await dependencies.supabaseClient.client
                 .from("localization_metadata")

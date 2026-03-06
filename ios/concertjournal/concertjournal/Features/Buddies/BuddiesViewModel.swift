@@ -64,7 +64,7 @@ final class BuddiesViewModel {
     func load() async {
         loadingState = .loading
         logInfo("Loading buddies, requests, and buddy code")
-        guard let user = try? await userProvider.loadUser() else {
+        guard let _ = try? await userProvider.loadUser() else {
             loadingState = .notLoggedIn
             return
         }

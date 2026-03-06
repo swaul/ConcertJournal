@@ -34,7 +34,7 @@ class TourSyncManager: TourSyncManagerProtocol {
 
     /// Fetch alle Touren des aktuellen Users
     func fetchTours() async throws -> [FullTourVisit] {
-        guard let userId = supabaseClient.currentUserId else {
+        guard let _ = supabaseClient.currentUserId else {
             throw TourRepositoryError.notAuthenticated
         }
 

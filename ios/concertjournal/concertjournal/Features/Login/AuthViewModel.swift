@@ -101,7 +101,7 @@ final class AuthViewModel {
                 throw AuthError.invalidRedirectURL
             }
 
-            let session = try await supabaseClient.client.auth.signInWithOAuth(
+            let _ = try await supabaseClient.client.auth.signInWithOAuth(
                 provider: .spotify,
                 redirectTo: redirectURL,
                 scopes: scopes

@@ -37,30 +37,6 @@ class SyncManager {
 
     // MARK: - Full Sync
 
-    func deduplicateArtists() async {
-        let context = coreData.newBackgroundContext()
-        await context.perform {
-            let request: NSFetchRequest<Artist> = Artist.fetchRequest()
-            guard let all = try? context.fetch(request) else { return }
-
-            var seen: [String: Artist] = [:]  // spotifyId → erster Artist
-
-            for artist in all {
-                guard let spotifyId = artist.spotifyArtistId, !spotifyId.isEmpty else { continue }
-
-                if let existing = seen[spotifyId] {
-                    (artist.concerts as? Set<Concert>)?.forEach {
-                        $0.artist = existing
-                    }
-                    context.delete(artist)
-                } else {
-                    seen[spotifyId] = artist
-                }
-            }
-            try? context.save()
-        }
-    }
-
     func fullSync() async throws {
         guard isLoggedIn else {
             logDebug("Skip sync – user not logged in", category: .sync)
@@ -80,7 +56,6 @@ class SyncManager {
 
         logInfo("Starting full sync", category: .sync)
 
-        await deduplicateArtists()
         try await pullChanges()
         try await pushChanges()
 

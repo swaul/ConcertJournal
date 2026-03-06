@@ -52,6 +52,7 @@ final class ProfileViewModel {
             }
         } catch let error as UserError {
             loadingState = .loaded
+            logError("Error loading profile", error: error)
         } catch {
             loadingState = .error
             print("ERROR LOADING USER DATA")
