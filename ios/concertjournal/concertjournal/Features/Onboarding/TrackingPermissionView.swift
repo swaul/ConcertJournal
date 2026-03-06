@@ -87,6 +87,9 @@ struct TrackingPermissionPage: View {
                             withAnimation {
                                 isRequesting = false
                             }
+                            
+                            try? await Task.sleep(for: .seconds(2))
+                            manager.getNextStep()
                         }
                     } label: {
                         HStack {
@@ -114,43 +117,23 @@ struct TrackingPermissionPage: View {
                         }
                     } label: {
                         Text(TextKey.openSettings.localized)
-                            .font(.cjTitle)
+                            .font(.cjHeadline)
                             .frame(maxWidth: .infinity)
+                            .padding()
                     }
                     .buttonStyle(.glassProminent)
-                    .padding(.horizontal, 40)
-                }
-                
-                VStack(spacing: 14) {
-                    if manager.trackingStatusNotDetermined {
-                        Button {
-                            HapticManager.shared.navigationTap()
-                            manager.getNextStep()
-                        } label: {
-                            Text(TextKey.skip.localized)
-                                .font(.cjFootnote)
-                                .underline()
-                        }
-                    } else {
-                        Button {
-                            HapticManager.shared.navigationTap()
-                            manager.getNextStep()
-                        } label: {
-                            Text(TextKey.nextStepExclamation.localized)
-                                .frame(maxWidth: .infinity)
-                                .font(.cjTitle2)
-                        }
-                        .buttonStyle(.glass)
-                        .disabled(manager.trackingStatus == .notDetermined)
+                    
+                    Button {
+                        HapticManager.shared.navigationTap()
+                        manager.getNextStep()
+                    } label: {
+                        Text("Das passt so")
+                            .font(.cjFootnote)
+                            .padding()
                     }
+                    .buttonStyle(.glassProminent)
                 }
-                .padding(.bottom, 20)
-                .padding(.horizontal)
             }
         }
     }
-}
-
-#Preview {
-    TrackingPermissionPage(manager: OnboardingManager())
 }

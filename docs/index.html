@@ -2,10 +2,8 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>ConcertJournal</title>
-
+  <title>Concert Journal - Deine Konzert-App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <style>
     /* global box sizing & font smoothing */
     *, *::before, *::after { box-sizing: border-box; }
@@ -17,90 +15,315 @@
       padding: 2rem;
       background: #0f0f14;
       color: #ffffff;
-      max-width: 640px;
+      max-width: 900px;
       margin-inline: auto;
-      text-align: center;
       width: 100%;
+      line-height: 1.6;
     }
 
-    h1 { margin-top: 4rem; font-size: 2rem; }
-    p { opacity: 0.8; line-height: 1.6; margin-top: 1rem; }
-
-    .actions {
-      margin-top: 2.5rem;
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      flex-wrap: wrap;
+    header {
+      text-align: center;
+      margin-bottom: 4rem;
     }
 
-    a.button {
-      padding: 0.7rem 1.2rem;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.3);
-      color: #ffffff;
-      text-decoration: none;
-      font-size: 1rem;
+    h1 {
+      font-size: 2.5rem;
+      margin: 0 0 0.5rem 0;
+      font-weight: 700;
+    }
+
+    .tagline {
+      font-size: 1.1rem;
+      opacity: 0.7;
+      margin: 0 0 2rem 0;
+    }
+
+    main {
+      margin-bottom: 4rem;
+    }
+
+    section {
+      margin: 3rem 0;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      color: #8ab4f8;
+      margin: 0 0 1rem 0;
+      border-bottom: 1px solid #333;
+      padding-bottom: 0.5rem;
+    }
+
+    p {
+      opacity: 0.9;
+    }
+
+    .cta-button {
       display: inline-block;
-      -webkit-tap-highlight-color: rgba(0,0,0,0);
+      padding: 1rem 2rem;
+      background: #8ab4f8;
+      color: #0f0f14;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: opacity 0.2s;
+      margin-top: 1rem;
     }
 
-    footer { margin-top: 4rem; font-size: 0.9rem; opacity: 0.7; }
-    footer a { color: #8ab4f8; text-decoration: none; }
+    .cta-button:hover {
+      opacity: 0.8;
+    }
+
+    a {
+      color: #8ab4f8;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    a:hover {
+      text-decoration: underline;
+      opacity: 0.8;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .feature-card {
+      background: rgba(139, 180, 248, 0.05);
+      border-left: 3px solid #8ab4f8;
+      padding: 1.5rem;
+      border-radius: 4px;
+    }
+
+    .feature-card h3 {
+      color: #8ab4f8;
+      margin: 0 0 0.5rem 0;
+      font-size: 1.1rem;
+    }
+
+    .feature-card p {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    /* FOOTER STYLES */
+    footer.footer {
+      background: #0a0a0f;
+      border-top: 1px solid #333;
+      color: #ffffff;
+      padding: 3rem 2rem 2rem;
+      margin-top: 4rem;
+      margin-left: -2rem;
+      margin-right: -2rem;
+      margin-bottom: -2rem;
+      width: calc(100% + 4rem);
+    }
+
+    .footer-content {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
+      padding: 0 2rem;
+    }
+
+    .footer-section h4 {
+      color: #8ab4f8;
+      margin: 0 0 1rem 0;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .footer-section p {
+      margin: 0;
+      font-size: 0.9rem;
+      opacity: 0.7;
+      line-height: 1.6;
+    }
+
+    .footer-section ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .footer-section li {
+      margin: 0.5rem 0;
+    }
+
+    .footer-section a {
+      color: #8ab4f8;
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: opacity 0.2s;
+    }
+
+    .footer-section a:hover {
+      opacity: 0.8;
+      text-decoration: underline;
+    }
+
+    .footer-bottom {
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+      padding: 2rem;
+      border-top: 1px solid #333;
+      font-size: 0.85rem;
+      opacity: 0.6;
+    }
 
     @media (max-width: 600px) {
       body { padding: 1rem; }
-      h1 { margin-top: 2.5rem; font-size: 1.6rem; }
-      .actions { flex-direction: column; gap: 0.75rem; }
-      a.button { width: 100%; text-align: center; padding: 0.85rem; font-size: 1rem; }
+      h1 { font-size: 1.5rem; }
+      h2 { font-size: 1.3rem; }
+      
+      footer.footer {
+        margin-left: -1rem;
+        margin-right: -1rem;
+        margin-bottom: -1rem;
+        width: calc(100% + 2rem);
+        padding: 2rem 1rem 1.5rem;
+        margin-top: 2.5rem;
+      }
+
+      .footer-content {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding: 0 1rem;
+      }
+
+      .footer-section h4 {
+        font-size: 0.95rem;
+      }
+
+      .footer-section a,
+      .footer-section p {
+        font-size: 0.85rem;
+      }
+
+      .footer-bottom {
+        font-size: 0.75rem;
+        padding: 1.5rem 1rem;
+      }
+
+      .features {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
-
 <body>
 
-<h1>ConcertJournal</h1>
+  <header>
+    <h1>🎵 Concert Journal</h1>
+    <p class="tagline">Dokumentiere deine Konzert-Erlebnisse</p>
+  </header>
 
-<p>
-  Dein persönliches Konzerttagebuch.<br>
-  Speichere Konzerte in der App – sieh sie dir überall an.
-</p>
+  <main>
+    <section>
+      <h2>Deine Konzert-Erinnerungen, für immer</h2>
+      <p>
+        Mit Concert Journal dokumentierst du jeden Besuch auf der Bühne. 
+        Speichere Fotos, Setlisten, Künstler und persönliche Noten - 
+        alles an einem Ort.
+      </p>
+      <a href="https://apps.apple.com" class="cta-button" target="_blank">
+        Im App Store laden
+      </a>
+    </section>
 
-<div class="actions">
-  <a class="button" href="login.html">Login / Registrieren</a>
-</div>
+    <section>
+      <h2>Features</h2>
+      <div class="features">
+        <div class="feature-card">
+          <h3>✨ Konzerte verwalten</h3>
+          <p>Alle deine Konzert-Besuche an einem Ort - mit Datum, Ort und Künstler</p>
+        </div>
+        
+        <div class="feature-card">
+          <h3>📸 Fotos speichern</h3>
+          <p>Deine Erinnerungen immer dabei - mit automatischer Synchronisierung</p>
+        </div>
+        
+        <div class="feature-card">
+          <h3>🎤 Setlisten dokumentieren</h3>
+          <p>Welche Lieder wurden gespielt? - Genaue Übersicht aller Songs</p>
+        </div>
+        
+        <div class="feature-card">
+          <h3>👥 Mit Freunden teilen</h3>
+          <p>Erlebe Konzerte mit Freunden - Teile deine Erlebnisse</p>
+        </div>
+        
+        <div class="feature-card">
+          <h3>📊 Statistiken</h3>
+          <p>Wie viele Konzerte hast du besucht? - Detaillierte Übersichten</p>
+        </div>
+        
+        <div class="feature-card">
+          <h3>🎶 Spotify Integration</h3>
+          <p>Verbinde mit Spotify - Entdecke neue Musik von besuchten Künstlern</p>
+        </div>
+      </div>
+    </section>
 
-<footer>
-  <p>
-    <a href="faq.html">FAQ</a> ·
-    <a href="impressum.html">Impressum</a> ·
-    <a href="agb.html">AGB</a> ·
-    <a href="datenschutz.html">Datenschutz</a>
-  </p>
-</footer>
+    <section>
+      <h2>Warum Concert Journal?</h2>
+      <p>
+        Die meisten Apps zum Dokumentieren von Konzertbesuchen sind teuer oder kompliziert. 
+        Concert Journal ist kostenlos, einfach zu bedienen und respektiert deine Privatsphäre. 
+        Deine Daten gehören dir - nicht irgendwelchen Werbenetzwerken.
+      </p>
+    </section>
 
-<!-- Supabase -->
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <section>
+      <h2>Fragen?</h2>
+      <p>
+        Hast du Fragen oder Feedback? Kontaktiere uns gerne unter 
+        <a href="mailto:concertjournalapp@gmail.com">concertjournalapp@gmail.com</a>
+      </p>
+    </section>
+  </main>
 
-<script>
-  const SUPABASE_URL = "https://brjekjxckpdlwffcdndn.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_9arAE6MQR0Cj0m-jE3lXCQ_BfNy0PK7";
-
-  const client = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
-
-  // 🔁 Wenn schon eingeloggt → direkt weiter
-  async function redirectIfLoggedIn() {
-    const { data } = await client.auth.getSession();
-    if (data.session) {
-      window.location.href = "concerts.html";
-    }
-  }
-
-  redirectIfLoggedIn();
-</script>
+  <!-- FOOTER - KOPIERE DIESEN BLOCK AUF ALLE SEITEN -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>Concert Journal</h4>
+        <p>Dokumentiere deine Konzert-Erlebnisse</p>
+      </div>
+      
+      <div class="footer-section">
+        <h4>Links</h4>
+        <ul>
+          <li><a href="./index.html">Home</a></li>
+          <li><a href="https://apps.apple.com" target="_blank">App Store</a></li>
+          <li><a href="mailto:concertjournalapp@gmail.com">Kontakt</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-section">
+        <h4>Rechtliches</h4>
+        <ul>
+          <li><a href="./impressum.html">Impressum</a></li>
+          <li><a href="./datenschutz.html">Datenschutz</a></li>
+          <li><a href="./agb.html">AGB</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <p>&copy; 2026 Concert Journal - Alle Rechte vorbehalten</p>
+    </div>
+  </footer>
+  <!-- FOOTER ENDE -->
 
 </body>
 </html>

@@ -90,7 +90,7 @@ struct ConcertJournalApp: App {
     
     var body: some Scene {
         WindowGroup {
-            RootView(localizationManager: LocalizationManager(supabaseClient: dependencyContainer.supabaseClient), navigationManager: navigationManager)
+            RootView(localizationManager: LocalizationManager(supabaseClient: dependencyContainer.supabaseClient), onboardingManager: OnboardingManager(supabaseClient: dependencyContainer.supabaseClient), navigationManager: navigationManager)
                 .preferredColorScheme(.dark)
                 .withDependencies(dependencyContainer)
                 .task {
@@ -124,7 +124,7 @@ struct RootView: View {
 
     @State var localizationManager: LocalizationManager
 
-    @State private var onboardingManager = OnboardingManager()
+    @State var onboardingManager: OnboardingManager
     @State var navigationManager: NavigationManager
 
     @State private var passwordResetItem: PasswordResetRequest? = nil

@@ -55,208 +55,193 @@ private struct AccountSettingsContent: View {
             )
             .ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                // ── Close Button ────────────────────────────────────
-                HStack {
-                    Button {
-                        emailFocused = false
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 20))
+            ScrollView {
+                VStack(spacing: 0) {
+                    
+                    // ── Header ────────────────────────────────────────────
+                    VStack(spacing: 12) {
+                        Text(TextKey.accountSettings.localized)
+                            .font(.custom("PlayfairDisplay-Bold", size: 36))
+                            .multilineTextAlignment(.center)
+                        
+                        Text(TextKey.manageAccountDescription.localized)
+                            .font(.cjBody)
                             .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
                     }
-                    .buttonStyle(.plain)
-
-                    Spacer()
-                }
-                .padding(.horizontal, 32)
-                .padding(.vertical, 16)
-
-                Spacer()
-
-                // ── Header ────────────────────────────────────────────
-                VStack(spacing: 12) {
-                    Text(TextKey.accountSettings.localized)
-                        .font(.custom("PlayfairDisplay-Bold", size: 36))
-                        .multilineTextAlignment(.center)
-
-                    Text(TextKey.manageAccountDescription.localized)
-                        .font(.cjBody)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
-                }
-                .padding(.bottom, 48)
-
-                // ── Email Section ─────────────────────────────────────
-                VStack(alignment: .leading, spacing: 20) {
-                    sectionHeader(title: "Email", icon: "envelope.fill")
-
-                    // Current Email Display
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(TextKey.currentEmail.localized)
-                            .font(.cjCaption)
-                            .foregroundStyle(.secondary)
-
-                        HStack(spacing: 12) {
-                            Image(systemName: "envelope.fill")
+                    .padding(.bottom, 48)
+                    
+                    // ── Email Section ─────────────────────────────────────
+                    VStack(alignment: .leading, spacing: 20) {
+                        sectionHeader(title: "Email", icon: "envelope.fill")
+                        
+                        // Current Email Display
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(TextKey.currentEmail.localized)
+                                .font(.cjCaption)
                                 .foregroundStyle(.secondary)
-                                .font(.system(size: 16))
-
-                            Text(viewModel.currentEmail)
-                                .font(.cjBody)
-                                .foregroundStyle(.primary)
-
-                            Spacer()
+                            
+                            HStack(spacing: 12) {
+                                Image(systemName: "envelope.fill")
+                                    .foregroundStyle(.secondary)
+                                    .font(.system(size: 16))
+                                
+                                Text(viewModel.currentEmail)
+                                    .font(.cjBody)
+                                    .foregroundStyle(.primary)
+                                
+                                Spacer()
+                            }
+                            .padding(14)
+                            .rectangleGlass()
                         }
-                        .padding(14)
-                        .rectangleGlass()
-                    }
-
-                    // New Email Input
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(TextKey.newEmail.localized)
-                            .font(.cjCaption)
-                            .foregroundStyle(.secondary)
-
-                        HStack(spacing: 12) {
-                            Image(systemName: "envelope.fill")
+                        
+                        // New Email Input
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(TextKey.newEmail.localized)
+                                .font(.cjCaption)
                                 .foregroundStyle(.secondary)
-                                .font(.system(size: 16))
-
-                            TextField("neue@email.com", text: $viewModel.newEmail)
-                                .font(.cjBody)
-                                .focused($emailFocused)
-                                .submitLabel(.done)
-                                .autocorrectionDisabled()
-                                .textInputAutocapitalization(.never)
-                                .keyboardType(.emailAddress)
-
-                            if !viewModel.newEmail.isEmpty {
-                                Button {
-                                    viewModel.newEmail = ""
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
+                            
+                            HStack(spacing: 12) {
+                                Image(systemName: "envelope.fill")
+                                    .foregroundStyle(.secondary)
+                                    .font(.system(size: 16))
+                                
+                                TextField("neue@email.com", text: $viewModel.newEmail)
+                                    .font(.cjBody)
+                                    .focused($emailFocused)
+                                    .submitLabel(.done)
+                                    .autocorrectionDisabled()
+                                    .textInputAutocapitalization(.never)
+                                    .keyboardType(.emailAddress)
+                                
+                                if !viewModel.newEmail.isEmpty {
+                                    Button {
+                                        viewModel.newEmail = ""
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .transition(.opacity.combined(with: .scale))
+                                }
+                            }
+                            .padding(14)
+                            .rectangleGlass()
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(
+                                        emailFocused ? dependencies.colorThemeManager.appTint.opacity(0.6) : Color.white.opacity(0.1),
+                                        lineWidth: emailFocused ? 1.5 : 0.5
+                                    )
+                                    .animation(.easeInOut(duration: 0.2), value: emailFocused)
+                            }
+                            
+                            // Validation Message
+                            if !viewModel.newEmail.isEmpty && !viewModel.isValidEmail {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "exclamationmark.circle.fill")
+                                        .font(.caption)
+                                        .foregroundStyle(.red)
+                                    Text(TextKey.invalidEmail.localized)
+                                        .font(.cjFootnote)
+                                        .foregroundStyle(.red)
+                                }
+                                .padding(.horizontal, 4)
+                                .transition(.opacity.combined(with: .move(edge: .top)))
+                            }
+                        }
+                        
+                        // Change Email Button
+                        if !viewModel.newEmail.isEmpty && viewModel.isValidEmail {
+                            Button {
+                                emailFocused = false
+                                Task { await viewModel.changeEmail() }
+                            } label: {
+                                ZStack {
+                                    if case .loading = viewModel.state {
+                                        HStack(spacing: 10) {
+                                            ProgressView().tint(.white)
+                                            Text("Aktualisieren…").font(.cjTitle2)
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                    } else {
+                                        HStack {
+                                            Text(TextKey.updateEmail.localized)
+                                                .font(.cjTitle2)
+                                            Image(systemName: "checkmark")
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                    }
+                                }
+                                .padding(.vertical, 4)
+                            }
+                            .buttonStyle(.glassProminent)
+                            .disabled({
+                                if case .loading = viewModel.state { return true }
+                                return false
+                            }())
+                            .tint(dependencies.colorThemeManager.appTint)
+                            .transition(.opacity.combined(with: .move(edge: .bottom)))
+                        }
+                    }
+                    .padding(.horizontal, 32)
+                    .padding(.bottom, 48)
+                    
+                    Spacer()
+                    
+                    // ── Danger Zone ────────────────────────────────────────
+                    VStack(alignment: .leading, spacing: 20) {
+                        sectionHeader(title: TextKey.dangerZone.localized, icon: "exclamationmark.triangle.fill")
+                        
+                        VStack(spacing: 12) {
+                            HStack(spacing: 16) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.red.opacity(0.15))
+                                        .frame(width: 50, height: 50)
+                                    
+                                    Image(systemName: "trash.fill")
+                                        .font(.title3)
+                                        .foregroundStyle(.red)
+                                }
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(TextKey.deleteAccount.localized)
+                                        .font(.cjHeadline)
+                                        .foregroundStyle(.primary)
+                                    
+                                    Text(TextKey.deleteAccountWarning.localized)
+                                        .font(.cjFootnote)
                                         .foregroundStyle(.secondary)
                                 }
-                                .buttonStyle(.plain)
-                                .transition(.opacity.combined(with: .scale))
+                                
+                                Spacer()
                             }
-                        }
-                        .padding(14)
-                        .rectangleGlass()
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 14)
-                                .stroke(
-                                    emailFocused ? dependencies.colorThemeManager.appTint.opacity(0.6) : Color.white.opacity(0.1),
-                                    lineWidth: emailFocused ? 1.5 : 0.5
-                                )
-                                .animation(.easeInOut(duration: 0.2), value: emailFocused)
-                        }
-
-                        // Validation Message
-                        if !viewModel.newEmail.isEmpty && !viewModel.isValidEmail {
-                            HStack(spacing: 6) {
-                                Image(systemName: "exclamationmark.circle.fill")
-                                    .font(.caption)
-                                    .foregroundStyle(.red)
-                                Text(TextKey.invalidEmail.localized)
-                                    .font(.cjFootnote)
-                                    .foregroundStyle(.red)
-                            }
-                            .padding(.horizontal, 4)
-                            .transition(.opacity.combined(with: .move(edge: .top)))
-                        }
-                    }
-
-                    // Change Email Button
-                    if !viewModel.newEmail.isEmpty && viewModel.isValidEmail {
-                        Button {
-                            emailFocused = false
-                            Task { await viewModel.changeEmail() }
-                        } label: {
-                            ZStack {
-                                if case .loading = viewModel.state {
-                                    HStack(spacing: 10) {
-                                        ProgressView().tint(.white)
-                                        Text("Aktualisieren…").font(.cjTitle2)
-                                    }
-                                    .frame(maxWidth: .infinity)
-                                } else {
-                                    HStack {
-                                        Text(TextKey.updateEmail.localized)
-                                            .font(.cjTitle2)
-                                        Image(systemName: "checkmark")
-                                    }
-                                    .frame(maxWidth: .infinity)
+                            .padding(16)
+                            .background(.ultraThinMaterial)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            
+                            Button(role: .destructive) {
+                                showDeleteConfirmation = true
+                            } label: {
+                                HStack {
+                                    Image(systemName: "trash.fill")
+                                    Text(TextKey.deleteAccount.localized)
                                 }
+                                .font(.cjTitle2)
+                                .frame(maxWidth: .infinity)
                             }
-                            .padding(.vertical, 4)
+                            .buttonStyle(.glassProminent)
+                            .tint(.red)
                         }
-                        .buttonStyle(.glassProminent)
-                        .disabled({
-                            if case .loading = viewModel.state { return true }
-                            return false
-                        }())
-                        .tint(dependencies.colorThemeManager.appTint)
-                        .transition(.opacity.combined(with: .move(edge: .bottom)))
                     }
+                    .padding(.horizontal, 32)
+                    .padding(.bottom, 48)
                 }
-                .padding(.horizontal, 32)
-                .padding(.bottom, 48)
-
-                Spacer()
-
-                // ── Danger Zone ────────────────────────────────────────
-                VStack(alignment: .leading, spacing: 20) {
-                    sectionHeader(title: TextKey.dangerZone.localized, icon: "exclamationmark.triangle.fill")
-
-                    VStack(spacing: 12) {
-                        HStack(spacing: 16) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.red.opacity(0.15))
-                                    .frame(width: 50, height: 50)
-
-                                Image(systemName: "trash.fill")
-                                    .font(.title3)
-                                    .foregroundStyle(.red)
-                            }
-
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(TextKey.deleteAccount.localized)
-                                    .font(.cjHeadline)
-                                    .foregroundStyle(.primary)
-
-                                Text(TextKey.deleteAccountWarning.localized)
-                                    .font(.cjFootnote)
-                                    .foregroundStyle(.secondary)
-                            }
-
-                            Spacer()
-                        }
-                        .padding(16)
-                        .background(.ultraThinMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-
-                        Button(role: .destructive) {
-                            showDeleteConfirmation = true
-                        } label: {
-                            HStack {
-                                Image(systemName: "trash.fill")
-                                Text(TextKey.deleteAccount.localized)
-                            }
-                            .font(.cjTitle2)
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.glassProminent)
-                        .tint(.red)
-                    }
-                }
-                .padding(.horizontal, 32)
-                .padding(.bottom, 48)
             }
+            .scrollIndicators(.hidden)
         }
         .onTapGesture { emailFocused = false }
         .adaptiveSheet(isPresented: $showDeleteConfirmation) {

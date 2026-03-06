@@ -32,6 +32,8 @@ struct OnboardingView: View {
     @ViewBuilder
     private func navigationDestination(for route: NavigationRoute) -> some View {
         switch route {
+        case .termsPage:
+            TermsView(manager: manager)
         case .featurePage:
             FeaturesPage(manager: manager)
         case .photoPermission:
@@ -46,10 +48,4 @@ struct OnboardingView: View {
             Text("Not implemented: \(String(describing: route))")
         }
     }
-}
-
-// MARK: - Preview
-
-#Preview {
-    OnboardingView(manager: OnboardingManager())
 }

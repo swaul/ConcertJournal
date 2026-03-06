@@ -72,6 +72,8 @@ struct NotificationPermissionView: View {
                             withAnimation {
                                 isRequesting = false
                             }
+                            try? await Task.sleep(for: .seconds(2))
+                            manager.getNextStep()
                         }
                     } label: {
                         HStack {
@@ -82,7 +84,7 @@ struct NotificationPermissionView: View {
                                 Text(TextKey.queryRunning.localized)
                                     .font(.cjTitle2)
                             } else {
-                                Text(TextKey.allow.localized)
+                                Text(TextKey.nextStepExclamation.localized)
                                     .font(.cjTitle2)
                             }
                         }
@@ -91,6 +93,7 @@ struct NotificationPermissionView: View {
                     .buttonStyle(.glassProminent)
                     .disabled(isRequesting)
                     .padding(.horizontal, 40)
+                    .padding(.bottom, 20)
                 } else if manager.notificationStatus == .denied {
                     Button {
                         HapticManager.shared.navigationTap()
@@ -104,38 +107,21 @@ struct NotificationPermissionView: View {
                     }
                     .buttonStyle(.glassProminent)
                     .padding(.horizontal, 40)
-                }
-
-                VStack(spacing: 14) {
-                    if manager.notificationStatusNotDetermined {
-                        Button {
-                            HapticManager.shared.navigationTap()
-                            manager.getNextStep()
-                        } label: {
-                            Text(TextKey.skip.localized)
-                                .font(.cjFootnote)
-                                .underline()
-                        }
-                    } else {
-                        Button {
-                            HapticManager.shared.navigationTap()
-                            manager.getNextStep()
-                        } label: {
-                            Text(TextKey.nextStepExclamation.localized)
-                                .frame(maxWidth: .infinity)
-                                .font(.cjTitle2)
-                        }
-                        .buttonStyle(.glass)
-                        .disabled(manager.notificationStatus == .notDetermined)
+                    
+                    Button {
+                        HapticManager.shared.buttonTap()
+                        manager.getNextStep()
+                    } label: {
+                        Text("Das passt so")
+                            .font(.cjFootnote)
+                            .underline()
                     }
+                    .buttonStyle(.glassProminent)
+                    .disabled(isRequesting)
+                    .padding(.horizontal, 40)
+                    .padding(.bottom, 20)
                 }
-                .padding(.bottom, 20)
-                .padding(.horizontal)
             }
         }
     }
-}
-
-#Preview {
-    NotificationPermissionView(manager: OnboardingManager())
 }

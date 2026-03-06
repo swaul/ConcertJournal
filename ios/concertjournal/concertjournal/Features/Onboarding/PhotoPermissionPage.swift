@@ -71,6 +71,8 @@ struct PhotoPermissionPage: View {
                             withAnimation {
                                 isRequesting = false
                             }
+                            try? await Task.sleep(for: .seconds(2))
+                            manager.getNextStep()
                         }
                     } label: {
                         HStack {
@@ -103,38 +105,18 @@ struct PhotoPermissionPage: View {
                             .padding()
                     }
                     .buttonStyle(.glassProminent)
-                }
-                
-                VStack(spacing: 14) {
-                    if manager.photoLibraryStatusNotDetermined {
-                        Button {
-                            HapticManager.shared.navigationTap()
-                            manager.getNextStep()
-                        } label: {
-                            Text(TextKey.skip.localized)
-                                .font(.cjFootnote)
-                                .underline()
-                        }
-                    } else {
-                        Button {
-                            HapticManager.shared.navigationTap()
-                            manager.getNextStep()
-                        } label: {
-                            Text(TextKey.nextStep.localized)
-                                .frame(maxWidth: .infinity)
-                                .font(.cjTitle2)
-                        }
-                        .buttonStyle(.glass)
-                        .disabled(manager.photoLibraryStatus == .notDetermined)
+                    
+                    Button {
+                        HapticManager.shared.navigationTap()
+                        manager.getNextStep()
+                    } label: {
+                        Text("Das passt so")
+                            .font(.cjFootnote)
+                            .padding()
                     }
+                    .buttonStyle(.glassProminent)
                 }
-                .padding(.bottom, 20)
-                .padding(.horizontal)
             }
         }
     }
-}
-
-#Preview {
-    PhotoPermissionPage(manager: OnboardingManager())
 }

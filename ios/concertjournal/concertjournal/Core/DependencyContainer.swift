@@ -28,6 +28,7 @@ class DependencyContainer {
     let appState: AppState
     let buddyNotificationService: BuddyNotificationService
     let pushNotificationManager: PushNotificationManagerProtocol
+    let htmlDocumentLoader: HTMLDocumentLoader
 
     // BFF Repositories
     let offlineConcertRepository: OfflineConcertRepositoryProtocol
@@ -62,6 +63,7 @@ class DependencyContainer {
         self.appState = AppState()
         self.buddyNotificationService = BuddyNotificationService(supabaseClient: supabaseClient, userProvider: userSessionManager)
         self.pushNotificationManager = PushNotificationManager(supabaseClient: supabaseClient)
+        self.htmlDocumentLoader = HTMLDocumentLoader(supabaseClient: supabaseClient)
 
         // ✅ BFF Client needs auth token
         self.bffClient.getAuthToken = { [weak supabaseClient] in

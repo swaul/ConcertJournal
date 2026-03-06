@@ -60,6 +60,7 @@ enum NavigationRoute: Hashable {
     case photoPermission
     case notificationPermission
     case featurePage
+    case termsPage
     case completion
 
     #if DEBUG
@@ -225,6 +226,7 @@ extension NavigationRoute: Identifiable {
         case .photoPermission: return "photoPermission"
         case .notificationPermission: return "notificationPermission"
         case .featurePage: return "featurePage"
+        case .termsPage: return "termsPage"
         case .completion: return "completion"
         case .search: return "search"
         case .buddies: return "buddies"

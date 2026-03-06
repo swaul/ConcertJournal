@@ -409,7 +409,7 @@ struct PricingCard: View {
     var pricePerMonth: String {
         if product.id.contains("yearly") {
             let monthlyPrice = product.price / 12
-            return String(format: "%.2f€ pro Monat", monthlyPrice as NSNumber as! CVarArg)
+            return String(format: "%.2f€ pro Monat", monthlyPrice as NSNumber as CVarArg)
         } else if product.id.contains("lifetime") {
             return "Einmalige Zahlung"
         } else {

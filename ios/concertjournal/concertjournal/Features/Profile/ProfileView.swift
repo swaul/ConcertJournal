@@ -6,6 +6,7 @@
 import Combine
 import SwiftUI
 import Supabase
+import WebKit
 
 enum ProfileState {
     case loading
@@ -217,6 +218,7 @@ struct ProfileView: View {
                     .accessibilityIdentifier("colorButton")
                     .buttonStyle(.glass)
 
+#if DEBUG
                     Button {
                         HapticManager.shared.navigationTap()
                         navigationManager.push(.shareApp)
@@ -225,8 +227,7 @@ struct ProfileView: View {
                     }
                     .accessibilityIdentifier("colorButton")
                     .buttonStyle(.glass)
-
-#if DEBUG
+                    
                     Button("🛠 Setup zurücksetzen") {
                         Task {
                             let attrs = UserAttributes(data: ["setup_completed": .bool(false)])
@@ -246,28 +247,25 @@ struct ProfileView: View {
 
                     // ── Account-Aktionen ──────────────────────────────
                     if isLoggedIn {
+                        Rectangle()
+                            .frame(height: 40)
+                            .hidden()
+                        
                         Button {
                             HapticManager.shared.buttonTap()
                             navigationManager.push(.accountSettings)
                         } label: {
-                            Label("Account", systemImage: "person")
-                                .font(.cjBody)
-                                .padding(8)
+                            HStack {
+                                Label("Account", systemImage: "person")
+                                    .font(.cjBody)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(8)
                         }
                         .accessibilityIdentifier("accountSettingsButton")
                         .buttonStyle(.glass)
-
-                        Button(role: .destructive) {
-                            HapticManager.shared.buttonTap()
-                            signOutShowing = true
-                        } label: {
-                            Label("Abmelden", systemImage: "rectangle.portrait.and.arrow.right")
-                                .font(.cjBody)
-                                .padding(8)
-                        }
-                        .accessibilityIdentifier("signOutButton")
-                        .buttonStyle(.glass)
-
                     }
                 }
                 .padding()
@@ -285,6 +283,22 @@ struct ProfileView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
                     .background(.orange, in: .rect)
+                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                VStack {
+                    Button(role: .destructive) {
+                        HapticManager.shared.buttonTap()
+                        signOutShowing = true
+                    } label: {
+                        Label("Abmelden", systemImage: "rectangle.portrait.and.arrow.right")
+                            .font(.cjBody)
+                            .padding(8)
+                    }
+                    .accessibilityIdentifier("signOutButton")
+                    .buttonStyle(.glass)
+                    
+                    SettingsFooter()
                 }
             }
         }
@@ -385,5 +399,52 @@ struct ProfileView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+// In eine neue Datei: SettingsFooter.swift
+struct SettingsFooter: View {
+    @Environment(\.dependencies) var dependencies
+
+    @State private var showDatenschutz = false
+    @State private var showAGB = false
+    
+    var appVersion: String {
+        if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
+            return "Version \(version)"
+        }
+        return "Version unknown"
+    }
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            Divider()
+            
+            HStack(spacing: 16) {
+                Button("Datenschutz") { showDatenschutz = true }
+                    .font(.cjCaption)
+                    .foregroundColor(dependencies.colorThemeManager.appTint.opacity(0.5))
+
+                Text("•").opacity(0.5)
+                
+                Button("AGB") { showAGB = true }
+                    .font(.cjCaption)
+                    .foregroundColor(dependencies.colorThemeManager.appTint.opacity(0.5))
+                
+                Spacer()
+                
+                Text(appVersion)
+                    .font(.caption2)
+                    .opacity(0.6)
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 12)
+        }
+        .sheet(isPresented: $showDatenschutz) {
+            HTMLPrivacyView()
+        }
+        .sheet(isPresented: $showAGB) {
+            HTMLTermsView()
+        }
     }
 }

@@ -81,7 +81,3 @@ struct CompletionPage: View {
         }
     }
 }
-
-#Preview {
-    CompletionPage(manager: OnboardingManager())
-}

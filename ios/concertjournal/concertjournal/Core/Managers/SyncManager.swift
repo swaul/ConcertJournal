@@ -49,7 +49,6 @@ class SyncManager {
                 guard let spotifyId = artist.spotifyArtistId, !spotifyId.isEmpty else { continue }
 
                 if let existing = seen[spotifyId] {
-                    // Duplikat: Concerts ummappen und dann löschen
                     (artist.concerts as? Set<Concert>)?.forEach {
                         $0.artist = existing
                     }

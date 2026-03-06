@@ -9,6 +9,7 @@
 
 import SwiftUI
 import SpotifyiOS
+import Supabase
 
 struct LoginView: View, KeyboardReadable {
 
@@ -26,6 +27,11 @@ struct LoginView: View, KeyboardReadable {
     @State private var errorMessageAnimated: String? = nil
 
     @State private var passwordResetPresenting: Bool = false
+    
+    @State private var termsVersion = 1
+    @State private var privacyVersion = 1
+    @State private var showTerms = false
+    @State private var showPrivacy = false
 
     @FocusState var emailTextField: Bool
     @FocusState var passwordTextField: Bool
@@ -72,6 +78,7 @@ struct LoginView: View, KeyboardReadable {
                     supabaseClient: dependencies.supabaseClient,
                     userSessionManager: dependencies.userSessionManager
                 )
+                
             }
         }
     }
@@ -111,6 +118,12 @@ struct LoginView: View, KeyboardReadable {
         }
         .sheet(isPresented: $passwordResetPresenting) {
             ForgotPasswordView(email: viewModel.email)
+        }
+        .sheet(isPresented: $showTerms) {
+            HTMLTermsView()
+        }
+        .sheet(isPresented: $showPrivacy) {
+            HTMLPrivacyView()
         }
         .overlay {
             if isLoadingAnimated { loadingOverlay() }
@@ -174,6 +187,29 @@ struct LoginView: View, KeyboardReadable {
                     .font(.cjFootnote)
                     .transition(.opacity)
             }
+            
+            VStack {
+                Text("Mit Anmelden akzeptierst du unsere")
+                    .font(.cjCaption)
+                
+                HStack(spacing: 12) {
+                    Spacer()
+                    Button("AGB") { showTerms = true }
+                        .font(.cjCaption)
+                        .underline()
+                        .contentShape(Rectangle())
+                    
+                    Text("und")
+                        .font(.cjCaption)
+                    
+                    Button("Datenschutz") { showPrivacy = true }
+                        .font(.cjCaption)
+                        .underline()
+                        .contentShape(Rectangle())
+                }
+                .foregroundStyle(.secondary)
+            }
+            .padding()
 
             loginButtons(viewModel: viewModel)
         }
@@ -230,14 +266,22 @@ struct LoginView: View, KeyboardReadable {
                     .focused($newPasswordRepeatTextField)
                     .submitLabel(.go)
                     .font(.cjBody).padding().glassEffect()
-                    .onSubmit { Task { await viewModel.signUpWithEmail() } }
+                    .onSubmit {
+                        Task {
+                            await viewModel.signUpWithEmail(termsVersion: termsVersion, privacyVersion: privacyVersion)
+                        }
+                    }
             } else {
                 SecureField("Passwort wiederholen", text: $viewModel.newPasswordRepeat)
                     .textContentType(.newPassword)
                     .focused($newPasswordRepeatTextField)
                     .submitLabel(.go)
                     .font(.cjBody).padding().glassEffect()
-                    .onSubmit { Task { await viewModel.signUpWithEmail() } }
+                    .onSubmit {
+                        Task {
+                            await viewModel.signUpWithEmail(termsVersion: termsVersion, privacyVersion: privacyVersion)
+                        }
+                    }
             }
             HStack {
                 Spacer()
@@ -259,7 +303,10 @@ struct LoginView: View, KeyboardReadable {
                 dismissKeyboard()
                 switch loginType {
                 case .login:   Task { await viewModel.signInWithEmail() }
-                case .register: Task { await viewModel.signUpWithEmail() }
+                case .register:
+                    Task {
+                        await viewModel.signUpWithEmail(termsVersion: termsVersion, privacyVersion: privacyVersion)
+                    }
                 }
             } label: {
                 Group {
@@ -344,6 +391,29 @@ struct LoginView: View, KeyboardReadable {
             case .login:    return "Anmelden"
             case .register: return "Registrieren"
             }
+        }
+    }
+    
+    func loadTermsVersions() async {
+        do {
+            // Hole Metadata von Supabase
+            let response = try await dependencies.supabaseClient.client
+                .from("localization_metadata")
+                .select()
+                .single()
+                .execute()
+            
+            let metadata = try JSONDecoder().decode(LocalizationMetadata.self, from: response.data)
+            
+            await MainActor.run {
+                self.termsVersion = metadata.termsVersion
+                self.privacyVersion = metadata.privacyVersion
+            }
+            
+            print("✅ Loaded terms v\(metadata.termsVersion) & privacy v\(metadata.privacyVersion)")
+        } catch {
+            print("❌ Error loading terms versions: \(error)")
+            // Fallback auf defaults (1, 1)
         }
     }
 }

@@ -8,6 +8,7 @@
 import Photos
 import AppTrackingTransparency
 import SwiftUI
+import Supabase
 
 @MainActor
 @Observable
@@ -18,6 +19,7 @@ class OnboardingManager {
     var path: [NavigationRoute] = []
 
     var onboardingSteps: [NavigationRoute] = [
+            .termsPage,
             .featurePage,
             .photoPermission,
             .trackingPermission,
@@ -26,6 +28,10 @@ class OnboardingManager {
     ]
 
     var currentIndex: Int { path.count }
+    
+    var isLoadingVersions: Bool = false
+    var termsVersion: Int = 1
+    var privacyVersion: Int = 1
 
     private let hasCompletedOnboardingKey = "hasCompletedOnboarding"
 
@@ -56,8 +62,11 @@ class OnboardingManager {
     var photoLibraryStatusNotDetermined: Bool = true
     var trackingStatusNotDetermined: Bool = true
     var notificationStatusNotDetermined: Bool = true
+    
+    private let supabaseClient: SupabaseClientManagerProtocol
 
-    init() {
+    init(supabaseClient: SupabaseClientManagerProtocol) {
+        self.supabaseClient = supabaseClient
         hasCompletedOnboarding = UserDefaults.standard.bool(forKey: hasCompletedOnboardingKey)
     }
 
@@ -119,6 +128,56 @@ class OnboardingManager {
         hasCompletedOnboarding = true
         logSuccess("Onboarding completed", category: .auth)
     }
+    
+    func loadTermsVersions() async {
+        isLoadingVersions = true
+        
+        do {
+            // Hole Metadata von Supabase
+            let response = try await supabaseClient.client
+                .from("localization_metadata")
+                .select()
+                .single()
+                .execute()
+            
+            let metadata = try JSONDecoder().decode(LocalizationMetadata.self, from: response.data)
+            
+            await MainActor.run {
+                self.termsVersion = metadata.termsVersion
+                self.privacyVersion = metadata.privacyVersion
+                self.isLoadingVersions = false
+            }
+            
+            print("✅ Loaded terms v\(metadata.termsVersion) & privacy v\(metadata.privacyVersion)")
+        } catch {
+            print("❌ Error loading terms versions: \(error)")
+            isLoadingVersions = false
+            // Fallback auf defaults (1, 1)
+        }
+    }
+    
+    func saveTermsConsent(termsVersion: Int, privacyVersion: Int) {
+        
+        let isoString = ISO8601DateFormatter().string(from: Date())
+        let version = (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "unknown"
+
+        let data = AcceptanceData(
+            terms_accepted: true,
+            terms_accepted_at: isoString,
+            terms_version: termsVersion,
+            privacy_accepted: true,
+            privacy_accepted_at: isoString,
+            privacy_version: privacyVersion,
+            app_version: version
+        )
+
+        do {
+            let encoded = try JSONEncoder().encode(data)
+            UserDefaults.standard.set(encoded, forKey: "compliance_acceptance")
+        } catch {
+            logError("Failed to encode acceptance data", error: error)
+        }
+    }
 
     func resetOnboarding() {
         UserDefaults.standard.set(false, forKey: hasCompletedOnboardingKey)
@@ -133,4 +192,16 @@ class OnboardingManager {
         }
         path.append(onboardingSteps[nextIndex])
     }
+}
+
+struct AcceptanceData: Codable {
+    let terms_accepted: Bool
+    let terms_accepted_at: String
+    let terms_version: Int
+    
+    let privacy_accepted: Bool
+    let privacy_accepted_at: String
+    let privacy_version: Int
+    
+    let app_version: String
 }

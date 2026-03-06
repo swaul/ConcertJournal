@@ -51,15 +51,26 @@ final class AuthViewModel {
         }
     }
 
-    func signUpWithEmail() async {
+    func signUpWithEmail(termsVersion: Int, privacyVersion: Int) async {
         errorMessage = nil
         isLoading = true
         defer { isLoading = false }
-
+        
         do {
+            let metadata: [String: AnyJSON] = [
+                "terms_accepted": .bool(true),
+                "terms_accepted_at": .string(ISO8601DateFormatter().string(from: Date())),
+                "terms_version": .integer(termsVersion),
+                "privacy_accepted": .bool(true),
+                "privacy_accepted_at": .string(ISO8601DateFormatter().string(from: Date())),
+                "privacy_version": .integer(privacyVersion),
+                "app_version": .string("1.0.0")
+            ]
+            
             let result = try await supabaseClient.client.auth.signUp(
                 email: email,
-                password: password
+                password: password,
+                data: metadata
             )
             logInfo("Sign up successful: \(result.user.email ?? "unknown")", category: .auth)
             await refreshSessionState()
