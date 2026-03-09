@@ -41,13 +41,17 @@ final class ProfileViewModel {
     @MainActor
     func load() async {
         do {
+            async let minLoadTask: () = Task.sleep(for: .seconds(2))
+
             loadingState = .loading
             if let user = userProvider.user {
-                try await loadProfile(for: user)
+                async let profileTask: () = loadProfile(for: user)
+                _ = try await (profileTask, minLoadTask)
                 loadingState = .loaded
             } else {
                 let user = try await userProvider.loadUser()
-                try await loadProfile(for: user)
+                async let profileTask: () = loadProfile(for: user)
+                _ = try await (profileTask, minLoadTask)
                 loadingState = .loaded
             }
         } catch let error as UserError {

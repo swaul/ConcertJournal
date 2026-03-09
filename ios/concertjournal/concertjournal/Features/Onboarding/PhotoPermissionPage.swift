@@ -77,13 +77,12 @@ struct PhotoPermissionPage: View {
                     } label: {
                         HStack {
                             if isRequesting {
-                                ProgressView()
-                                    .tint(.white)
-                                    .font(.cjTitle2)
+                                FlowerLoading()
+                                    .frame(width: 40, height: 40)
                                 Text(TextKey.queryRunning.localized)
                                     .font(.cjTitle2)
                             } else {
-                                Text(TextKey.allow.localized)
+                                Text(TextKey.nextStepExclamation.localized)
                                     .font(.cjTitle2)
                             }
                         }

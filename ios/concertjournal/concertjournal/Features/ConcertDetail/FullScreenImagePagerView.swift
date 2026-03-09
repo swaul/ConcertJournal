@@ -49,7 +49,7 @@ struct FullscreenImagePagerView: View {
                                     photoPlaceholder(icon: "exclamationmark.triangle")
                                 case .empty:
                                     photoPlaceholder(icon: "photo")
-                                        .overlay { ProgressView() }
+                                        .overlay { FlowerLoading() }
                                 @unknown default:
                                     photoPlaceholder(icon: "photo")
                                 }

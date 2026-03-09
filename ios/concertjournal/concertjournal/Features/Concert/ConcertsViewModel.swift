@@ -17,7 +17,7 @@ class ConcertsViewModel: NSObject {
     var futureConcerts: [Concert] = []
     var isLoading = false
     var isSyncing = false
-    var errorMessage: String?
+    var errorMessage: ErrorMessage?
     var lastSyncDate: Date?
     
     var hasTours: Bool = false
@@ -120,7 +120,8 @@ class ConcertsViewModel: NSObject {
             try await repository.sync()
             lastSyncDate = Date()
         } catch {
-            errorMessage = "Sync failed: \(error.localizedDescription)"
+            isSyncing = false
+            errorMessage = ErrorMessage(message: "Sync failed: \(error.localizedDescription)")
         }
     }
 
@@ -129,8 +130,16 @@ class ConcertsViewModel: NSObject {
             try repository.deleteConcert(concert.objectID)
             // UI aktualisiert sich automatisch via FRC Delegate
         } catch {
-            errorMessage = "Delete failed: \(error.localizedDescription)"
+            errorMessage = ErrorMessage(message: "Delete failed: \(error.localizedDescription)")
         }
+    }
+
+    @MainActor
+    func reset() {
+        isSyncing = false
+        concertToday = nil
+        allConcerts = []
+        futureConcerts = []
     }
 
     // MARK: - Auto Sync

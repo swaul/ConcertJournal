@@ -102,6 +102,18 @@ struct BuddiesView: View {
         case .profile:
             ProfileView()
                 .toolbarVisibility(.hidden, for: .tabBar)
+
+        case .accountSettings:
+            AccountSettingsView()
+                .toolbarVisibility(.hidden, for: .tabBar)
+            
+        case .colorPicker:
+            ColorSetView()
+                .toolbarVisibility(.hidden, for: .tabBar)
+
+        case .faq:
+            FAQView()
+                .toolbarVisibility(.hidden, for: .tabBar)
         default:
             Text("Not implemented: \(String(describing: route))")
         }
@@ -115,7 +127,8 @@ struct BuddiesView: View {
         @Bindable var navigationManager = navigationManager
 
         VStack(spacing: 12) {
-            ProgressView()
+            FlowerLoading()
+            
             Text(TextKey.buddiesLoading.localized)
                 .font(.cjBody)
                 .foregroundStyle(.secondary)
@@ -379,7 +392,7 @@ private struct MyCodeCard: View {
                     }
                 }
             } else {
-                ProgressView()
+                FlowerLoading()
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
             }
@@ -399,7 +412,7 @@ private struct MyCodeCard: View {
                             .padding(8)
                             .background(.white, in: RoundedRectangle(cornerRadius: 16))
                     } else {
-                        ProgressView()
+                        FlowerLoading()
                             .frame(width: 200, height: 200)
                     }
                     
@@ -414,7 +427,8 @@ private struct MyCodeCard: View {
                     } label: {
                         if viewModel.isRegeneratingCode {
                             HStack(spacing: 6) {
-                                ProgressView().scaleEffect(0.8)
+                                FlowerLoading()
+                                    .frame(width: 40, height: 40)
                                 Text(TextKey.stateLoading.localized)
                                     .font(.cjFootnote)
                             }
@@ -460,7 +474,7 @@ private struct MyCodeCard: View {
                             .background(.white, in: RoundedRectangle(cornerRadius: 16))
                             .padding(.leading)
                     } else {
-                        ProgressView()
+                        FlowerLoading()
                             .frame(width: 200, height: 200)
                     }
 
@@ -790,7 +804,7 @@ private struct AddBuddySheet: View {
             
         case .searching:
             VStack(spacing: 12) {
-                ProgressView()
+                FlowerLoading()
                 Text(TextKey.searchUser.localized)
                     .font(.cjBody).foregroundStyle(.secondary)
             }

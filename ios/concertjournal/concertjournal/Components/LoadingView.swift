@@ -6,14 +6,13 @@
 //
 
 import SwiftUI
+import DotLottie
 
 struct LoadingView: View {
 
     var body: some View {
         VStack(spacing: 24) {
-            ProgressView()
-                .progressViewStyle(.circular)
-                .scaleEffect(2.5)
+            FlowerLoading()
             Text(TextKey.stateLoading.localized)
                 .font(.cjTitle2)
                 .padding()
@@ -28,12 +27,11 @@ struct LoadingView: View {
 }
 
 struct TextLessLoadingView: View {
-    
+
+
     var body: some View {
         VStack(spacing: 24) {
-            ProgressView()
-                .progressViewStyle(.circular)
-                .scaleEffect(2.5)
+            FlowerLoading()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
@@ -42,6 +40,10 @@ struct TextLessLoadingView: View {
         .ignoresSafeArea()
     }
     
+}
+
+#Preview {
+    TextLessLoadingView()
 }
 
 struct SearchingView: View {
@@ -72,6 +74,19 @@ struct SearchingView: View {
 
 }
 
-#Preview {
-    SearchingView(searchContent: "Künstler")
+//#Preview {
+//    SearchingView(searchContent: "Künstler")
+//}
+
+struct FlowerLoading: View {
+
+    var body: some View {
+        let lottie = DotLottieAnimation(
+            fileName: "FlowerLoading",
+            config: AnimationConfig(autoplay: true, loop: true)
+        )
+        lottie.framerate = 60
+
+        return lottie.view()
+    }
 }

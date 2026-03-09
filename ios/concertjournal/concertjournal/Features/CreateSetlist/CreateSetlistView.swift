@@ -74,7 +74,7 @@ struct CreateSetlistView: View {
                     case .idle:
                         EmptyView()
                     case .loading:
-                        ProgressView()
+                        FlowerLoading()
                     case .loaded(let songResponse):
                         VStack(alignment: .leading, spacing: 8) {
                             ForEach(songResponse) { song in

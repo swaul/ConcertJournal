@@ -28,7 +28,7 @@ extension ConcertsView {
                                     AsyncImage(url: URL(string: artistGroup.artist.imageUrl ?? "")) { result in
                                         switch result {
                                         case .empty:
-                                            ProgressView()
+                                            FlowerLoading()
                                         case .success(let image):
                                             image
                                                 .resizable()

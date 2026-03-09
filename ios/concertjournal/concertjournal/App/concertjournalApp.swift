@@ -135,8 +135,11 @@ struct RootView: View {
     @State private var loadingLocalization: Bool = true
     
     @State private var scale: CGFloat = 1.0
+    @State private var opacity: CGFloat = 1.0
     @State private var startupVisible: Bool = true
-    
+
+    @State private var viewModel: ConcertsViewModel?
+
     var body: some View {
         Group {
             if loadingLocalization {
@@ -151,31 +154,42 @@ struct RootView: View {
                     .transition(.move(edge: .leading).combined(with: .opacity))
                     .overlay {
                         if startupVisible {
-                            Image(uiImage: .startupZoomable)
-                                .resizable()
-                                .ignoresSafeArea()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(height: UIScreen.screenHeight)
-                                .scaleEffect(scale)
-                                .clipped()
-                                .zIndex(100)
+                            ZStack {
+                                Color.background
+                                    .ignoresSafeArea()
+                                    .opacity(opacity)
+
+                                Image(uiImage: .startupZoomable)
+                                    .resizable()
+                                    .ignoresSafeArea()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(height: UIScreen.screenHeight)
+                                    .scaleEffect(scale)
+                                    .clipped()
+                                    .zIndex(100)
+                            }
                         }
                     }
                     .ignoresSafeArea()
-            } else {
-                MainAppView()
+            } else if let viewModel {
+                MainAppView(viewModel: viewModel)
                     .transition(.move(edge: .trailing).combined(with: .opacity))
                     .withNavigationManager(navigationManager)
                     .overlay {
                         if startupVisible {
-                            Image(uiImage: .startupZoomable)
-                                .resizable()
-                                .ignoresSafeArea()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(height: UIScreen.screenHeight)
-                                .scaleEffect(scale)
-                                .clipped()
-                                .zIndex(100)
+                            ZStack {
+                                Color.background
+                                    .ignoresSafeArea()
+                                    .opacity(opacity)
+                                Image(uiImage: .startupZoomable)
+                                    .resizable()
+                                    .ignoresSafeArea()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(height: UIScreen.screenHeight)
+                                    .scaleEffect(scale)
+                                    .clipped()
+                                    .zIndex(100)
+                            }
                         }
                     }
                     .ignoresSafeArea()
@@ -190,10 +204,15 @@ struct RootView: View {
             _ = try? await (localizationTask, minLoadTimeTask)
             
             TextManager.shared.configure(with: localizationManager)
+
+            viewModel = ConcertsViewModel(repository: dependencies.offlineConcertRepository, syncManager: dependencies.syncManager)
+            viewModel?.loadConcerts()
+
             loadingLocalization = false
-            
+
             withAnimation(.linear(duration: 1)) {
                 scale = 15.0
+                opacity = 0
             } completion: {
                 startupVisible = false
             }
@@ -216,7 +235,6 @@ struct RootView: View {
             } else if url.host == "import-concert" {
                 handleConcertImport()
             } else if url.host == "buddy", let code = url.pathComponents.last {
-                dependencies.appState.pendingBuddyCode = code
                 showBuddySheetWithCode = BuddyCode(code: code)
             }
         }

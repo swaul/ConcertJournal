@@ -56,9 +56,13 @@ class SyncManager {
 
         logInfo("Starting full sync", category: .sync)
 
-        try await pullChanges()
-        try await pushChanges()
-
+        do {
+            try await pullChanges()
+            try await pushChanges()
+        } catch {
+            NotificationCenter.default.post(name: .syncInProgress, object: false)
+            throw error
+        }
         logSuccess("Full sync completed", category: .sync)
         
         isSyncing = false

@@ -23,7 +23,7 @@ struct HTMLTermsView: View {
             ZStack {
                 if isLoading {
                     VStack(spacing: 12) {
-                        ProgressView()
+                        FlowerLoading()
                         Text("Loading Terms of Service...")
                             .font(.cjBody)
                             .foregroundStyle(.secondary)
@@ -99,7 +99,7 @@ struct HTMLPrivacyView: View {
             ZStack {
                 if isLoading {
                     VStack(spacing: 12) {
-                        ProgressView()
+                        FlowerLoading()
                         Text("Loading Privacy Policy...")
                             .font(.cjBody)
                             .foregroundStyle(.secondary)

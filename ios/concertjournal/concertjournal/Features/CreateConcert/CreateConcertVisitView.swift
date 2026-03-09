@@ -378,6 +378,12 @@ private struct ConcertSheetsModifier: ViewModifier {
                     draft.buddyAttendees = buddies
                 }
             }
+            .sheet(isPresented: $sheets.travel) {
+                CreateConcertTravelView(travel: draft.travel) { travelInfo in
+                    draft.travel = travelInfo
+                    sheets.travel = false
+                }
+            }
             .sheet(isPresented: $sheets.editTicket) {
                 CreateConcertTicket(artist: viewModel?.artist) { ticketInfo in
                     draft.ticket = ticketInfo
@@ -387,7 +393,7 @@ private struct ConcertSheetsModifier: ViewModifier {
             .sheet(isPresented: $sheets.savingConcert) {
                 ZStack {
                     VStack {
-                        ProgressView()
+                        FlowerLoading()
                             .tint(dependencies.colorThemeManager.appTint)
                         Text(TextKey.save.localized)
                             .font(.cjBody)

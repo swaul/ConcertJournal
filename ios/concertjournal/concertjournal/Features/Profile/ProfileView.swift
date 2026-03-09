@@ -39,7 +39,8 @@ struct ProfileView: View {
                 switch viewModel.loadingState {
                 case .loading:
                     VStack(spacing: 12) {
-                        ProgressView()
+                        FlowerLoading()
+                            .frame(width: 40, height: 40)
                         Text(TextKey.profileLoading.localized)
                             .font(.cjBody)
                             .foregroundStyle(.secondary)

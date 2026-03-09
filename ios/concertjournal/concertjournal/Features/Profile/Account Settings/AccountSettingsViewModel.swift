@@ -42,12 +42,15 @@ final class AccountSettingsViewModel {
     private let supabaseClient: SupabaseClientManagerProtocol
     private let userProvider: UserSessionManagerProtocol
     private let photoRepository: PhotoRepositoryProtocol
+    private let dependencyContainer: DependencyContainer
 
     init(
+        dependencyContainer: DependencyContainer,
         supabaseClient: SupabaseClientManagerProtocol,
         userProvider: UserSessionManagerProtocol,
         photoRepository: PhotoRepositoryProtocol
     ) {
+        self.dependencyContainer = dependencyContainer
         self.supabaseClient = supabaseClient
         self.userProvider = userProvider
         self.photoRepository = photoRepository
@@ -108,6 +111,12 @@ final class AccountSettingsViewModel {
 
             // Session clearen
             try await supabaseClient.client.auth.signOut()
+            dependencyContainer.nukeLocalData()
+
+            if let bundleID = Bundle.main.bundleIdentifier {
+                UserDefaults.standard.removePersistentDomain(forName: bundleID)
+                UserDefaults.standard.synchronize()
+            }
 
             state = .success
             HapticManager.shared.success()

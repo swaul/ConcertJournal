@@ -100,7 +100,7 @@ struct ConcertImportView: View {
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
                         } placeholder: {
-                            ProgressView()
+                            FlowerLoading()
                         }
                         .frame(height: 200)
                         .clipped()
@@ -149,7 +149,7 @@ struct ConcertImportView: View {
                         }
                     } label: {
                         if isImporting {
-                            ProgressView()
+                            FlowerLoading()
                         } else {
                             Text(TextKey.`import`.localized)
                                 .bold()

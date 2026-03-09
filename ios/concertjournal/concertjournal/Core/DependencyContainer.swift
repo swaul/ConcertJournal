@@ -25,7 +25,6 @@ class DependencyContainer {
     let networkMonitor: NetworkMonitor
     let syncManager: SyncManager
     let tourSyncManager: TourSyncManagerProtocol
-    let appState: AppState
     let buddyNotificationService: BuddyNotificationService
     let pushNotificationManager: PushNotificationManagerProtocol
     let htmlDocumentLoader: HTMLDocumentLoader
@@ -60,7 +59,6 @@ class DependencyContainer {
         self.networkMonitor = NetworkMonitor()
         self.syncManager = SyncManager(apiClient: bffClient, userSessionManager: userSessionManager)
         self.tourSyncManager = TourSyncManager(supabaseClient: supabaseClient, apiClient: bffClient, coreData: coreData)
-        self.appState = AppState()
         self.buddyNotificationService = BuddyNotificationService(supabaseClient: supabaseClient, userProvider: userSessionManager)
         self.pushNotificationManager = PushNotificationManager(supabaseClient: supabaseClient)
         self.htmlDocumentLoader = HTMLDocumentLoader(supabaseClient: supabaseClient)

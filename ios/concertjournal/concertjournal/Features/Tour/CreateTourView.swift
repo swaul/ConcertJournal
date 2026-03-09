@@ -241,7 +241,8 @@ struct CreateTourView: View {
                                 selectArtistPresenting = true
                             } label: {
                                 if viewModel.isLoading {
-                                    ProgressView()
+                                    FlowerLoading()
+                                    .frame(width: 40, height: 40)
                                 } else if let selectedArtist {
                                     Text(selectedArtist.name)
                                 } else {

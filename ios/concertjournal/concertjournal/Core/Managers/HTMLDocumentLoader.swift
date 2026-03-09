@@ -147,36 +147,3 @@ actor HTMLDocumentLoader {
         """
     }
 }
-
-// MARK: - Usage in Views
-
-/*
- Example usage:
- 
- struct HTMLTermsView: View {
- @State private var htmlContent = ""
- @State private var isLoading = true
- 
- @Environment(\.dependencies) var dependencies
- 
- var body: some View {
- ZStack {
- if isLoading {
- ProgressView()
- } else {
- TermsRepresentable(htmlContent: htmlContent)
- }
- }
- .onAppear {
- Task {
- let loader = HTMLDocumentLoader(
- supabaseClient: dependencies.supabaseClient
- )
- htmlContent = await loader.loadDocument(.termsOfService(version: 1))
- isLoading = false
- }
- }
- }
- }
- */
-

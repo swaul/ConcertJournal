@@ -72,7 +72,8 @@ final class BuddiesViewModel {
         async let buddiesTask: () = fetchBuddies()
         async let requestsTask: () = fetchRequests()
         async let codeTask: () = fetchOrCreateBuddyCode()
-        _ = await (buddiesTask, requestsTask, codeTask, profileTask)
+        async let minLoadTask: () = Task.sleep(for: .seconds(2))
+        _ = try? await (buddiesTask, requestsTask, codeTask, profileTask, minLoadTask)
         logInfo("Finished loading BuddiesViewModel state")
         loadingState = .loaded
     }

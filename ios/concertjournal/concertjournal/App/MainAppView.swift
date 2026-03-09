@@ -13,6 +13,8 @@ struct MainAppView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.navigationManager) private var navigationManager
 
+    @State var viewModel: ConcertsViewModel
+
 #if DEBUG
     @State private var showDebugLogs = false
 #endif
@@ -27,7 +29,7 @@ struct MainAppView: View {
 
         TabView(selection: $navigationManager.selectedTab) {
             Tab(TextKey.concerts.localized, systemImage: "music.note.list", value: NavigationRoute.concerts) {
-                ConcertsView()
+                ConcertsView(viewModel: viewModel)
             }
 
             Tab(TextKey.map.localized, systemImage: "map", value: NavigationRoute.map) {
@@ -131,8 +133,12 @@ struct TermsConsent: Codable {
 
 extension UserDefaults {
     
-    private enum Keys {
-        static let termsConsent = "com.concertjournal.terms_consent"
+    enum Keys: String, CaseIterable {
+        case termsConsent = "com.concertjournal.terms_consent"
+        case hasCompletedOnboarding = "hasCompletedOnboarding"
+        case isPremiumUser = "isPremiumUser"
+        case localStorageKey = "com.concertjournal.localizationVersion"
+        case complianceAcceptance = "compliance_acceptance"
     }
     
     // MARK: - Save Terms Consent
@@ -155,7 +161,7 @@ extension UserDefaults {
         
         do {
             let encoded = try JSONEncoder().encode(consent)
-            self.set(encoded, forKey: Keys.termsConsent)
+            self.set(encoded, forKey: Keys.termsConsent.rawValue)
             print("✅ Terms v\(termsVersion) & Privacy v\(privacyVersion) saved")
         } catch {
             print("❌ Failed to encode terms consent: \(error)")
@@ -165,7 +171,7 @@ extension UserDefaults {
     // MARK: - Get Terms Consent
     
     func getTermsConsent() -> TermsConsent? {
-        guard let data = self.data(forKey: Keys.termsConsent) else {
+        guard let data = self.data(forKey: Keys.termsConsent.rawValue) else {
             return nil
         }
         
@@ -208,7 +214,7 @@ extension UserDefaults {
     // MARK: - Clear Terms Consent (for testing/debugging)
     
     func clearTermsConsent() {
-        self.removeObject(forKey: Keys.termsConsent)
+        self.removeObject(forKey: Keys.termsConsent.rawValue)
         print("🗑️ Terms consent cleared")
     }
 }

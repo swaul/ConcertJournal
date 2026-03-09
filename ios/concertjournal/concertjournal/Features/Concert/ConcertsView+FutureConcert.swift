@@ -19,7 +19,7 @@ struct FutureConcertView: View {
                 AsyncImage(url: URL(string: concert.artist.imageUrl ?? "")) { result in
                     switch result {
                     case .empty:
-                        ProgressView()
+                        FlowerLoading()
                     case .success(let image):
                         image
                             .resizable()

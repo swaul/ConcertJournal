@@ -15,16 +15,15 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Startup" translatesAutoresizingMaskIntoConstraints="NO" id="uU4-cL-eU1">
-                                <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Startup" translatesAutoresizingMaskIntoConstraints="NO" id="uU4-cL-eU1">
+                                <rect key="frame" x="-178.66666666666666" y="0.0" width="750.33333333333337" height="852"/>
                             </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstAttribute="bottom" secondItem="uU4-cL-eU1" secondAttribute="bottom" id="83t-Y0-aIN"/>
-                            <constraint firstItem="uU4-cL-eU1" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" id="fIc-qY-Mbu"/>
-                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="trailing" secondItem="uU4-cL-eU1" secondAttribute="trailing" id="h75-wF-AGV"/>
+                            <constraint firstItem="uU4-cL-eU1" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="hZU-6i-5X8"/>
                             <constraint firstItem="uU4-cL-eU1" firstAttribute="top" secondItem="Ze5-6b-2t3" secondAttribute="top" id="nIV-xK-72q"/>
                         </constraints>
                     </view>

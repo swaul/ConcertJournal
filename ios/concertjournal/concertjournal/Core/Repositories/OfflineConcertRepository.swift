@@ -98,6 +98,7 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
         concert.id = dto.id
         concert.title = dto.title
         concert.date = dto.date
+        concert.openingTime = dto.openingTime
         concert.notes = dto.notes
         concert.rating = Int16(dto.rating ?? 0)
         concert.city = dto.city

@@ -78,9 +78,8 @@ struct NotificationPermissionView: View {
                     } label: {
                         HStack {
                             if isRequesting {
-                                ProgressView()
-                                    .tint(.white)
-                                    .font(.cjTitle2)
+                                FlowerLoading()
+                                    .frame(width: 40, height: 40)
                                 Text(TextKey.queryRunning.localized)
                                     .font(.cjTitle2)
                             } else {

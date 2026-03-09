@@ -1,4 +1,5 @@
 import Foundation
+import AuthenticationServices
 import Combine
 import Supabase
 import SwiftUI
@@ -16,6 +17,8 @@ final class AuthViewModel {
     var newPasswordRepeat: String = ""
     var isLoading: Bool = false
     var errorMessage: String?
+
+    var currentNonce: String?
 
     // MARK: - Dependencies
 
@@ -114,6 +117,59 @@ final class AuthViewModel {
             logError("Spotify OAuth failed", error: error, category: .auth)
             errorMessage = "Failed to connect Spotify: \(error.localizedDescription)"
         }
+    }
+
+    func handleAppleSignIn(result: Result<ASAuthorization, Error>) async {
+        do {
+            let authorization = try result.get()
+
+            guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential else {
+                self.errorMessage = "Ungültige Apple Credentials"
+                return
+            }
+
+            guard let nonce = currentNonce else {
+                self.errorMessage = "Nonce nicht verfügbar"
+                return
+            }
+
+            guard let identityTokenData = appleIDCredential.identityToken,
+                  let identityToken = String(data: identityTokenData, encoding: .utf8) else {
+                self.errorMessage = "ID Token konnte nicht dekodiert werden"
+                return
+            }
+
+            self.isLoading = true
+
+            let session = try await supabaseClient.client
+                .auth.signInWithIdToken(credentials: OpenIDConnectCredentials(provider: .apple, idToken: identityToken))
+
+            self.isLoading = false
+        } catch {
+            self.errorMessage = error.localizedDescription
+            self.isLoading = false
+        }
+    }
+
+    // Für Nonce-Generierung
+    func generateNonce() {
+        currentNonce = randomNonceString()
+    }
+
+    private nonisolated func randomNonceString(length: Int = 32) -> String {
+        precondition(length > 0)
+        var randomBytes = [UInt8](repeating: 0, count: length)
+        let errorCode = SecRandomCopyBytes(kSecRandomDefault, randomBytes.count, &randomBytes)
+        if errorCode != errSecSuccess {
+            fatalError("Nonce-Generierung fehlgeschlagen")
+        }
+
+        let charset: [Character] = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._")
+        let nonce = randomBytes.map { byte in
+            charset[Int(byte) % charset.count]
+        }
+
+        return String(nonce)
     }
 
     // MARK: - Sign Out

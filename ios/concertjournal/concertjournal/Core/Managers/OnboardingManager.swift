@@ -156,7 +156,7 @@ class OnboardingManager {
         }
     }
     
-    func saveTermsConsent(termsVersion: Int, privacyVersion: Int) {
+    func saveTermsConsent() {
         
         let isoString = ISO8601DateFormatter().string(from: Date())
         let version = (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "unknown"
@@ -174,6 +174,7 @@ class OnboardingManager {
         do {
             let encoded = try JSONEncoder().encode(data)
             UserDefaults.standard.set(encoded, forKey: "compliance_acceptance")
+            getNextStep()
         } catch {
             logError("Failed to encode acceptance data", error: error)
         }
