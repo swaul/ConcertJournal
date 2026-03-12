@@ -37,7 +37,7 @@ final class LocalizationManager {
     // MARK: - Language Resolution
     
     var currentLanguage: String = {
-        let preferred = Locale.preferredLanguages.first ?? "de"
+        let preferred = (Locale.preferredLanguages.first ?? "en-DE").components(separatedBy: "-").first ?? "en"
         return preferred
     }()
     
@@ -50,7 +50,7 @@ final class LocalizationManager {
         } else if Bundle.main.url(forResource: base, withExtension: "json") != nil {
             return base
         }
-        return "de"
+        return "en"
     }
     
     // MARK: - Load Local Backup (aus Bundle)

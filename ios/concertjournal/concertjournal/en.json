@@ -398,14 +398,5 @@
   "section.detail_page": "Detail Page",
   "notification.badge": "ONE-TIME",
   "notification.body": "You attended the concert \"%@\".",
-  "info.beta": "",
-  "__obsolete": {
-    "nav.ticket_info": "Ticket Info",
-    "nav.travel_info": "Travel Info",
-    "travel.mode_walking": "The venue was within walking distance",
-    "travel.mode_car": "You drove to the venue",
-    "travel.mode_bike": "You cycled to the venue",
-    "travel.mode_train": "You took the train",
-    "travel.mode_plane": "You flew to the venue"
-  }
+  "info.beta": "BETA",
 }
