@@ -100,10 +100,7 @@ struct ConcertDetailView: View {
             }
             .frame(width: size.getHigherValue / 2, height: size.getLowerValue)
             .ignoresSafeArea()
-            .onAppear {
-                print("TEST 1", size.getHigherValue / 2)
-            }
-            
+
             // Right Side: Scrollable Content
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {

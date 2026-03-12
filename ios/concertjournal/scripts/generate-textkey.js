@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * generate-textkey.js
+ * generate-textkey.js (Updated für Underscore-basierte Keys)
  *
  * Generates TextKey.swift from the source locale JSON.
- * - Groups cases under MARK sections based on the key prefix
+ * - Groups cases under MARK sections based on the key prefix (now underscore-based)
  * - Derives a camelCase Swift identifier from the JSON key
  * - Automatically resolves name collisions by prepending prefix segments
- *   e.g. "home.title" + "map.title" → homeTitle + mapTitle (not title + title)
+ *   e.g. "loginview_emailfield_placeholder" → loginviewEmailfieldPlaceholder
  * - Appends the existing extension block (localized helpers) unchanged
  *
  * Usage:
@@ -54,8 +54,8 @@ const RESERVED = new Set([
  * Convert a dot/underscore separated key into camelCase,
  * using segments starting from `fromSegment`.
  *
- * "action.open_in_maps", fromSegment=1 → "openInMaps"
- * "action.open_in_maps", fromSegment=0 → "actionOpenInMaps"
+ * "loginview_loginbutton_title", fromSegment=1 → "loginbuttonTitle"
+ * "loginview_loginbutton_title", fromSegment=0 → "loginviewLoginbuttonTitle"
  */
 function toCamelCase(key, fromSegment) {
   const parts = key.split(/[._]+/).slice(fromSegment);
@@ -71,6 +71,22 @@ function escape(name) {
 /** Pad a string on the right to a given length */
 function padRight(str, len) {
   return str + " ".repeat(Math.max(0, len - str.length));
+}
+
+/**
+ * Extract the first segment from a key using underscore as primary delimiter.
+ * Fallback to dot if no underscore found (for backward compatibility).
+ * 
+ * "loginview_loginbutton_title" → "loginview"
+ * "action.cancel" → "action"
+ */
+function getKeyPrefix(key) {
+  // Check if underscore exists
+  if (key.includes("_")) {
+    return key.split("_")[0];
+  }
+  // Fallback to dot for backward compatibility
+  return key.split(".")[0];
 }
 
 // ─── Load source JSON ─────────────────────────────────────────────────────────
@@ -160,7 +176,7 @@ const identMap = resolveIdentifiers(allKeys);
 
 const groups = new Map();
 for (const key of allKeys) {
-  const pfx = key.split(".")[0];
+  const pfx = getKeyPrefix(key);  // Now supports both underscore and dot
   if (!groups.has(pfx)) groups.set(pfx, []);
   groups.get(pfx).push(key);
 }
