@@ -24,8 +24,7 @@ class DependencyContainer {
     let storageService: StorageServiceProtocol
     let networkMonitor: NetworkMonitor
     let syncManager: SyncManager
-    let tourSyncManager: TourSyncManagerProtocol
-    let appState: AppState
+    let tourSyncManager: TourSyncManager
     let buddyNotificationService: BuddyNotificationService
     let pushNotificationManager: PushNotificationManagerProtocol
     let htmlDocumentLoader: HTMLDocumentLoader
@@ -59,8 +58,7 @@ class DependencyContainer {
         self.storageService = StorageService(supabaseClient: supabaseClient)
         self.networkMonitor = NetworkMonitor()
         self.syncManager = SyncManager(apiClient: bffClient, userSessionManager: userSessionManager)
-        self.tourSyncManager = TourSyncManager(supabaseClient: supabaseClient, apiClient: bffClient, coreData: coreData)
-        self.appState = AppState()
+        self.tourSyncManager = TourSyncManager(apiClient: bffClient, userSessionManager: userSessionManager)
         self.buddyNotificationService = BuddyNotificationService(supabaseClient: supabaseClient, userProvider: userSessionManager)
         self.pushNotificationManager = PushNotificationManager(supabaseClient: supabaseClient)
         self.htmlDocumentLoader = HTMLDocumentLoader(supabaseClient: supabaseClient)
@@ -76,7 +74,7 @@ class DependencyContainer {
         // ✅ BFF Repositories
         self.offlineConcertRepository = OfflineConcertRepository(syncManager: syncManager, userSessionManager: userSessionManager)
         self.offlinePhotoRepsitory = OfflinePhotoRepository()
-        self.offlineTourRepository = OfflineTourRepository(coreDataStack: coreData, apiClient: bffClient)
+        self.offlineTourRepository = OfflineTourRepository(supabaseClient: supabaseClient, coreDataStack: coreData, apiClient: bffClient, tourSyncManager: tourSyncManager)
         self.concertRepository = BFFConcertRepository(client: bffClient)
         self.artistRepository = BFFArtistRepository(client: bffClient)
         self.venueRepository = BFFVenueRepository(client: bffClient)
@@ -144,6 +142,7 @@ class DependencyContainer {
     func startFullSync() {
         Task {
             try? await syncManager.fullSync()
+            try? await tourSyncManager.fullSync()
         }
     }
 }
@@ -175,4 +174,5 @@ extension Notification.Name {
     static let openBuddies = Notification.Name("openBuddies")
     static let openConcert = Notification.Name("openConcert")
     static let syncInProgress = Notification.Name("SyncInProgress")
+    static let tourSyncInProgress = Notification.Name("TourSyncInProgress")
 }

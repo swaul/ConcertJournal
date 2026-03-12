@@ -113,6 +113,8 @@ class CoreDataStack {
         
         do {
             try context.save()
+            NotificationCenter.default.post(name: .resetAppState, object: nil)
+            didChange.send()
             logSuccess("✅ All data deleted and saved", category: .coreData)
         } catch {
             logError("Failed to save after delete", error: error, category: .coreData)

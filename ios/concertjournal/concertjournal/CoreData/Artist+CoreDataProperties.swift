@@ -25,7 +25,6 @@ extension Artist {
     @NSManaged public var serverId: String?
     @NSManaged public var spotifyArtistId: String?
     @NSManaged public var syncStatus: String?
-    @NSManaged public var concerts: Concert?
 
 }
 

@@ -17,7 +17,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         UNUserNotificationCenter.current().delegate = self
         return true
     }
-
+    
     func application(
         _ application: UIApplication,
         didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
@@ -26,7 +26,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
             await pushManager?.storeDeviceToken(deviceToken)
         }
     }
-
+    
     func application(
         _ application: UIApplication,
         didFailToRegisterForRemoteNotificationsWithError error: Error
@@ -64,10 +64,10 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 
 @main
 struct ConcertJournalApp: App {
-
+    
     init() {
         if let semiBold = UIFont(name: "Manrope-SemiBold", size: 18),
-            let bold = UIFont(name: "Manrope-Bold", size: 34) {
+           let bold = UIFont(name: "Manrope-Bold", size: 34) {
             let appearance = UINavigationBarAppearance()
             appearance.titleTextAttributes = [
                 .font: semiBold
@@ -82,9 +82,9 @@ struct ConcertJournalApp: App {
         
         AdMobManager.shared.initialize()
     }
-
+    
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-
+    
     @State private var navigationManager = NavigationManager()
     @State private var dependencyContainer = DependencyContainer()
     
@@ -119,45 +119,108 @@ struct BuddyCode: Identifiable {
 // MARK: - Root View
 
 struct RootView: View {
-
+    
     @Environment(\.dependencies) var dependencies
-
+    
     @State var localizationManager: LocalizationManager
 
     @State var onboardingManager: OnboardingManager
     @State var navigationManager: NavigationManager
-
+    
     @State private var passwordResetItem: PasswordResetRequest? = nil
     @State private var importConcertItem: ExtractedConcertInfo? = nil
     
     @State private var showBuddySheetWithCode: BuddyCode? = nil
     
     @State private var loadingLocalization: Bool = true
+    
+    @State private var scale: CGFloat = 1.0
+    @State private var opacity: CGFloat = 1.0
+    @State private var startupVisible: Bool = true
+
+    @State private var viewModel: ConcertsViewModel?
 
     var body: some View {
         Group {
             if loadingLocalization {
-                TextLessLoadingView()
+                Image(uiImage: .startup)
+                    .resizable()
+                    .ignoresSafeArea()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(height: UIScreen.screenHeight)
             } else if !onboardingManager.hasCompletedOnboarding {
+                
                 OnboardingView(manager: onboardingManager)
                     .transition(.move(edge: .leading).combined(with: .opacity))
-            } else {
-                MainAppView()
+                    .overlay {
+                        if startupVisible {
+                            ZStack {
+                                Color.background
+                                    .ignoresSafeArea()
+                                    .opacity(opacity)
+
+                                Image(uiImage: .startupZoomable)
+                                    .resizable()
+                                    .ignoresSafeArea()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(height: UIScreen.screenHeight)
+                                    .scaleEffect(scale)
+                                    .clipped()
+                                    .zIndex(100)
+                            }
+                        }
+                    }
+                    .ignoresSafeArea()
+            } else if let viewModel {
+                MainAppView(viewModel: viewModel)
                     .transition(.move(edge: .trailing).combined(with: .opacity))
                     .withNavigationManager(navigationManager)
+                    .overlay {
+                        if startupVisible {
+                            ZStack {
+                                Color.background
+                                    .ignoresSafeArea()
+                                    .opacity(opacity)
+                                Image(uiImage: .startupZoomable)
+                                    .resizable()
+                                    .ignoresSafeArea()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(height: UIScreen.screenHeight)
+                                    .scaleEffect(scale)
+                                    .clipped()
+                                    .zIndex(100)
+                            }
+                        }
+                    }
+                    .ignoresSafeArea()
             }
         }
         .animation(.easeInOut(duration: 0.35), value: onboardingManager.hasCompletedOnboarding)
         .task {
             loadingLocalization = true
-            await localizationManager.checkAndUpdateLocalizationIfNeeded()
+            async let localizationTask: Void = localizationManager.checkAndUpdateLocalizationIfNeeded()
+            async let minLoadTimeTask: Void = Task.sleep(for: .seconds(2))
+            
+            _ = try? await (localizationTask, minLoadTimeTask)
+            
             TextManager.shared.configure(with: localizationManager)
+
+            viewModel = ConcertsViewModel(repository: dependencies.offlineConcertRepository, syncManager: dependencies.syncManager)
+            viewModel?.loadConcerts()
+
             loadingLocalization = false
+
+            withAnimation(.linear(duration: 1)) {
+                scale = 15.0
+                opacity = 0
+            } completion: {
+                startupVisible = false
+            }
         }
         .onOpenURL { url in
             logInfo("Received URL: \(url.absoluteString)", category: .auth)
             guard url.scheme == "concertjournal" else { return }
-
+            
             if url.host == "auth-callback" {
                 Task {
                     do {
@@ -172,7 +235,6 @@ struct RootView: View {
             } else if url.host == "import-concert" {
                 handleConcertImport()
             } else if url.host == "buddy", let code = url.pathComponents.last {
-                dependencies.appState.pendingBuddyCode = code
                 showBuddySheetWithCode = BuddyCode(code: code)
             }
         }
@@ -201,7 +263,7 @@ struct RootView: View {
             }
         }
     }
-
+    
     private func handlePasswordReset(url: URL) {
         let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
         guard let code = components?.queryItems?.first(where: { $0.name == "code" })?.value,
@@ -209,16 +271,16 @@ struct RootView: View {
         else { return }
         passwordResetItem = PasswordResetRequest(code: code, type: type)
     }
-
+    
     private func handleConcertImport() {
         guard dependencies.userSessionManager.session != nil else { return }
         guard let sharedContainer = FileManager.default.containerURL(
             forSecurityApplicationGroupIdentifier: "group.com.kuehnel.concertjournal"
         ) else { return }
-
+        
         let fileURL = sharedContainer.appendingPathComponent("pending_import.json")
         guard FileManager.default.fileExists(atPath: fileURL.path) else { return }
-
+        
         if let data = try? Data(contentsOf: fileURL),
            let concert = try? JSONDecoder().decode(ExtractedConcertInfo.self, from: data) {
             importConcertItem = concert

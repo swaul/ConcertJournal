@@ -16,7 +16,7 @@ struct ConcertsView: View {
     @Environment(\.dependencies) var dependencies
     @Environment(\.navigationManager) var navigationManager
 
-    @State private var viewModel: ConcertsViewModel? = nil
+    @Bindable var viewModel: ConcertsViewModel
 
     @State private var chooseCreateFlowPresenting: Bool = false
     @State var concertToDelete: Concert? = nil
@@ -32,32 +32,8 @@ struct ConcertsView: View {
 
         NavigationStack(path: $navigationManager.path) {
             Group {
-                if let viewModel, !viewModel.isLoading {
-                    if let errorMessage = viewModel.errorMessage {
-                        VStack(spacing: 20) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .font(.system(size: 60))
-                                .foregroundStyle(dependencies.colorThemeManager.appTint)
-
-                            Text(errorMessage)
-                                .font(.cjBody)
-                                .multilineTextAlignment(.center)
-
-                            Button {
-                                Task {
-                                    HapticManager.shared.impact(.medium)
-                                    await viewModel.refreshConcerts()
-                                    HapticManager.shared.success()
-                                }
-                            } label: {
-                                Label(TextKey.reload.localized, systemImage: "arrow.counterclockwise")
-                                    .font(.cjHeadline)
-                            }
-                            .buttonStyle(ModernButtonStyle(style: .prominent,
-                                                           color: dependencies.colorThemeManager.appTint))
-                        }
-                        .padding()
-                    } else if viewModel.futureConcerts.isEmpty && viewModel.allConcerts.isEmpty && viewModel.concertToday == nil {
+                if !viewModel.isLoading {
+                    if viewModel.futureConcerts.isEmpty && viewModel.allConcerts.isEmpty && viewModel.concertToday == nil {
                         VStack(spacing: 24) {
                             Spacer()
 
@@ -98,20 +74,40 @@ struct ConcertsView: View {
             .frame(maxWidth: .infinity)
             .background(Color.background)
             .task {
-                if viewModel == nil {
-                    viewModel = ConcertsViewModel(repository: dependencies.offlineConcertRepository,
-                                                  syncManager: dependencies.syncManager)
-                } else {
-                    viewModel?.updateConcerts()
-                }
+                viewModel.updateConcerts()
             }
-            .overlay(alignment: .top) {
+            .adaptiveSheet(item: $viewModel.errorMessage) { message in
+                VStack(spacing: 20) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 60))
+                        .foregroundStyle(dependencies.colorThemeManager.appTint)
+
+                    Text(message.message)
+                        .font(.cjBody)
+                        .multilineTextAlignment(.center)
+
+                    Button {
+                        Task {
+                            HapticManager.shared.impact(.medium)
+                            await viewModel.refreshConcerts()
+                            viewModel.errorMessage = nil
+                            HapticManager.shared.success()
+                        }
+                    } label: {
+                        Label(TextKey.reload.localized, systemImage: "arrow.counterclockwise")
+                            .font(.cjHeadline)
+                    }
+                    .buttonStyle(ModernButtonStyle(style: .prominent,
+                                                   color: dependencies.colorThemeManager.appTint))
+                }
+                .padding(24)
+            }            .overlay(alignment: .top) {
                 if isSyncingWithServer {
                     HStack {
-                        ProgressView()
+                        FlowerLoading()
                             .frame(width: 48, height: 48)
                             .tint(dependencies.colorThemeManager.appTint)
-                        
+
                         Text("Synce mit dem Server...")
                     }
                     .padding(8)
@@ -119,10 +115,17 @@ struct ConcertsView: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
                 }
             }
-            .onReceive(NotificationCenter.default.publisher(for: .syncInProgress)) { notification in
-                guard let isSyncingWithServer = notification.object as? Bool else { return }
+            .onReceive(
+                Publishers.CombineLatest(
+                    NotificationCenter.default.publisher(for: .syncInProgress)
+                        .map { $0.object as? Bool ?? false },
+                    NotificationCenter.default.publisher(for: .tourSyncInProgress)
+                        .map { $0.object as? Bool ?? false }
+                )
+                .map { concert, tour in concert || tour }
+            ) { isSyncing in
                 withAnimation(.bouncy) {
-                    self.isSyncingWithServer = isSyncingWithServer
+                    self.isSyncingWithServer = isSyncing
                 }
             }
             .adaptiveSheet(isPresented: $chooseCreateFlowPresenting) {
@@ -204,7 +207,7 @@ struct ConcertsView: View {
                 }
             }
             .toolbar {
-                #if DEBUG
+#if DEBUG
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
                         HapticManager.shared.impact(.light)
@@ -214,8 +217,8 @@ struct ConcertsView: View {
                             .font(.title3)
                     }
                 }
-                #endif
-                if let viewModel, viewModel.hasTours {
+#endif
+                if viewModel.hasTours {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button {
                             HapticManager.shared.impact(.light)
@@ -245,7 +248,9 @@ struct ConcertsView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .resetAppState)) { _ in
             withAnimation {
-                viewModel = nil
+                viewModel.isLoading = true
+                viewModel.reset()
+                viewModel.isLoading = false
             }
         }
     }
@@ -303,7 +308,7 @@ struct ConcertsView: View {
                         .scrollClipDisabled()
                     }
                 }
-                
+
                 concertsGroupedSection(viewModel: viewModel)
 
                 if viewModel.allConcerts.count < 5 {
@@ -329,9 +334,9 @@ struct ConcertsView: View {
         .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                 fullSizeTodaysConcert = value > 10
-//                if fullSizeTodaysConcert {
-//                    HapticManager.shared.impact(.light)
-//                }
+                //                if fullSizeTodaysConcert {
+                //                    HapticManager.shared.impact(.light)
+                //                }
             }
         }
         .scrollClipDisabled()
@@ -403,8 +408,8 @@ struct ConcertsView: View {
                         }
                     } label: {
                         if loading {
-                            ProgressView()
-                                .tint(.white)
+                            FlowerLoading()
+                                .frame(width: 40, height: 40)
                         } else {
                             Text(TextKey.concertDelete.localized)
                                 .font(.cjHeadline)
@@ -483,7 +488,7 @@ struct ConcertsView: View {
         case .concertDetail(let concert):
             ConcertDetailView(concert: concert)
                 .toolbarVisibility(.hidden, for: .tabBar)
-            
+
         case .concertDetailAsync(let id):
             ConcertDetailAsyncView(id: id)
                 .toolbarVisibility(.hidden, for: .tabBar)
@@ -511,15 +516,15 @@ struct ConcertsView: View {
         case .artistDetail(let artist):
             ArtistDetailView(artist: artist)
                 .toolbarVisibility(.hidden, for: .tabBar)
-            
+
         case .toursView:
             ToursView()
                 .toolbarVisibility(.hidden, for: .tabBar)
-            
-            #if DEBUG
+
+#if DEBUG
         case .testView:
             TestView()
-            #endif
+#endif
         default:
             Text("Not implemented: \(String(describing: route))")
         }

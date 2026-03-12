@@ -105,7 +105,7 @@ struct PasswordResetView: View {
 
     func verifyCode() async {
         do {
-            let session = try await dependencies.supabaseClient.client.auth.exchangeCodeForSession(authCode: passwordResetRequest.code)
+            let _ = try await dependencies.supabaseClient.client.auth.exchangeCodeForSession(authCode: passwordResetRequest.code)
             logSuccess("Code verified, session created")
         } catch {
             errorMessage = "Reset-Link ist ungültig oder abgelaufen"

@@ -132,7 +132,7 @@ struct BuddyAttendeePickerSheet: View {
                         
                         // ── Buddies ───────────────────────────────────
                         if isLoading {
-                            ProgressView()
+                            FlowerLoading()
                                 .frame(maxWidth: .infinity)
                                 .padding(.top, 32)
                         } else if !buddies.isEmpty {

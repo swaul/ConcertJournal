@@ -41,8 +41,7 @@ struct TicketScannerView: View {
                         if isScanning {
                             // Scanning State
                             VStack(spacing: 16) {
-                                ProgressView()
-                                    .scaleEffect(1.5)
+                                FlowerLoading()
                                 Text(TextKey.scanning.localized)
                                     .font(.cjBody)
                                     .foregroundColor(.secondary)

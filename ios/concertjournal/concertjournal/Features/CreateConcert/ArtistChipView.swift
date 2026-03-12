@@ -29,7 +29,7 @@ struct ArtistChipView: View {
             AsyncImage(url: URL(string: artist.imageUrl ?? "")) { result in
                 switch result {
                 case .empty:
-                    ProgressView()
+                    FlowerLoading()
                 case .success(let image):
                     image
                         .resizable()

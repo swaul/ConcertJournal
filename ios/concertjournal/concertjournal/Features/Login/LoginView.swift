@@ -329,7 +329,11 @@ struct LoginView: View, KeyboardReadable {
             Divider().padding(.vertical, 4)
 
             // Spotify Button
-            Button { Task { await viewModel.signInWithSpotify() } } label: {
+            Button {
+                Task {
+                    await viewModel.signInWithSpotify()
+                }
+            } label: {
                 HStack {
                     Image("Spotify")
                         .resizable().aspectRatio(contentMode: .fit)
@@ -345,6 +349,21 @@ struct LoginView: View, KeyboardReadable {
             .background(Color.black)
             .clipShape(RoundedRectangle(cornerRadius: 20))
             .disabled(viewModel.isLoading)
+
+            SignInWithAppleButton { request in
+                // Nonce generieren
+                viewModel.generateNonce()
+
+                request.requestedScopes = [.fullName, .email]
+                request.nonce = viewModel.currentNonce
+
+            } onCompletion: { result in
+                Task {
+                    await viewModel.handleAppleSignIn(result: result)
+                }
+            }
+            .signInWithAppleButtonStyle(.black)
+            .frame(height: 50)
         }
     }
 
@@ -421,6 +440,7 @@ struct LoginView: View, KeyboardReadable {
 // MARK: - Keyboard Publisher
 
 import Combine
+import _AuthenticationServices_SwiftUI
 
 protocol KeyboardReadable {
     var keyboardPublisher: AnyPublisher<Bool, Never> { get }

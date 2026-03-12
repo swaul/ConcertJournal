@@ -103,17 +103,16 @@ struct TermsView: View {
                     
                     Spacer()
                     
-                    Toggle("", isOn: $privacyAccepted)
+                    Toggle("", isOn: $termsAccepted)
                 }
                 .padding(.horizontal, 40)
 
                 Button {
                     HapticManager.shared.navigationTap()
-                    manager.getNextStep()
+                    manager.saveTermsConsent()
                 } label: {
                     if manager.isLoadingVersions {
-                        ProgressView()
-                            .tint(.white)
+                        FlowerLoading()
                     } else {
                         Text(TextKey.nextStepExclamation.localized)
                             .font(.cjTitle2)

@@ -156,25 +156,6 @@ extension View {
     }
 }
 
-extension NavigationManager {
-
-    /// Handle Deep Link
-    func handle(url: URL) {
-        // Parse URL und navigiere
-        // z.B. myapp://concert/123
-
-        if url.pathComponents.contains("concert"),
-           let concertId = url.pathComponents.last {
-
-            // Load concert und navigiere
-            Task {
-                // let concert = try await loadConcert(id: concertId)
-                // push(.concertDetail(concert))
-            }
-        }
-    }
-}
-
 // Placeholder Views
 //struct MapView: View { var body: some View { Text("Map") } }
 //struct ProfileView: View { var body: some View { Text("Profile") } }

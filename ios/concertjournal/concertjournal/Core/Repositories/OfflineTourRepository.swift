@@ -8,33 +8,39 @@
 import CoreData
 import Foundation
 
+@MainActor
 protocol OfflineTourRepositoryProtocol {
     func createTour(name: String,
                     startDate: Date,
                     endDate: Date,
                     artist: ArtistDTO,
-                    description: String?) async throws -> CreateTourDTO
+                    description: String?) async throws -> Tour
     func getAllTours() throws -> [Tour]
     func getToursByArtist(_ artist: Artist) throws -> [Tour]
     func getToursByStatus(_ status: TourStatus) throws -> [Tour]
-    func getTour(by id: UUID) throws -> Tour?
-    func updateTour(_ tour: Tour, name: String, startDate: Date, endDate: Date, description: String?)
+    func getTour(by id: UUID) throws -> Tour
+    func updateTour(_ tour: Tour, name: String, startDate: Date, endDate: Date, description: String?, artist: Artist) throws -> Tour
     func addConcertToTour(_ concert: Concert, tour: Tour)
     func removeConcertFromTour(_ concert: Concert)
     func deleteTour(_ tour: Tour) throws
 }
 
 class OfflineTourRepository: OfflineTourRepositoryProtocol {
+    
+    private let supabaseClient: SupabaseClientManagerProtocol
     private let coreDataStack: CoreDataStack
     private let apiClient: BFFClient
+    private let tourSyncManager: TourSyncManager
 
-    init(coreDataStack: CoreDataStack, apiClient: BFFClient) {
+    init(supabaseClient: SupabaseClientManagerProtocol, coreDataStack: CoreDataStack, apiClient: BFFClient, tourSyncManager: TourSyncManager) {
+        self.supabaseClient = supabaseClient
         self.coreDataStack = coreDataStack
         self.apiClient = apiClient
+        self.tourSyncManager = tourSyncManager
     }
 
     // MARK: - Create
-    func createTour(name: String, startDate: Date, endDate: Date, artist: ArtistDTO, description: String? = nil) async throws -> CreateTourDTO {
+    func createTour(name: String, startDate: Date, endDate: Date, artist: ArtistDTO, description: String? = nil) async throws -> Tour {
         let context = coreDataStack.viewContext
         let tour = Tour(context: context)
         tour.id = UUID()
@@ -50,14 +56,12 @@ class OfflineTourRepository: OfflineTourRepositoryProtocol {
         tour.syncVersion = 1
 
         save()
-
-        guard let artistServerId = tour.artist.serverId else { throw SyncError.missingServerId }
-        return CreateTourDTO(name: tour.name,
-                             tourDescription: tour.tourDescription,
-                             startDate: tour.startDate.supabseDateString,
-                             endDate: tour.endDate.supabseDateString,
-                             artistId: artistServerId,
-                             ownerId: tour.ownerId)
+        
+        Task.detached {
+            await self.tourSyncManager.syncTour(tour)
+        }
+        
+        return tour
     }
 
     // MARK: - Read
@@ -94,21 +98,31 @@ class OfflineTourRepository: OfflineTourRepositoryProtocol {
         return try coreDataStack.viewContext.fetch(request)
     }
 
-    func getTour(by id: UUID) throws -> Tour? {
+    func getTour(by id: UUID) throws -> Tour {
         let request = Tour.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
-        return try coreDataStack.viewContext.fetch(request).first
+        let tour = try coreDataStack.viewContext.fetch(request).first
+        
+        guard let tour else { throw TourRepositoryError.notFound(id) }
+        return tour
     }
 
     // MARK: - Update
-    func updateTour(_ tour: Tour, name: String, startDate: Date, endDate: Date, description: String? = nil) {
+    func updateTour(_ tour: Tour, name: String, startDate: Date, endDate: Date, description: String? = nil, artist: Artist) throws -> Tour {
         tour.name = name
         tour.startDate = startDate
         tour.endDate = endDate
         tour.tourDescription = description
+        tour.artist = artist
         tour.locallyModifiedAt = Date.now
         tour.syncStatus = SyncStatus.pending.rawValue
         save()
+        
+        Task.detached {
+            await self.tourSyncManager.syncTour(tour)
+        }
+        
+        return tour
     }
 
     func addConcertToTour(_ concert: Concert, tour: Tour) {
@@ -117,6 +131,10 @@ class OfflineTourRepository: OfflineTourRepositoryProtocol {
         concert.locallyModifiedAt = Date.now
         concert.syncStatus = SyncStatus.pending.rawValue
         save()
+        
+        Task.detached {
+            await self.tourSyncManager.syncTour(tour)
+        }
     }
 
     func removeConcertFromTour(_ concert: Concert) {
@@ -138,6 +156,10 @@ class OfflineTourRepository: OfflineTourRepositoryProtocol {
 
         coreDataStack.viewContext.delete(tour)
         save()
+        
+        Task.detached {
+            try await self.tourSyncManager.fullSync()
+        }
     }
 
     // MARK: - Save
@@ -211,4 +233,8 @@ class OfflineTourRepository: OfflineTourRepositoryProtocol {
         return nil
     }
 
+}
+
+enum TourRepositoryError: Error {
+    case notFound(UUID)
 }

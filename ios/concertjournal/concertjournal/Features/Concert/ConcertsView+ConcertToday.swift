@@ -82,7 +82,7 @@ struct ConcertTodayView: View {
                     AsyncImage(url: URL(string: concert.artist.imageUrl ?? "")) { result in
                         switch result {
                         case .empty:
-                            ProgressView()
+                            FlowerLoading()
                                 .matchedGeometryEffect(id: "progressView", in: todaysConcert)
                         case .success(let image):
                             image
@@ -143,7 +143,7 @@ struct ConcertTodayView: View {
                     AsyncImage(url: URL(string: concert.artist.imageUrl ?? "")) { result in
                         switch result {
                         case .empty:
-                            ProgressView()
+                            FlowerLoading()
                                 .matchedGeometryEffect(id: "progressView", in: todaysConcert)
                         case .success(let image):
                             image

@@ -490,7 +490,8 @@ struct ConcertDetailView: View {
                     }
                 } label: {
                     if loading {
-                        ProgressView()
+                        FlowerLoading()
+                            .frame(width: 40, height: 40)
                             .tint(.white)
                     } else {
                         Text(TextKey.concertDelete.localized)
@@ -1096,7 +1097,7 @@ struct ConcertDetailView: View {
                                         photoPlaceholder(icon: "exclamationmark.triangle")
                                     case .empty:
                                         photoPlaceholder(icon: "photo")
-                                            .overlay { ProgressView() }
+                                            .overlay { FlowerLoading() }
                                     @unknown default:
                                         photoPlaceholder(icon: "photo")
                                     }

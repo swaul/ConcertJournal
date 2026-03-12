@@ -10,6 +10,7 @@ import Combine
 import WidgetKit
 import Auth
 
+@MainActor
 protocol OfflineConcertRepositoryProtocol {
     func fetchConcerts() -> [Concert]
     func fetchConcertsWithArtist(_ id: UUID) -> [Concert]
@@ -18,6 +19,7 @@ protocol OfflineConcertRepositoryProtocol {
     func updateConcert(_ concertId: NSManagedObjectID, with dto: ConcertUpdate) async throws
     func deleteConcert(_ concertId: NSManagedObjectID) throws
     func presaveArtist(_ newArtist: ArtistDTO) throws -> Artist
+    func fetchOrCreateArtist(from dto: ArtistDTO, context: NSManagedObjectContext) async -> Artist
     func sync() async throws
 }
 
@@ -98,6 +100,7 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
         concert.id = dto.id
         concert.title = dto.title
         concert.date = dto.date
+        concert.openingTime = dto.openingTime
         concert.notes = dto.notes
         concert.rating = Int16(dto.rating ?? 0)
         concert.city = dto.city
@@ -295,7 +298,7 @@ class OfflineConcertRepository: OfflineConcertRepositoryProtocol {
 
     // MARK: - Helpers
 
-    private func fetchOrCreateArtist(
+    func fetchOrCreateArtist(
         from dto: ArtistDTO,
         context: NSManagedObjectContext
     ) async -> Artist {

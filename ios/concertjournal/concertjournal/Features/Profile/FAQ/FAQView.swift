@@ -29,7 +29,8 @@ struct FAQView: View {
                 switch viewModel.faqLoadingState {
                 case .loading:
                     VStack(spacing: 12) {
-                        ProgressView()
+                        FlowerLoading()
+                            .frame(width: 40, height: 40)
                         Text(TextKey.stateLoading.localized)
                             .font(.cjBody)
                             .foregroundStyle(.secondary)

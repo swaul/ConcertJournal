@@ -128,7 +128,8 @@ private struct EditProfileContent: View {
             ZStack {
                 if case .loading = viewModel.state {
                     HStack(spacing: 10) {
-                        ProgressView().tint(.white)
+                        FlowerLoading()
+                            .frame(width: 40, height: 40)
                         Text("Speichern…").font(.cjTitle2)
                     }
                     .frame(maxWidth: .infinity)
@@ -215,7 +216,8 @@ private struct AvatarPickerSection: View {
                         }
                         .overlay {
                             if viewModel.isUploadingAvatar {
-                                ProgressView()
+                                FlowerLoading()
+                                .frame(width: 40, height: 40)
                             } else {
                                 VStack(spacing: 6) {
                                     Image(systemName: "person.fill")

@@ -51,11 +51,6 @@ class ToursViewModel {
         }
     }
 
-    func updateTour(_ tour: Tour, name: String, startDate: Date, endDate: Date, description: String? = nil) {
-        tourRepository.updateTour(tour, name: name, startDate: startDate, endDate: endDate, description: description)
-        loadTours()
-    }
-
     func deleteTour(_ tour: Tour) {
         do {
             try tourRepository.deleteTour(tour)

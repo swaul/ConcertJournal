@@ -20,6 +20,7 @@ struct AccountSettingsView: View {
             LoadingView()
                 .task {
                     viewModel = AccountSettingsViewModel(
+                        dependencyContainer: dependencies,
                         supabaseClient: dependencies.supabaseClient,
                         userProvider: dependencies.userSessionManager,
                         photoRepository: dependencies.photoRepository
@@ -162,7 +163,8 @@ private struct AccountSettingsContent: View {
                                 ZStack {
                                     if case .loading = viewModel.state {
                                         HStack(spacing: 10) {
-                                            ProgressView().tint(.white)
+                                            FlowerLoading()
+                                                .frame(width: 40, height: 40)
                                             Text("Aktualisieren…").font(.cjTitle2)
                                         }
                                         .frame(maxWidth: .infinity)
@@ -324,8 +326,8 @@ private struct AccountSettingsContent: View {
                     }
                 } label: {
                     if loading {
-                        ProgressView()
-                            .tint(.white)
+                        FlowerLoading()
+                            .frame(width: 40, height: 40)
                     } else {
                         Text(TextKey.deleteAccountDeleteAccountPermanent.localized)
                             .font(.cjHeadline)

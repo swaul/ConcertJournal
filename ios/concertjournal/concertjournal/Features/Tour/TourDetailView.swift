@@ -9,7 +9,7 @@ import SwiftUI
 
 struct TourDetailView: View {
     @Environment(\.dependencies) private var dependencies
-    let tour: Tour
+    @State var tour: Tour
     @State private var showEditTour = false
     @State private var showAddConcert = false
 
@@ -82,9 +82,12 @@ struct TourDetailView: View {
                     Image(systemName: "pencil.circle.fill")
                 }
             }
-            //        .sheet(isPresented: $showEditTour) {
-            //            EditTourView(tour: tour)
-            //        }
+            .sheet(isPresented: $showEditTour) {
+                EditTourView(tour: tour) { tour in
+                    showEditTour = false
+                    self.tour = tour
+                }
+            }
             //        .sheet(isPresented: $showAddConcert) {
             //            AddConcertToTourView(tour: tour)
             //        }

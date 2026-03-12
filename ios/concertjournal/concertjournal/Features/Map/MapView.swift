@@ -41,6 +41,7 @@ struct MapView: View {
                 guard viewModel == nil else {
                     return
                 }
+                _ = try? await Task.sleep(for: .seconds(2))
                 viewModel = MapViewModel()
             }
         }

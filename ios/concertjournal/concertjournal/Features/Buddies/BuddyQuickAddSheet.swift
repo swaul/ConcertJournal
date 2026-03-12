@@ -34,7 +34,8 @@ struct BuddyQuickAddSheet: View {
                 
                 switch state {
                 case .loading:
-                    ProgressView()
+                    FlowerLoading()
+
                     Text(TextKey.searchUser.localized)
                         .font(.cjBody).foregroundStyle(.secondary)
                     
