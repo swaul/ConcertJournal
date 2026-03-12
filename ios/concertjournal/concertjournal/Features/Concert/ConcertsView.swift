@@ -115,10 +115,17 @@ struct ConcertsView: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
                 }
             }
-            .onReceive(NotificationCenter.default.publisher(for: .syncInProgress)) { notification in
-                guard let isSyncingWithServer = notification.object as? Bool else { return }
+            .onReceive(
+                Publishers.CombineLatest(
+                    NotificationCenter.default.publisher(for: .syncInProgress)
+                        .map { $0.object as? Bool ?? false },
+                    NotificationCenter.default.publisher(for: .tourSyncInProgress)
+                        .map { $0.object as? Bool ?? false }
+                )
+                .map { concert, tour in concert || tour }
+            ) { isSyncing in
                 withAnimation(.bouncy) {
-                    self.isSyncingWithServer = isSyncingWithServer
+                    self.isSyncingWithServer = isSyncing
                 }
             }
             .adaptiveSheet(isPresented: $chooseCreateFlowPresenting) {

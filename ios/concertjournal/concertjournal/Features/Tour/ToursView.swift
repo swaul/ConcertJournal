@@ -13,6 +13,7 @@ struct ToursView: View {
     @State private var viewModel: ToursViewModel?
     @State private var selectedTab: TourTab = .upcoming
     @State private var showCreateTour = false
+    @State private var showTourDetail: Tour? = nil
     
     enum TourTab {
         case upcoming, ongoing, past, all
@@ -36,10 +37,11 @@ struct ToursView: View {
                     VStack(spacing: 12) {
                         if !filteredTours.isEmpty {
                             ForEach(filteredTours, id: \.id) { tour in
-                                TourCard(tour: tour)
-                                    .onTapGesture {
-                                        // Navigation zu Tour-Detail
-                                    }
+                                Button {
+                                    showTourDetail = tour
+                                } label: {
+                                    TourCard(tour: tour)
+                                }
                             }
                         } else {
                             Text("Keine Tours!")
@@ -52,6 +54,9 @@ struct ToursView: View {
                     CreateTourView {
                         viewModel.loadTours()
                     }
+                }
+                .sheet(item: $showTourDetail) { tour in
+                    TourDetailView(tour: tour)
                 }
             } else {
                 LoadingView()
@@ -148,12 +153,7 @@ struct TourCard: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-        )
+        .rectangleGlass()
     }
 }
 

@@ -231,7 +231,7 @@ struct CreateTourView: View {
                                 .lineLimit(3...5)
                                 .font(.cjBody)
                                 .padding()
-                                .glassEffect()
+                                .rectangleGlass()
                                 .disabled(viewModel.isLoading)
                             
                             Text("Künstler")
@@ -245,8 +245,10 @@ struct CreateTourView: View {
                                     .frame(width: 40, height: 40)
                                 } else if let selectedArtist {
                                     Text(selectedArtist.name)
+                                        .font(.cjTitleF)
                                 } else {
                                     Text("Künstler wählen")
+                                        .font(.cjHeadline)
                                 }
                             }
                             .padding()
@@ -284,7 +286,7 @@ struct CreateTourView: View {
             }
             .task {
                 guard viewModel == nil else { return }
-                viewModel = CreateTourViewModel(tourRepository: dependencies.offlineTourRepository, tourSyncManager: dependencies.tourSyncManager)
+                viewModel = CreateTourViewModel(supabaseClient: dependencies.supabaseClient, tourRepository: dependencies.offlineTourRepository, tourSyncManager: dependencies.tourSyncManager)
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -302,11 +304,13 @@ struct CreateTourView: View {
 @Observable
 class CreateTourViewModel {
     
+    let supabaseClient: SupabaseClientManagerProtocol
     let tourRepository: OfflineTourRepositoryProtocol
-    let tourSyncManager: TourSyncManagerProtocol
+    let tourSyncManager: TourSyncManager
     var isLoading: Bool = false
     
-    init(tourRepository: OfflineTourRepositoryProtocol, tourSyncManager: TourSyncManagerProtocol) {
+    init(supabaseClient: SupabaseClientManagerProtocol, tourRepository: OfflineTourRepositoryProtocol, tourSyncManager: TourSyncManager) {
+        self.supabaseClient = supabaseClient
         self.tourRepository = tourRepository
         self.tourSyncManager = tourSyncManager
     }
@@ -316,13 +320,9 @@ class CreateTourViewModel {
         async let createTask = tourRepository.createTour(name: name, startDate: startDate, endDate: endDate, artist: artist, description: description)
         async let minWaitTask: Void = Task.sleep(for: .seconds(2))
         
-        do {
-            let (tour, _) = try await (createTask, minWaitTask)
-            _ = try await tourSyncManager.createTour(tour)
-            isLoading = false
-        } catch {
-            logError("Creating Tour Failed", error: error)
-        }
+        _ = try? await (createTask, minWaitTask)
+            
+        isLoading = false
     }
     
 }
