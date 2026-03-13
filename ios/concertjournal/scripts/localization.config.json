@@ -1,9 +1,9 @@
 {
-  "sourceLocale": "de-DE",
+  "sourceLocale": "de",
   "localesDir": "../concertjournal",
   "outputSwiftFile": "../concertjournal/Localization/TextKey.swift",
   "targetLocales": [
-    "en-US"
+    "en"
   ],
   "enumName": "TextKey",
   "swiftImports": ["Foundation"],
