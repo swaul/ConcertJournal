@@ -277,7 +277,8 @@ struct ShouldAddMoreInfoView: View {
                 Button {
                     dismiss()
                 } label: {
-                    Text("Fertig")
+                    Text(TextKey.ok.localized)
+                        .font(.cjBody)
                 }
                 .buttonStyle(.glass)
             }
