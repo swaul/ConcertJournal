@@ -38,7 +38,7 @@ struct CreateConcertSelectVenueView: View {
                 Color.background
                     .ignoresSafeArea()
             }
-            .navigationTitle("Venue auswählen")
+            .navigationTitle(TextKey.createvenueTitle.localized)
             .task {
                 guard viewModel == nil else { return }
                 viewModel = VenueSearchViewModel(offlineConcertRepository: dependencies.offlineConcertRepository)
@@ -53,7 +53,7 @@ struct CreateConcertSelectVenueView: View {
         ScrollView {
             VStack(alignment: .leading) {
                 if isSearchingAnimated {
-                    SearchingView(searchContent: "Venue")
+                    SearchingView(searchContent: TextKey.createvenueSearchVenue.localized)
                 } else if let errorMessage = viewModel.errorMessage {
                     Text(errorMessage)
                         .font(.cjBody)
@@ -114,7 +114,7 @@ struct CreateConcertSelectVenueView: View {
                             }
                         }
                     } label: {
-                        Text(TextKey.save.localized)
+                        Text(TextKey.genericSave.localized)
                             .font(.cjBody)
                     }
                 }
@@ -125,7 +125,7 @@ struct CreateConcertSelectVenueView: View {
     @ViewBuilder
     private func searchField(query: Binding<String>) -> some View {
         HStack {
-            TextField("Venue oder Ort", text: query)
+            TextField(TextKey.createvenueSearchField.localized, text: query)
                 .autocorrectionDisabled()
                 .focused($searchFeildFocused)
                 .font(.cjBody)
@@ -137,7 +137,7 @@ struct CreateConcertSelectVenueView: View {
                     HapticManager.shared.buttonTap()
                     searchFeildFocused = false
                 } label: {
-                    Text(TextKey.done.localized)
+                    Text(TextKey.genericDone.localized)
                         .font(.cjBody)
                 }
                 .buttonStyle(.glass)
@@ -164,7 +164,7 @@ struct VenueRow: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10))
             VStack(alignment: .leading, spacing: 4) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(venue.name ?? "Unbekannte Venue")
+                    Text(venue.name ?? TextKey.createvenueUnknownVenue.localized)
                         .font(.cjHeadline)
                         .foregroundStyle(Color.text)
                         .multilineTextAlignment(.leading)

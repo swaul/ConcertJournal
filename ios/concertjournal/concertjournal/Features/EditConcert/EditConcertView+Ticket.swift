@@ -37,15 +37,15 @@ extension ConcertEditView {
                         Grid {
                             GridRow {
                                 if ticket.seatBlock != nil {
-                                    Text(TextKey.block.localized)
+                                    Text(TextKey.editconcertTicketSeatedBlock.localized)
                                         .font(.cjHeadline)
                                 }
                                 if ticket.seatRow != nil {
-                                    Text(TextKey.row.localized)
+                                    Text(TextKey.editconcertTicketSeatedRow.localized)
                                         .font(.cjHeadline)
                                 }
                                 if ticket.seatNumber != nil {
-                                    Text(TextKey.seat.localized)
+                                    Text(TextKey.editconcertTicketSeatedSeat.localized)
                                         .font(.cjHeadline)
                                 }
                             }
@@ -79,7 +79,7 @@ extension ConcertEditView {
 
                     if let ticketPrice = concert.ticket?.ticketPrice {
                         HStack {
-                            Text(TextKey.priceColon.localized)
+                            Text(TextKey.editconcertTicketPrice.localized)
                                 .font(.cjHeadline)
 
                             Text(ticketPrice.formatted)
@@ -89,7 +89,7 @@ extension ConcertEditView {
                         .padding(.horizontal)
                         .contentShape(Rectangle())
                         .contextMenu {
-                            Toggle("Preise ausblenden", isOn: $hidePrices)
+                            Toggle(hidePrices ? TextKey.concertdetailContextShowPrices.localized : TextKey.concertdetailContextHidePrices.localized, isOn: $hidePrices)
                         }
                     }
                 }
@@ -100,7 +100,7 @@ extension ConcertEditView {
                 Button {
                     presentTicketEdit = true
                 } label: {
-                    Text("Ticket bearbeiten")
+                    Text(TextKey.editconcertEditTicket.localized)
                         .font(.cjBody)
                 }
                 .padding()
@@ -109,7 +109,7 @@ extension ConcertEditView {
                 Button {
                     presentTicketEdit = true
                 } label: {
-                    Text(TextKey.addTicket.localized)
+                    Text(TextKey.editconcertAddTicket.localized)
                         .font(.cjBody)
                 }
                 .padding()

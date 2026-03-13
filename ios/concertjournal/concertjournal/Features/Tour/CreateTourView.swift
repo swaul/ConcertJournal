@@ -56,7 +56,7 @@ struct SelectTourView: View {
                 guard viewModel == nil else { return }
                 viewModel = SelectTourViewModel(tourRepository: dependencies.offlineTourRepository)
             }
-            .navigationTitle("Tour Auswählen")
+            .navigationTitle(TextKey.selecttourTitle.localized)
             .navigationBarTitleDisplayMode(.inline)
         }
     }
@@ -73,13 +73,6 @@ struct SelectTourView: View {
                     } label: {
                         makeTourView(tour: tour)
                     }
-                    .contextMenu {
-                        Button {
-                            viewModel.deleteTour(tour: tour)
-                        } label: {
-                            Text("Tour löschen")
-                        }
-                    }
                 }
             }
             .padding()
@@ -89,7 +82,7 @@ struct SelectTourView: View {
             Button {
                 createTourPresenting = true
             } label: {
-                Label("Neue Tour erstellen", systemImage: "plus.circle")
+                Label(TextKey.selecttourCreateTour.localized, systemImage: "plus.circle")
                     .font(.cjBody)
                     .frame(maxWidth: .infinity)
             }
@@ -206,35 +199,35 @@ struct CreateTourView: View {
                 if let viewModel {
                     ScrollView {
                         VStack(alignment: .leading) {
-                            Text("Tour Informationen")
+                            Text(TextKey.createtourSectionInfo.localized)
                                 .font(.cjHeadline)
                             
-                            TextField("Tour Name", text: $tourName)
+                            TextField(TextKey.createtourName.localized, text: $tourName)
                                 .font(.cjBody)
                                 .padding()
                                 .glassEffect()
                                 .disabled(viewModel.isLoading)
                             
-                            DatePicker("Startdatum", selection: $startDate, displayedComponents: .date)
+                            DatePicker(TextKey.createtourStartDate.localized, selection: $startDate, displayedComponents: .date)
                                 .font(.cjBody)
                                 .padding()
                                 .glassEffect()
                                 .disabled(viewModel.isLoading)
                             
-                            DatePicker("Enddatum", selection: $endDate, displayedComponents: .date)
+                            DatePicker(TextKey.createtourEndDate.localized, selection: $endDate, displayedComponents: .date)
                                 .font(.cjBody)
                                 .padding()
                                 .glassEffect()
                                 .disabled(viewModel.isLoading)
                             
-                            TextField("Beschreibung (optional)", text: $tourDescription, axis: .vertical)
+                            TextField(TextKey.createtourDesc.localized, text: $tourDescription, axis: .vertical)
                                 .lineLimit(3...5)
                                 .font(.cjBody)
                                 .padding()
                                 .rectangleGlass()
                                 .disabled(viewModel.isLoading)
                             
-                            Text("Künstler")
+                            Text(TextKey.createtourSectionArtist.localized)
                                 .font(.cjBody)
                             
                             Button {
@@ -247,7 +240,7 @@ struct CreateTourView: View {
                                     Text(selectedArtist.name)
                                         .font(.cjTitleF)
                                 } else {
-                                    Text("Künstler wählen")
+                                    Text(TextKey.createtourSelectArtist.localized)
                                         .font(.cjHeadline)
                                 }
                             }
@@ -259,7 +252,7 @@ struct CreateTourView: View {
                     }
                     .toolbar {
                         ToolbarItem(placement: .confirmationAction) {
-                            Button("Erstellen") {
+                            Button(TextKey.createtourCreate.localized) {
                                 guard let selectedArtist else { return }
                                 Task {
                                     await viewModel.createTour(
@@ -295,7 +288,7 @@ struct CreateTourView: View {
                     }
                 }
             }
-            .navigationTitle("Neue Tour")
+            .navigationTitle(TextKey.createtourTitle.localized)
             .navigationBarTitleDisplayMode(.inline)
         }
     }

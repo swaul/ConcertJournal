@@ -44,12 +44,12 @@ struct NotificationPermissionView: View {
                 }
 
                 // Title
-                Text("Benachrichtigungen")
+                Text(TextKey.onboardingPermissionsNotificationsTitle.localized)
                     .font(.custom("PlayfairDisplay-Bold", size: 32))
                     .multilineTextAlignment(.center)
 
                 // Description
-                Text("Erhalte Benachrichtigungen, wenn andere Nutzer sich als freund hinzufügen, oder in einem Konzert markieren.")
+                Text(TextKey.onboardingPermissionsNotificationsDesc.localized)
                     .font(.cjBody)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
@@ -80,10 +80,10 @@ struct NotificationPermissionView: View {
                             if isRequesting {
                                 FlowerLoading()
                                     .frame(width: 40, height: 40)
-                                Text(TextKey.queryRunning.localized)
+                                Text(TextKey.onboardingPermissionQueryRunning.localized)
                                     .font(.cjTitle2)
                             } else {
-                                Text(TextKey.nextStepExclamation.localized)
+                                Text(TextKey.onboardingPermissionNext.localized)
                                     .font(.cjTitle2)
                             }
                         }
@@ -100,7 +100,7 @@ struct NotificationPermissionView: View {
                             UIApplication.shared.open(url)
                         }
                     } label: {
-                        Text(TextKey.openSettings.localized)
+                        Text(TextKey.onboardingOpenSettings.localized)
                             .font(.cjTitle)
                             .frame(maxWidth: .infinity)
                     }
@@ -111,7 +111,7 @@ struct NotificationPermissionView: View {
                         HapticManager.shared.buttonTap()
                         manager.getNextStep()
                     } label: {
-                        Text("Das passt so")
+                        Text(TextKey.onboardingPermissionFine.localized)
                             .font(.cjFootnote)
                             .underline()
                     }

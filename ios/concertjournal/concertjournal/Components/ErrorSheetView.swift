@@ -48,7 +48,7 @@ struct ErrorSheetView: View {
                 Button {
                     isPresented = false
                 } label: {
-                    Text(TextKey.understood.localized)
+                    Text(TextKey.genericUnderstood.localized)
                         .font(.cjHeadline)
                         .padding()
                 }

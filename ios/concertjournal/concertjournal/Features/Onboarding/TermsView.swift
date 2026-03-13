@@ -45,12 +45,12 @@ struct TermsView: View {
                 }
                 
                 // Title
-                Text("Erstmal das rechtliche..")
+                Text(TextKey.onboardingPermissionsLegalTitle.localized)
                     .font(.custom("PlayfairDisplay-Bold", size: 32))
                     .multilineTextAlignment(.center)
                 
                 // Description
-                Text("Bitte ließ dir die AGB und Datenschutzbestimmungen durch und akzeptiere sie.")
+                Text(TextKey.onboardingPermissionsLegalDesc.localized)
                     .font(.cjBody)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
@@ -60,11 +60,13 @@ struct TermsView: View {
                 
                 HStack {
                     Image(systemName: "arrow.down")
-                    Text("Lesen")
-                    
+                    Text(TextKey.onboardingPermissionsLegalRead.localized)
+                        .font(.cjBody)
+
                     Spacer()
                     
-                    Text("Akzeptieren")
+                    Text(TextKey.onboardingPermissionsLegalAccept.localized)
+                        .font(.cjBody)
                     Image(systemName: "arrow.down")
                 }
                 .padding(.horizontal, 40)
@@ -75,7 +77,7 @@ struct TermsView: View {
                     Button {
                         showPrivacySheet = true
                     } label: {
-                        Text("Datenschutz")
+                        Text(TextKey.onboardingPermissionsLegalPrivacy.localized)
                             .font(.cjBody)
                             .underline()
                     }
@@ -93,7 +95,7 @@ struct TermsView: View {
                     Button {
                         showTermsSheet = true
                     } label: {
-                        Text("AGB")
+                        Text(TextKey.onboardingPermissionsLegalTerms.localized)
                             .font(.cjBody)
                             .underline()
                     }
@@ -114,7 +116,7 @@ struct TermsView: View {
                     if manager.isLoadingVersions {
                         FlowerLoading()
                     } else {
-                        Text(TextKey.nextStepExclamation.localized)
+                        Text(TextKey.onboardingPermissionNext.localized)
                             .font(.cjTitle2)
                     }
                 }

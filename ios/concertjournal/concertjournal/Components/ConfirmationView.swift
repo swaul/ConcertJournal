@@ -71,7 +71,7 @@ struct ConfirmationView: View {
                         isPresented = false
                     }
                 } label: {
-                    Text(TextKey.understood.localized)
+                    Text(TextKey.genericUnderstood.localized)
                         .font(.cjHeadline)
                         .padding()
                 }

@@ -115,7 +115,7 @@ final class AuthViewModel {
 
         } catch {
             logError("Spotify OAuth failed", error: error, category: .auth)
-            errorMessage = "Failed to connect Spotify: \(error.localizedDescription)"
+            errorMessage = TextKey.authenticationSpotifyLoginFailed.localized
         }
     }
 
@@ -146,6 +146,7 @@ final class AuthViewModel {
 
             self.isLoading = false
         } catch {
+            self.errorMessage = TextKey.authenticationAppleLoginFailed.localized
             self.errorMessage = error.localizedDescription
             self.isLoading = false
         }
@@ -241,7 +242,7 @@ struct CreatePlaylistButton: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(height: 32)
 
-                Text("Create Playlist")
+                Text(TextKey.spotifyplaylistCreate.localized)
                     .font(.cjBody)
                     .foregroundStyle(Color.white)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -252,12 +253,12 @@ struct CreatePlaylistButton: View {
         .background { Color.black }
         .clipShape(RoundedRectangle(cornerRadius: 20))
         .disabled(viewModel.isLoading)
-        .alert("Playlist Created", isPresented: $showingSuccess) {
-            Button("OK") { }
+        .alert(TextKey.spotifyplaylistCreated.localized, isPresented: $showingSuccess) {
+            Button(TextKey.genericOk.localized) { }
 
             if let url = viewModel.createdPlaylistURL,
                let spotifyURL = URL(string: url) {
-                Button("Open in Spotify") {
+                Button(TextKey.spotifyplaylistOpen.localized) {
                     UIApplication.shared.open(spotifyURL)
                 }
                 .font(.cjBody)
@@ -286,13 +287,13 @@ struct SpotifyPlaylistPicker: View {
             VStack {
                 Group {
                     if viewModel.isLoading {
-                        ProgressView(TextKey.loadingPlaylists.localized)
+                        ProgressView(TextKey.spotifyplaylistLoading.localized)
                             .font(.cjBody)
                     } else if viewModel.playlists.isEmpty {
                         ContentUnavailableView(
-                            TextKey.noPlaylists.localized,
+                            TextKey.spotifyplaylistNoPlaylists.localized,
                             systemImage: "music.note.list",
-                            description: Text(TextKey.noPlaylistsDesc.localized)
+                            description: Text(TextKey.spotifyplaylistNoPlaylistsDesc.localized)
                         )
                         .font(.cjBody)
                     } else {
@@ -312,7 +313,7 @@ struct SpotifyPlaylistPicker: View {
 
                 if !viewModel.isLoading {
                     HStack {
-                        TextField("Playlist suchen", text: $searchText)
+                        TextField(TextKey.spotifyplaylistSearchPlaylists.localized, text: $searchText)
                             .focused($searchFieldFocused)
                             .submitLabel(.search)
                             .font(.cjBody)
@@ -328,7 +329,7 @@ struct SpotifyPlaylistPicker: View {
                                 )
                             }
                         } label: {
-                            Text(TextKey.search.localized)
+                            Text(TextKey.genericSearch.localized)
                                 .font(.cjBody)
                         }
                         .buttonStyle(.glassProminent)
@@ -336,11 +337,11 @@ struct SpotifyPlaylistPicker: View {
                     .padding()
                 }
             }
-            .navigationTitle("Import aus Spotify")
+            .navigationTitle(TextKey.spotifyplaylistTitle.localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Abbrechen") { dismiss() }
+                    Button(TextKey.genericCancel.localized) { dismiss() }
                         .font(.cjBody)
                 }
             }
@@ -349,8 +350,8 @@ struct SpotifyPlaylistPicker: View {
                     spotifyRepository: dependencies.spotifyRepository
                 )
             }
-            .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
-                Button("OK") { viewModel.errorMessage = nil }
+            .alert(TextKey.genericError.localized, isPresented: .constant(viewModel.errorMessage != nil)) {
+                Button(TextKey.genericOk.localized) { viewModel.errorMessage = nil }
                     .font(.cjBody)
             } message: {
                 if let error = viewModel.errorMessage {

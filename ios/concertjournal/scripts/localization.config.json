@@ -7,7 +7,7 @@
   ],
   "enumName": "TextKey",
   "swiftImports": ["Foundation"],
-  "stripPrefixInCaseNames": true,
+  "stripPrefixInCaseNames": false,
   "commentSections": {
     "app":           "App General",
     "action":        "Actions",

@@ -31,7 +31,7 @@ struct FAQView: View {
                     VStack(spacing: 12) {
                         FlowerLoading()
                             .frame(width: 40, height: 40)
-                        Text(TextKey.stateLoading.localized)
+                        Text(TextKey.profileFaq.localized)
                             .font(.cjBody)
                             .foregroundStyle(.secondary)
                     }
@@ -57,7 +57,7 @@ struct FAQView: View {
                             HapticManager.shared.buttonTap()
                             viewModel.refresh()
                         } label: {
-                            Text(TextKey.reload.localized)
+                            Text(TextKey.genericReload.localized)
                                 .font(.cjBody)
                         }
                         .buttonStyle(.borderedProminent)
@@ -69,7 +69,7 @@ struct FAQView: View {
                 LoadingView()
             }
         }
-        .navigationTitle("FAQ")
+        .navigationTitle(TextKey.profileFaqTitle.localized)
         .task {
             guard viewModel == nil else { return }
             viewModel = FAQViewModel(faqRepository: dependencies.faqRepository)

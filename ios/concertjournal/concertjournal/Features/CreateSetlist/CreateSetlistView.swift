@@ -41,13 +41,13 @@ struct CreateSetlistView: View {
                             HapticManager.shared.navigationTap()
                             path.append(NavigationRoute.orderSetlist(viewModel))
                         } label: {
-                            Text(TextKey.sortColon.localized)
+                            Text(TextKey.createsetlistToolbarSort.localized)
                                 .font(.cjBody)
                         }
                     }
                 }
             }
-            .navigationTitle("Songs auswählen")
+            .navigationTitle(TextKey.createsetlistTitle.localized)
             .navigationDestination(for: NavigationRoute.self) { route in
                 switch route {
                 case .orderSetlist(let viewModel):
@@ -65,7 +65,7 @@ struct CreateSetlistView: View {
     @ViewBuilder
     func viewWithViewModel(viewModel: CreateSetlistViewModel) -> some View {
         VStack {
-            CJDivider(title: "Suche nach Songs", image: Image(systemName: "magnifyingglass"))
+            CJDivider(title: TextKey.createsetlistSearchSongs.localized, image: Image(systemName: "magnifyingglass"))
                 .padding(.horizontal)
 
             ScrollView {
@@ -117,7 +117,7 @@ struct CreateSetlistView: View {
         if showTextField {
             HStack {
                 TextField(text: $songName) {
-                    Text("Select a Song")
+                    Text(TextKey.createsetlistSearchField.localized)
                         .font(.cjBody)
                 }
                 .matchedGeometryEffect(id: "searchTextField", in: searchTextFieldNamespace)
@@ -151,7 +151,7 @@ struct CreateSetlistView: View {
                             showTextField = false
                         }
                     } label: {
-                        Text("Search")
+                        Text(TextKey.genericSearch.localized)
                             .font(.cjBody)
                     }
                     .buttonStyle(.glass)

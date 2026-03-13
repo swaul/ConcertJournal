@@ -84,22 +84,22 @@ struct ConcertEditView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 20) {
                     
-                    editSection(title: "Title:") {
-                        TextField(TextKey.fieldTitle.localized, text: $title)
+                    editSection(title: TextKey.editconcertConcertTitle.localized) {
+                        TextField(TextKey.editconcertConcertTitle.localized, text: $title)
                             .padding()
                             .glassEffect()
                     }
                     
-                    editSection(title: "Zeiten") {
+                    editSection(title: TextKey.editconcertSectionTimes.localized) {
                         VStack {
-                            DatePicker(TextKey.date.localized, selection: $date, displayedComponents: .date)
-                            DatePicker(TextKey.admission.localized, selection: $openingTime, displayedComponents: .hourAndMinute)
+                            DatePicker(TextKey.editconcertDate.localized, selection: $date, displayedComponents: .date)
+                            DatePicker(TextKey.editconcertAdmission.localized, selection: $openingTime, displayedComponents: .hourAndMinute)
                         }
                         .padding(8)
                         .rectangleGlass()
                     }
 
-                    editSection(title: "Tour") {
+                    editSection(title: TextKey.editconcertSectionTour.localized) {
                         VStack(alignment: .leading) {
                             if let tour {
                                 Text(tour.name)
@@ -112,7 +112,7 @@ struct ConcertEditView: View {
                                     HapticManager.shared.buttonTap()
                                     selectTourPresenting = true
                                 } label: {
-                                    Text("Tour ändern")
+                                    Text(TextKey.editconcertEditTour.localized)
                                         .font(.cjBody)
                                 }
                                 .padding()
@@ -122,7 +122,7 @@ struct ConcertEditView: View {
                                     HapticManager.shared.buttonTap()
                                     selectTourPresenting = true
                                 } label: {
-                                    Text("Konzert zu Tour hinzufügen")
+                                    Text(TextKey.editconcertAddTour.localized)
                                         .font(.cjBody)
                                 }
                                 .padding()
@@ -131,15 +131,15 @@ struct ConcertEditView: View {
                         }
                     }
 
-                    editSection(title: TextKey.supportActs.localized) {
+                    editSection(title: TextKey.editconcertSectionSupportActs.localized) {
                         supportActsSection()
                     }
 
-                    editSection(title: "Buddies") {
+                    editSection(title: TextKey.editconcertSectionBuddies.localized) {
                         buddiesSection()
                     }
 
-                    editSection(title: TextKey.sectionLocation.localized) {
+                    editSection(title: TextKey.editconcertSectionLocation.localized) {
                         VStack(alignment: .leading) {
                             if !venueName.isEmpty {
                                 Text(venueName)
@@ -155,7 +155,7 @@ struct ConcertEditView: View {
                                 HapticManager.shared.buttonTap()
                                 selectVenuePresenting = true
                             } label: {
-                                Text(TextKey.venueOptional.localized)
+                                Text(TextKey.editconcertAddVenue.localized)
                                     .font(.cjBody)
                             }
                             .padding()
@@ -163,28 +163,28 @@ struct ConcertEditView: View {
                         }
                     }
 
-                    editSection(title: TextKey.notes.localized) {
+                    editSection(title: TextKey.editconcertSectionNotes.localized) {
                         TextEditor(text: $notes)
                             .frame(minHeight: 120)
                             .font(.cjBody)
                     }
 
-                    editSection(title: TextKey.travelInfo.localized) {
+                    editSection(title: TextKey.editconcertSectionTravel.localized) {
                         travelSection()
                     }
 
-                    editSection(title: TextKey.ticketInfo.localized) {
+                    editSection(title: TextKey.editconcertSectionTicket.localized) {
                         ticketSection()
                     }
 
-                    editSection(title: TextKey.setlist.localized) {
+                    editSection(title: TextKey.editconcertSectionSetlist.localized) {
                         setlistSection
                     }
 
-                    editSection(title: TextKey.review.localized) {
+                    editSection(title: TextKey.editconcertSectionRating.localized) {
                         Stepper(value: $rating, in: 0...10) {
                             HStack {
-                                Text(TextKey.fieldRating.localized)
+                                Text(TextKey.editconcertRating.localized)
                                     .font(.cjBody)
                                 Spacer()
                                 Text("\(rating)")
@@ -195,14 +195,14 @@ struct ConcertEditView: View {
                         }
                     }
 
-                    editSection(title: "Fotos:") {
+                    editSection(title: TextKey.editconcertSectionPhotos.localized) {
                         photosSection()
                     }
                 }
                 .padding()
             }
             .scrollIndicators(.hidden)
-            .navigationTitle(TextKey.editConcert.localized)
+            .navigationTitle(TextKey.editconcertTitle.localized)
             .tint(dependencies.colorThemeManager.appTint)
             .background {
                 Color.background
@@ -214,7 +214,7 @@ struct ConcertEditView: View {
                         HapticManager.shared.buttonTap()
                         dismiss()
                     } label: {
-                        Text(TextKey.cancel.localized)
+                        Text(TextKey.genericCancel.localized)
                             .font(.cjBody)
                     }
                 }
@@ -224,7 +224,7 @@ struct ConcertEditView: View {
                         HapticManager.shared.buttonTap()
                         saveConcertUpdates()
                     } label: {
-                        Text(TextKey.save.localized)
+                        Text(TextKey.genericSave.localized)
                             .font(.cjBody)
                     }
                 }
@@ -242,7 +242,6 @@ struct ConcertEditView: View {
             }
             .sheet(item: $editSeltistPresenting) { item in
                 CreateSetlistView(viewModel: item) { items in
-                    print("saved \(items.count) items")
                     setlistItems = items
                     editSeltistPresenting = nil
                 }
@@ -303,7 +302,7 @@ struct ConcertEditView: View {
             Button {
                 addSupportActPresenting = true
             } label: {
-                Text(TextKey.addSupportAct.localized)
+                Text(TextKey.editconcertAddSupportActs.localized)
                     .font(.cjBody)
             }
             .padding()

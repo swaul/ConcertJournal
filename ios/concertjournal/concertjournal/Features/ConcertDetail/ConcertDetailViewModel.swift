@@ -89,15 +89,14 @@ class ConcertDetailViewModel {
         logInfo("Creating Spotify playlist from setlist", category: .viewModel)
 
         do {
-            // Build playlist name
-            let playlistName = "Setlist von \(concert.artist.name)"
-            let description = "Konzert im \(concert.venue?.name ?? "Unknown") am \(formatDate(concert.date.shortDateOnlyString))"
+            let playlistName = TextKey.concertdetailCreateSetlistName.localized(with: concert.artist.name)
+            let description = TextKey.concertdetailCreateSetlistDesc.localized(with: concert.venue?.name ?? "Unknown", formatDate(concert.date.shortDateOnlyString))
 
             let response: CreatedPlaylist = try await spotifyRepository.createPlaylist(name: playlistName, description: description, isPublic: true)
 
             logSuccess("Playlist created: \(response.name)", category: .viewModel)
             
-            successMessage = "Playlist created successfully!"
+            successMessage = TextKey.concertdetailCreatePlaylistSuccess.localized
             createdPlaylistURL = response.url
             
             if let url = URL(string: response.url), UIApplication.shared.canOpenURL(url) {
@@ -118,11 +117,11 @@ class ConcertDetailViewModel {
             switch bffError {
             case .serverError(let message):
                 if message.contains("No setlist items") {
-                    errorMessage = "This concert has no setlist to export"
+                    errorMessage = TextKey.concertdetailCreatePlaylistErrorEmpty.localized
                 } else if message.contains("No Spotify tracks") {
-                    errorMessage = "None of the songs have Spotify track IDs"
+                    errorMessage = TextKey.concertdetailCreatePlaylistErrorNoSpotifyIds.localized
                 } else {
-                    errorMessage = "Failed to sync with Spotify"
+                    errorMessage = TextKey.concertdetailCreatePlaylistErrorSpotify.localized
                 }
             case .invalidURL:
                 print("")
@@ -135,7 +134,7 @@ class ConcertDetailViewModel {
             }
         } else {
             HapticManager.shared.error()
-            errorMessage = "An error occurred: \(error.localizedDescription)"
+            errorMessage = TextKey.concertdetailCreatePlaylistErrorGeneric.localized
         }
     }
 

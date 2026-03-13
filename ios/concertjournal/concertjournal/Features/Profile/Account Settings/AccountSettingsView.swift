@@ -61,11 +61,11 @@ private struct AccountSettingsContent: View {
                     
                     // ── Header ────────────────────────────────────────────
                     VStack(spacing: 12) {
-                        Text(TextKey.accountSettings.localized)
+                        Text(TextKey.profileAccountSettings.localized)
                             .font(.custom("PlayfairDisplay-Bold", size: 36))
                             .multilineTextAlignment(.center)
                         
-                        Text(TextKey.manageAccountDescription.localized)
+                        Text(TextKey.profileAccountManageAccountDesc.localized)
                             .font(.cjBody)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
@@ -75,11 +75,11 @@ private struct AccountSettingsContent: View {
                     
                     // ── Email Section ─────────────────────────────────────
                     VStack(alignment: .leading, spacing: 20) {
-                        sectionHeader(title: "Email", icon: "envelope.fill")
+                        sectionHeader(title: TextKey.profileAccountChangeEmail.localized, icon: "envelope.fill")
                         
                         // Current Email Display
                         VStack(alignment: .leading, spacing: 8) {
-                            Text(TextKey.currentEmail.localized)
+                            Text(TextKey.profileAccountCurrentEmail.localized)
                                 .font(.cjCaption)
                                 .foregroundStyle(.secondary)
                             
@@ -100,7 +100,7 @@ private struct AccountSettingsContent: View {
                         
                         // New Email Input
                         VStack(alignment: .leading, spacing: 8) {
-                            Text(TextKey.newEmail.localized)
+                            Text(TextKey.profileAccountNewEmail.localized)
                                 .font(.cjCaption)
                                 .foregroundStyle(.secondary)
                             
@@ -109,7 +109,7 @@ private struct AccountSettingsContent: View {
                                     .foregroundStyle(.secondary)
                                     .font(.system(size: 16))
                                 
-                                TextField("neue@email.com", text: $viewModel.newEmail)
+                                TextField(TextKey.profileAccountNewEmailPlaceholder.localized, text: $viewModel.newEmail)
                                     .font(.cjBody)
                                     .focused($emailFocused)
                                     .submitLabel(.done)
@@ -145,7 +145,7 @@ private struct AccountSettingsContent: View {
                                     Image(systemName: "exclamationmark.circle.fill")
                                         .font(.caption)
                                         .foregroundStyle(.red)
-                                    Text(TextKey.invalidEmail.localized)
+                                    Text(TextKey.profileAccountEmailInvalid.localized)
                                         .font(.cjFootnote)
                                         .foregroundStyle(.red)
                                 }
@@ -165,12 +165,12 @@ private struct AccountSettingsContent: View {
                                         HStack(spacing: 10) {
                                             FlowerLoading()
                                                 .frame(width: 40, height: 40)
-                                            Text("Aktualisieren…").font(.cjTitle2)
+                                            Text(TextKey.profileAccountEmailChangeLoading.localized).font(.cjTitle2)
                                         }
                                         .frame(maxWidth: .infinity)
                                     } else {
                                         HStack {
-                                            Text(TextKey.updateEmail.localized)
+                                            Text(TextKey.profileAccountChangeEmail.localized)
                                                 .font(.cjTitle2)
                                             Image(systemName: "checkmark")
                                         }
@@ -195,7 +195,7 @@ private struct AccountSettingsContent: View {
                     
                     // ── Danger Zone ────────────────────────────────────────
                     VStack(alignment: .leading, spacing: 20) {
-                        sectionHeader(title: TextKey.dangerZone.localized, icon: "exclamationmark.triangle.fill")
+                        sectionHeader(title: TextKey.profileAccountDangerZone.localized, icon: "exclamationmark.triangle.fill")
                         
                         VStack(spacing: 12) {
                             HStack(spacing: 16) {
@@ -210,11 +210,11 @@ private struct AccountSettingsContent: View {
                                 }
                                 
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text(TextKey.deleteAccount.localized)
+                                    Text(TextKey.profileAccountDeleteAccount.localized)
                                         .font(.cjHeadline)
                                         .foregroundStyle(.primary)
                                     
-                                    Text(TextKey.deleteAccountWarning.localized)
+                                    Text(TextKey.profileAccountDeleteAccountDesc.localized)
                                         .font(.cjFootnote)
                                         .foregroundStyle(.secondary)
                                 }
@@ -230,7 +230,7 @@ private struct AccountSettingsContent: View {
                             } label: {
                                 HStack {
                                     Image(systemName: "trash.fill")
-                                    Text(TextKey.deleteAccount.localized)
+                                    Text(TextKey.profileAccountDeleteAccountDelete.localized)
                                 }
                                 .font(.cjTitle2)
                                 .frame(maxWidth: .infinity)
@@ -296,11 +296,11 @@ private struct AccountSettingsContent: View {
                 .font(.system(size: 60))
                 .foregroundStyle(.red)
 
-            Text(TextKey.deleteAccountConfirm.localized)
+            Text(TextKey.profileAccountDeleteDialogTitle.localized)
                 .font(.cjTitle)
                 .multilineTextAlignment(.center)
 
-            Text(TextKey.deleteAccountExplanation.localized)
+            Text(TextKey.profileAccountDeleteDialogMessage.localized)
                 .font(.cjBody)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
@@ -329,7 +329,7 @@ private struct AccountSettingsContent: View {
                         FlowerLoading()
                             .frame(width: 40, height: 40)
                     } else {
-                        Text(TextKey.deleteAccountDeleteAccountPermanent.localized)
+                        Text(TextKey.profileAccountDeleteDialogConfirm.localized)
                             .font(.cjHeadline)
                     }
                 }
@@ -344,7 +344,7 @@ private struct AccountSettingsContent: View {
                     HapticManager.shared.impact(.light)
                     showDeleteConfirmation = false
                 } label: {
-                    Text(TextKey.cancel.localized)
+                    Text(TextKey.genericCancel.localized)
                         .font(.cjHeadline)
                 }
                 .buttonStyle(ModernButtonStyle(style: .glass, color: dependencies.colorThemeManager.appTint))

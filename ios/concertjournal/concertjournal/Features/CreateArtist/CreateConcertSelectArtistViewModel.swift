@@ -48,7 +48,7 @@ class CreateConcertSelectArtistViewModel {
                 try? await Task.sleep(for: .seconds(1))
                 isSearching = false
                 logError("Searching artist failed", error: error, category: .network)
-                errorMessage = "Suche fehlgeschlagen. Bitte versuche es später nochmal."
+                errorMessage = TextKey.createartistErrorGeneric.localized
             }
         }
     }

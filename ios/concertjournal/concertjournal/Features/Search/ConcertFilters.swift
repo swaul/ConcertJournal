@@ -10,16 +10,35 @@ import Foundation
 // MARK: - Filter Enums
 
 enum ConcertSortOption: String, CaseIterable, Identifiable {
-    case dateNewest = "Neueste zuerst"
-    case dateOldest = "Älteste zuerst"
-    case artistAZ = "Künstler A-Z"
-    case artistZA = "Künstler Z-A"
-    case ratingHighest = "Beste Bewertung"
-    case ratingLowest = "Schlechteste Bewertung"
-    case cityAZ = "Stadt A-Z"
+    case dateNewest
+    case dateOldest
+    case artistAZ
+    case artistZA
+    case ratingHighest
+    case ratingLowest
+    case cityAZ
 
     var id: String { rawValue }
 
+    var label: String {
+        switch self {
+        case .dateNewest:
+            TextKey.searchSortorderDateNewest.localized
+        case .dateOldest:
+            TextKey.searchSortorderDateOldest.localized
+        case .artistAZ:
+            TextKey.searchSortorderArtistAz.localized
+        case .artistZA:
+            TextKey.searchSortorderArtistZa.localized
+        case .ratingHighest:
+            TextKey.searchSortorderRatingHighest.localized
+        case .ratingLowest:
+            TextKey.searchSortorderRatingLowest.localized
+        case .cityAZ:
+            TextKey.searchSortorderCityAz.localized
+        }
+    }
+    
     var icon: String {
         switch self {
         case .dateNewest, .dateOldest:
@@ -35,17 +54,34 @@ enum ConcertSortOption: String, CaseIterable, Identifiable {
 }
 
 enum DateFilterOption: String, CaseIterable, Identifiable {
-    case all = "Alle"
-    case thisYear = "Dieses Jahr"
-    case lastYear = "Letztes Jahr"
-    case last3Months = "Letzte 3 Monate"
-    case last6Months = "Letzte 6 Monate"
-    case custom = "Benutzerdefiniert"
+    case all
+    case thisYear
+    case lastYear
+    case last3Months
+    case last6Months
+    case custom
 
     var id: String { rawValue }
 
     var icon: String {
         return "calendar"
+    }
+    
+    var label: String {
+        switch self {
+        case .all:
+            TextKey.searchFilterDateAll.localized
+        case .thisYear:
+            TextKey.searchFilterDateThisYear.localized
+        case .lastYear:
+            TextKey.searchFilterDateLastYear.localized
+        case .last3Months:
+            TextKey.searchFilterDateLast3Months.localized
+        case .last6Months:
+            TextKey.searchFilterDateLast6Months.localized
+        case .custom:
+            TextKey.searchFilterDateCustom.localized
+        }
     }
 
     func dateRange() -> (start: Date?, end: Date?) {
@@ -85,13 +121,13 @@ enum RatingFilterOption: Int, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .all:
-            return "Alle Bewertungen"
+            return TextKey.searchFilterRatingAll.localized
         case .tenStars:
-            return "10 Sterne"
+            return TextKey.searchFilterRating10.localized
         case .sevenPlus:
-            return "7+ Sterne"
+            return TextKey.searchFilterRating7Plus.localized
         case .fivePlus:
-            return "5+ Sterne"
+            return TextKey.searchFilterRating5Plus.localized
         }
     }
 
@@ -139,7 +175,7 @@ class ConcertFilters {
         // Sort option (always shown, not removable)
         chips.append(FilterChip(
             id: "sort",
-            title: sortOption.rawValue,
+            title: sortOption.label,
             icon: sortOption.icon,
             isRemovable: false,
             type: .sort
@@ -149,7 +185,7 @@ class ConcertFilters {
         if dateFilter != .all {
             let title = dateFilter == .custom
             ? customDateRangeString
-            : dateFilter.rawValue
+            : dateFilter.label
             chips.append(FilterChip(
                 id: "date",
                 title: title,
@@ -202,11 +238,11 @@ class ConcertFilters {
         if let start = customDateRange.start, let end = customDateRange.end {
             return "\(formatter.string(from: start)) - \(formatter.string(from: end))"
         } else if let start = customDateRange.start {
-            return "Ab \(formatter.string(from: start))"
+            return TextKey.searchFilterDateFrom.localized(with: formatter.string(from: start))
         } else if let end = customDateRange.end {
-            return "Bis \(formatter.string(from: end))"
+            return TextKey.searchFilterDateTo.localized(with: formatter.string(from: end))
         } else {
-            return "Datum wählen"
+            return TextKey.searchFilterDateChose.localized
         }
     }
 

@@ -27,11 +27,11 @@ struct QRScannerView: View {
                 scannerOverlay()
             }
         }
-        .navigationTitle("QR-Code scannen")
+        .navigationTitle(TextKey.qrscannerTitle.localized)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                Button("Abbrechen") { dismiss() }
+                Button(TextKey.genericCancel.localized) { dismiss() }
                     .font(.cjBody)
             }
         }
@@ -87,7 +87,7 @@ struct QRScannerView: View {
                 
                 // Hinweistext
                 VStack(spacing: 8) {
-                    Text(TextKey.scanHint.localized)
+                    Text(TextKey.qrscannerScanHint.localized)
                         .font(.cjBody)
                         .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
@@ -111,13 +111,13 @@ struct QRScannerView: View {
                 .font(.cjTitle2)
                 .fontWeight(.semibold)
             
-            Text(TextKey.accessDeniedDesc.localized)
+            Text(TextKey.cameraAccessDeniedDesc.localized)
                 .font(.cjBody)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
             
-            Button(TextKey.openSettings.localized) {
+            Button(TextKey.cameraOpenSettings.localized) {
                 if let url = URL(string: UIApplication.openSettingsURLString) {
                     UIApplication.shared.open(url)
                 }

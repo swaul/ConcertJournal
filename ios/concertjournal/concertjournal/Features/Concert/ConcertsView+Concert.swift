@@ -13,7 +13,7 @@ extension ConcertsView {
     func concertsGroupedSection(viewModel: ConcertsViewModel) -> some View {
         if !viewModel.allConcerts.isEmpty {
             VStack(alignment: .leading, spacing: 20) {
-                Text(TextKey.pastConcerts.localized)
+                Text(TextKey.homePastConcerts.localized)
                     .font(.cjTitle)
                     .padding(.horizontal, 20)
                     .padding(.top, 8)
@@ -51,7 +51,7 @@ extension ConcertsView {
                                         Text(artistGroup.artist.name)
                                             .font(.cjHeadline)
 
-                                        Text("\(artistGroup.concerts.count) Konzerte")
+                                        Text(TextKey.tourdetailConcertCount.localized(with: String(artistGroup.concerts.count)))
                                             .font(.cjCaption)
                                             .foregroundStyle(.secondary)
                                     }
@@ -202,7 +202,7 @@ struct TourGroupedConcerts: View {
             if !tourGroup.hasNoTour, isExpanded == true {
                 VStack(alignment: .leading, spacing: 12) {
                     if !tourGroup.futureConcerts.isEmpty {
-                        Text("Bevorstehende Konzerte dieser Tour")
+                        Text(TextKey.homeTourUpcomingConcerts.localized)
                             .font(.cjCaption)
                             .foregroundStyle(.secondary)
                             .padding(.leading)
@@ -216,7 +216,7 @@ struct TourGroupedConcerts: View {
                     }
 
                     if !tourGroup.pastConcerts.isEmpty {
-                        Text("Vergangene Konzerte dieser Tour")
+                        Text(TextKey.homeTourPastConcerts.localized)
                             .font(.cjCaption)
                             .foregroundStyle(.secondary)
                             .padding(.leading)
@@ -322,7 +322,7 @@ struct ConcertRowInGroup: View {
                     HapticManager.shared.impact(.medium)
                     navigationManager.presentSheet(.tourDetail(tour))
                 } label: {
-                    Label("Tour anzeigen", systemImage: "tag.fill")
+                    Label(TextKey.homeContextTourDetail.localized, systemImage: "tag.fill")
                 }
                 .font(.cjBody)
 
@@ -333,7 +333,7 @@ struct ConcertRowInGroup: View {
                 HapticManager.shared.impact(.light)
                 navigationManager.push(.concertDetail(concert))
             } label: {
-                Label(TextKey.detailPage.localized, systemImage: "info.circle")
+                Label(TextKey.homeContextConcertDetailPage.localized, systemImage: "info.circle")
             }
             .font(.cjBody)
 
@@ -343,7 +343,7 @@ struct ConcertRowInGroup: View {
                 HapticManager.shared.impact(.medium)
                 selectConcertToDelete(concert)
             } label: {
-                Label(TextKey.concertDelete.localized, systemImage: "trash")
+                Label(TextKey.homeContextConcertDelete.localized, systemImage: "trash")
             }
             .font(.cjBody)
         }

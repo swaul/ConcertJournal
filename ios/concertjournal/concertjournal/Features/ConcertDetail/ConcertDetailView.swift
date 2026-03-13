@@ -131,7 +131,7 @@ struct ConcertDetailView: View {
                     
                     if let ticket = viewModel.concert.ticket {
                         VStack(alignment: .leading, spacing: 12) {
-                            sectionHeader(title: "Mein Ticket", icon: "ticket.fill")
+                            sectionHeader(title: TextKey.concertdetailSectionTicket.localized, icon: "ticket.fill")
                             ticketSection(ticket: ticket)
                         }
                         .padding(.horizontal, 20)
@@ -139,7 +139,7 @@ struct ConcertDetailView: View {
                     
                     if !viewModel.concert.setlistItemsArray.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
-                            sectionHeader(title: "Setlist", icon: "music.note.list")
+                            sectionHeader(title: TextKey.concertdetailSectionSetlist.localized, icon: "music.note.list")
                             
                             VStack(spacing: 12) {
                                 ForEach(viewModel.concert.setlistItemsArray, id: \.spotifyTrackId) { item in
@@ -185,14 +185,14 @@ struct ConcertDetailView: View {
                         HapticManager.shared.impact(.light)
                         showEditSheet = true
                     } label: {
-                        Label("Bearbeiten", systemImage: "pencil")
+                        Label(TextKey.concertdetailContextEdit.localized, systemImage: "pencil")
                     }
                     Divider()
                     Button(role: .destructive) {
                         HapticManager.shared.impact(.medium)
                         showDeleteDialog = true
                     } label: {
-                        Label("Löschen", systemImage: "trash")
+                        Label(TextKey.concertdetailContextDelete.localized, systemImage: "trash")
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle")
@@ -249,7 +249,7 @@ struct ConcertDetailView: View {
             )
         }
         .sheet(isPresented: $savingConcertPresenting) {
-            LoadingSheet(message: "Laden...")
+            LoadingSheet(message: TextKey.concertdetailLoading.localized)
         }
         .onAppear {
             localHidePrices = hidePrices
@@ -304,7 +304,7 @@ struct ConcertDetailView: View {
                     
                     if let ticket = viewModel.concert.ticket {
                         VStack(alignment: .leading, spacing: 12) {
-                            sectionHeader(title: "Mein Ticket", icon: "ticket.fill")
+                            sectionHeader(title: TextKey.concertdetailSectionTicket.localized, icon: "ticket.fill")
                             ticketSection(ticket: ticket)
                         }
                         .padding(.horizontal, 20)
@@ -312,7 +312,7 @@ struct ConcertDetailView: View {
                     
                     if !viewModel.concert.setlistItemsArray.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
-                            sectionHeader(title: "Setlist", icon: "music.note.list")
+                            sectionHeader(title: TextKey.concertdetailSectionSetlist.localized, icon: "music.note.list")
                             
                             VStack(spacing: 12) {
                                 ForEach(viewModel.concert.setlistItemsArray, id: \.spotifyTrackId) { item in
@@ -363,14 +363,14 @@ struct ConcertDetailView: View {
                         HapticManager.shared.impact(.light)
                         showEditSheet = true
                     } label: {
-                        Label("Bearbeiten", systemImage: "pencil")
+                        Label(TextKey.concertdetailContextEdit.localized, systemImage: "pencil")
                     }
                     Divider()
                     Button(role: .destructive) {
                         HapticManager.shared.impact(.medium)
                         showDeleteDialog = true
                     } label: {
-                        Label("Löschen", systemImage: "trash")
+                        Label(TextKey.concertdetailContextDelete.localized, systemImage: "trash")
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle")
@@ -427,7 +427,7 @@ struct ConcertDetailView: View {
             )
         }
         .sheet(isPresented: $savingConcertPresenting) {
-            LoadingSheet(message: "Laden...")
+            LoadingSheet(message: TextKey.concertdetailLoading.localized)
         }
         .onAppear {
             localHidePrices = hidePrices
@@ -454,11 +454,11 @@ struct ConcertDetailView: View {
                 .font(.system(size: 60))
                 .foregroundStyle(.red)
 
-            Text(TextKey.concertDelete.localized)
+            Text(TextKey.concertdetailDeleteDialogTitle.localized)
                 .font(.cjTitle)
 
             let concertText = viewModel.concert.title == nil ? "das Konzert" : "\"\(viewModel.concert.title!)\""
-            Text(TextKey.deleteQuestion.localized(with: concertText))
+            Text(TextKey.concertdetailDeleteDialogMessage.localized(with: concertText))
                 .font(.cjBody)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
@@ -475,7 +475,7 @@ struct ConcertDetailView: View {
                             loading = false
                             HapticManager.shared.success()
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                                confirmationText = ConfirmationMessage(message: TextKey.concertDeleted.localized) {
+                                confirmationText = ConfirmationMessage(message: TextKey.concertdetailDeleteSuccess.localized) {
                                     dismiss()
                                 }
                                 confirmationTextPresenting = true
@@ -491,7 +491,7 @@ struct ConcertDetailView: View {
                             .frame(width: 40, height: 40)
                             .tint(.white)
                     } else {
-                        Text(TextKey.concertDelete.localized)
+                        Text(TextKey.concertdetailDeleteDialogConfirm.localized)
                             .font(.cjHeadline)
                     }
                 }
@@ -506,7 +506,7 @@ struct ConcertDetailView: View {
                     HapticManager.shared.impact(.light)
                     showDeleteDialog = false
                 } label: {
-                    Text(TextKey.cancel.localized)
+                    Text(TextKey.genericCancel.localized)
                         .font(.cjHeadline)
                 }
                 .buttonStyle(ModernButtonStyle(style: .glass, color: dependencies.colorThemeManager.appTint))
@@ -530,7 +530,7 @@ struct ConcertDetailView: View {
     @ViewBuilder
     func supportActsSection(supportActs: [Artist]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: TextKey.supportActs.localized, icon: "music.microphone")
+            sectionHeader(title: TextKey.concertdetailSectionSupportActs.localized, icon: "music.microphone")
                 .padding(.horizontal)
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -549,7 +549,7 @@ struct ConcertDetailView: View {
     @ViewBuilder
     func buddiesSection(buddies: [BuddyAttendee]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "Dabei", icon: "person.2.fill")
+            sectionHeader(title: TextKey.concertdetailSectionAttendees.localized, icon: "person.2.fill")
                 .padding(.horizontal, 20)
             
             ScrollView(.horizontal, showsIndicators: false) {
@@ -612,7 +612,7 @@ struct ConcertDetailView: View {
                     HapticManager.shared.impact(.light)
                     localHidePrices.toggle()
                 } label: {
-                    Label(localHidePrices ? TextKey.showPrices.localized : TextKey.hidePrices.localized,
+                    Label(localHidePrices ? TextKey.concertdetailContextShowPrices.localized : TextKey.concertdetailContextHidePrices.localized,
                           systemImage: localHidePrices ? "eye" : "eye.slash")
                 }
             }
@@ -677,7 +677,7 @@ struct ConcertDetailView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "clock.fill")
                         .font(.caption)
-                    Text(TextKey.admission.localized + " " + openingTime.timeOnlyString)
+                    Text(TextKey.createconcertAdmission.localized + " " + openingTime.timeOnlyString)
                         .font(.cjHeadline)
                 }
                 .foregroundStyle(.secondary)
@@ -695,7 +695,7 @@ struct ConcertDetailView: View {
     @ViewBuilder
     func venueSection(venue: Venue, viewModel: ConcertDetailViewModel) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: TextKey.sectionLocation.localized, icon: "mappin.circle.fill")
+            sectionHeader(title: TextKey.concertdetailSectionLocation.localized, icon: "mappin.circle.fill")
 
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 8) {
@@ -721,16 +721,6 @@ struct ConcertDetailView: View {
                                 .stroke(.ultraThinMaterial, lineWidth: 1)
                         )
                         .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
-                        .contextMenu {
-                            Button {
-                                HapticManager.shared.impact(.light)
-                                let mapItem = MKMapItem(location: CLLocation(latitude: venue.latitude, longitude: venue.longitude), address: MKAddress(fullAddress: "", shortAddress: venue.formattedAddress))
-                                mapItem.openInMaps()
-                            } label: {
-                                Label("In Apple Karten öffnen", systemImage: "map.fill")
-                            }
-                            .font(.cjBody)
-                        }
                 }
             }
         }
@@ -740,14 +730,14 @@ struct ConcertDetailView: View {
     @ViewBuilder
     func notesSection(notes: String) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: TextKey.myExperience.localized, icon: "heart.text.square.fill")
+            sectionHeader(title: TextKey.concertdetailSectionExperience.localized, icon: "heart.text.square.fill")
 
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 8) {
                     Image(systemName: "quote.opening")
                         .font(.caption)
                         .foregroundStyle(dependencies.colorThemeManager.appTint)
-                    Text("ENTRY?")
+                    Text(TextKey.concertdetailNoteEntry.localized)
                         .font(.cjCaption)
                         .foregroundStyle(dependencies.colorThemeManager.appTint)
                 }
@@ -780,7 +770,7 @@ struct ConcertDetailView: View {
     @ViewBuilder
     func travelSection(travel: Travel) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: TextKey.myTravel.localized, icon: "airplane.departure")
+            sectionHeader(title: TextKey.concertdetailSectionTravel.localized, icon: "airplane.departure")
 
             VStack(spacing: 12) {
                 if let travelType = travel.travelTypeEnum {
@@ -795,7 +785,7 @@ struct ConcertDetailView: View {
                     let parsedDuration = DurationParser.format(travel.travelDuration)
                     travelInfoCard(
                         icon: "clock.fill",
-                        title: TextKey.travelTime.localized,
+                        title: TextKey.concertdetailTravelTime.localized,
                         subtitle: parsedDuration
                     )
                 }
@@ -804,7 +794,7 @@ struct ConcertDetailView: View {
                     let parsedDistance = DistanceParser.format(travel.travelDistance)
                     travelInfoCard(
                         icon: "location.fill",
-                        title: TextKey.summaryDistance.localized,
+                        title: TextKey.concertdetailTravelDistance.localized,
                         subtitle: parsedDistance
                     )
                 }
@@ -812,7 +802,7 @@ struct ConcertDetailView: View {
                 if let travelExpenses = travel.travelExpenses {
                     travelInfoCard(
                         icon: "car.fill",
-                        title: TextKey.arrivalCost.localized,
+                        title: TextKey.concertdetailTravelCost.localized,
                         subtitle: travelExpenses.formatted,
                         isPrice: true
                     )
@@ -821,7 +811,7 @@ struct ConcertDetailView: View {
                 if let hotelExpenses = travel.hotelExpenses {
                     travelInfoCard(
                         icon: "bed.double.fill",
-                        title: TextKey.hotel.localized,
+                        title: TextKey.concertdetailHotelCost.localized,
                         subtitle: hotelExpenses.formatted,
                         isPrice: true
                     )
@@ -909,8 +899,7 @@ struct ConcertDetailView: View {
                 let url = "https://open.spotify.com/track/\(spotifyTrackId)"
                 UIApplication.shared.open(URL(string: url)!)
             } label: {
-                // TODO: LOCALIZATION
-                Label("\(item.title) in Spotify abspielen", systemImage: "play.circle.fill")
+                Label(TextKey.concertdetailPlayInSpotify.localized, systemImage: "play.circle.fill")
             }
             .font(.cjBody)
         }
@@ -968,19 +957,19 @@ struct ConcertDetailView: View {
                 case .seated:
                     HStack(spacing: 12) {
                         if let block = ticket.seatBlock {
-                            seatInfoBox(title: TextKey.block.localized, value: block)
+                            seatInfoBox(title: TextKey.concertdetailTicketBlock.localized, value: block)
                         }
                         if let row = ticket.seatRow {
-                            seatInfoBox(title: TextKey.row.localized, value: row)
+                            seatInfoBox(title: TextKey.concertdetailTicketRow.localized, value: row)
                         }
                         if let seatNumber = ticket.seatNumber {
-                            seatInfoBox(title: TextKey.seat.localized, value: seatNumber)
+                            seatInfoBox(title: TextKey.concertdetailTicketSeat.localized, value: seatNumber)
                         }
                     }
                 case .standing:
                     if let standingPosition = ticket.standingPosition {
                         VStack(spacing: 8) {
-                            Text(TextKey.position.localized)
+                            Text(TextKey.concertdetailTicketPositionNote.localized)
                                 .font(.cjCaption)
                                 .foregroundStyle(.secondary)
                             Text(standingPosition)
@@ -1008,7 +997,7 @@ struct ConcertDetailView: View {
                         }
 
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(TextKey.price.localized)
+                            Text(TextKey.concertdetailTicketPrice.localized)
                                 .font(.cjBody)
                                 .foregroundStyle(.secondary)
 
@@ -1030,7 +1019,7 @@ struct ConcertDetailView: View {
                             HapticManager.shared.impact(.light)
                             localHidePrices.toggle()
                         } label: {
-                            Label(localHidePrices ? TextKey.showPrices.localized : TextKey.hidePrices.localized,
+                            Label(localHidePrices ? TextKey.concertdetailContextShowPrices.localized : TextKey.concertdetailContextHidePrices.localized,
                                   systemImage: localHidePrices ? "eye" : "eye.slash")
                         }
                     }
@@ -1042,7 +1031,7 @@ struct ConcertDetailView: View {
                         HStack(spacing: 6) {
                             Image(systemName: "note.text")
                                 .font(.caption)
-                            Text(TextKey.notes.localized)
+                            Text(TextKey.concertdetailTicketNotes.localized)
                                 .font(.cjCaption)
                         }
                         .foregroundStyle(.secondary)
@@ -1063,7 +1052,7 @@ struct ConcertDetailView: View {
     @ViewBuilder
     func imageSection(images: [ConcertImage]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: TextKey.photo.localized, icon: "photo.on.rectangle.angled")
+            sectionHeader(title: TextKey.concertdetailSectionPhotos.localized, icon: "photo.on.rectangle.angled")
                 .padding(.horizontal)
 
             ScrollView(.horizontal, showsIndicators: false) {

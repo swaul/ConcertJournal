@@ -28,15 +28,15 @@ struct MainAppView: View {
         @Bindable var dependencyContainer = dependencies
 
         TabView(selection: $navigationManager.selectedTab) {
-            Tab(TextKey.concerts.localized, systemImage: "music.note.list", value: NavigationRoute.concerts) {
+            Tab(TextKey.tabsConcerts.localized, systemImage: "music.note.list", value: NavigationRoute.concerts) {
                 ConcertsView(viewModel: viewModel)
             }
 
-            Tab(TextKey.map.localized, systemImage: "map", value: NavigationRoute.map) {
+            Tab(TextKey.tabsMap.localized, systemImage: "map", value: NavigationRoute.map) {
                 MapView()
             }
             
-            Tab(TextKey.buddies.localized, systemImage: "person.2.fill", value: NavigationRoute.buddies) {
+            Tab(TextKey.tabsBuddies.localized, systemImage: "person.2.fill", value: NavigationRoute.buddies) {
                 BuddiesView()
             }
 
@@ -59,15 +59,6 @@ struct MainAppView: View {
         }
         .onAppear {
             showSetup = dependencies.needsSetup
-            print(TextKey.name.localized)
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .syncingProblem)) { _ in
-            showDecryptionProblem = true
-        }
-        .alert(TextKey.decryptionFailed.localized, isPresented: $showDecryptionProblem) {
-            Button(TextKey.understood.localized) {}
-        } message: {
-            Text(TextKey.decryptionDesc.localized)
         }
         .sheet(item: $showTermsUpdated) { item in
             TermsUpdatedView(item: item) {

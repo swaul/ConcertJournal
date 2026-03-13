@@ -25,13 +25,13 @@ public struct OrderSetListView: View {
                 }
             }
         }
-        .navigationTitle("Reihenfolge anpassen")
+        .navigationTitle(TextKey.createsetlistSortTitle.localized)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     viewModel.saveSetlist()
                 } label: {
-                    Text(TextKey.nextStep.localized)
+                    Text(TextKey.genericSave.localized)
                         .font(.cjBody)
                 }
             }

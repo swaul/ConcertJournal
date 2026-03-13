@@ -103,7 +103,7 @@ final class EditProfileViewModel {
                 selectedImage = image.resized(to: CGSize(width: 512, height: 512))
             }
         } catch {
-            state = .error("Foto konnte nicht geladen werden.")
+            state = .error(TextKey.profileEditPhotoLoadingFailed.localized)
         }
     }
     
@@ -158,7 +158,7 @@ final class EditProfileViewModel {
             
         } catch {
             logError("Profile update failed", error: error)
-            state = .error("Profil konnte nicht aktualisiert werden.")
+            state = .error(TextKey.profileEditProfileSaveFailed.localized)
         }
     }
     

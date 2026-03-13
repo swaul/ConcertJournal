@@ -209,7 +209,7 @@ final class BuddiesViewModel {
             HapticManager.shared.buttonTap()
         } catch {
             logError("Failed to regenerate buddy code: \(error.localizedDescription)")
-            errorMessage = "Code konnte nicht erneuert werden."
+            errorMessage = TextKey.buddiesGenerateNewCodeFailed.localized
         }
     }
     
@@ -349,7 +349,7 @@ final class BuddiesViewModel {
             HapticManager.shared.buttonTap()
         } catch {
             logError("Failed to send buddy request", error: error)
-            errorMessage = "Anfrage konnte nicht gesendet werden."
+            errorMessage = TextKey.buddiesSendingRequestFailed.localized
         }
     }
     
@@ -380,15 +380,15 @@ final class BuddiesViewModel {
             HapticManager.shared.buttonTap()
         } catch {
             logError("Failed to accept request id: \(request.id)", error: error)
-            errorMessage = "Anfrage konnte nicht akzeptiert werden."
+            errorMessage = TextKey.buddiesAcceptRequestFailed.localized
         }
     }
 
     private var senderName: String {
         if let profile {
-            return profile.displayName ?? "Jemand"
+            return profile.displayName ?? TextKey.buddiesBuddyPlaceholder.localized
         }
-        return userProvider.user?.userMetadata["display_name"]?.stringValue ?? "Jemand"
+        return userProvider.user?.userMetadata["display_name"]?.stringValue ?? TextKey.buddiesBuddyPlaceholder.localized
     }
     
     private var senderAvatarUrl: String? {
@@ -405,7 +405,7 @@ final class BuddiesViewModel {
             HapticManager.shared.buttonTap()
         } catch {
             logError("Failed to decline request id: \(request.id)", error: error)
-            errorMessage = "Anfrage konnte nicht abgelehnt werden."
+            errorMessage = TextKey.buddiesDenyRequestFailed.localized
         }
     }
     
@@ -420,7 +420,7 @@ final class BuddiesViewModel {
             outgoingRequests.removeAll { $0.id == request.id }
             HapticManager.shared.buttonTap()
         } catch {
-            errorMessage = "Anfrage konnte nicht zurückgezogen werden."
+            errorMessage = TextKey.buddiesTakeBackRequestFailed.localized
         }
     }
     
@@ -434,7 +434,7 @@ final class BuddiesViewModel {
             HapticManager.shared.buttonTap()
         } catch {
             logError("Failed to remove buddy id: \(buddy.id): \(error.localizedDescription)")
-            errorMessage = "Freund konnte nicht entfernt werden."
+            errorMessage = TextKey.buddiesEndFriendshipFailed.localized
         }
     }
 }

@@ -155,12 +155,6 @@ class SyncManager {
             }
         }
 
-        if !problems.isEmpty {
-            await MainActor.run {
-                NotificationCenter.default.post(name: .syncingProblem, object: nil)
-            }
-        }
-
         logSuccess("Pulled \(pulledConcerts) concerts", category: .sync)
         
         if pulledConcerts > 0 {

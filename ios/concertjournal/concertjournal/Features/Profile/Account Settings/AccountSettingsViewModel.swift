@@ -65,7 +65,7 @@ final class AccountSettingsViewModel {
     func changeEmail() async {
         guard isValidEmail else { return }
         guard newEmail != currentEmail else {
-            state = .error("Neue Email ist gleich wie aktuelle Email")
+            state = .error(TextKey.profileAccountEmailInvalid.localized)
             return
         }
 
@@ -93,7 +93,7 @@ final class AccountSettingsViewModel {
 
         } catch {
             logError("Email change failed", error: error)
-            state = .error("Email konnte nicht aktualisiert werden.")
+            state = .error(TextKey.profileAccountEmailChangeFailed.localized)
         }
     }
 
@@ -124,7 +124,7 @@ final class AccountSettingsViewModel {
             logSuccess("Account deleted successfully")
         } catch {
             logError("Account deletion failed", error: error)
-            state = .error("Account konnte nicht gelöscht werden.")
+            state = .error(TextKey.profileAccountDeleteFailed.localized)
             throw error
         }
     }

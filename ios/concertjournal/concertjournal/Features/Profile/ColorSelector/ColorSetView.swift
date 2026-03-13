@@ -35,7 +35,7 @@ struct ColorSetView: View {
     
     var body: some View {
             Form {
-                Section(header: Text("Preview").font(.cjBody)) {
+                Section(header: Text(TextKey.profileColor.localized).font(.cjBody)) {
                     HStack(spacing: 16) {
                         Circle()
                             .fill(tempColor)
@@ -43,7 +43,7 @@ struct ColorSetView: View {
                             .overlay(
                                 Circle().stroke(.secondary, lineWidth: 0.5)
                             )
-                        Text("This is your app color")
+                        Text(TextKey.profileColorDesc.localized)
                             .font(.cjBody)
                             .foregroundStyle(.primary)
                         Spacer()
@@ -51,11 +51,11 @@ struct ColorSetView: View {
                     .padding(.vertical, 4)
                 }
 
-                Section(header: Text("Pick a color").font(.cjBody)) {
-                    ColorPicker("App Color", selection: $tempColor, supportsOpacity: true)
+                Section(header: Text(TextKey.profileColorPrimary.localized).font(.cjBody)) {
+                    ColorPicker(TextKey.profileColorTitle.localized, selection: $tempColor, supportsOpacity: true)
                         .tint(tempColor)
                     if isInvalidSelection {
-                        Text("Black and white are not allowed.")
+                        Text(TextKey.profileColorForbiddenColor.localized)
                             .font(.cjFootnote)
                             .foregroundStyle(.secondary)
                     }
@@ -72,12 +72,12 @@ struct ColorSetView: View {
                             }
                         }
                     } label: {
-                        Label("Reset to System Accent", systemImage: "arrow.counterclockwise")
+                        Label(TextKey.profileColorReset.localized, systemImage: "arrow.counterclockwise")
                             .font(.cjBody)
                     }
                 }
             }
-            .navigationTitle("App Color")
+            .navigationTitle(TextKey.profileColor.localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -89,7 +89,7 @@ struct ColorSetView: View {
                         }
                         dismiss()
                     } label: {
-                        Text(TextKey.save.localized)
+                        Text(TextKey.genericSave.localized)
                             .font(.cjBody)
                             .bold()
                     }

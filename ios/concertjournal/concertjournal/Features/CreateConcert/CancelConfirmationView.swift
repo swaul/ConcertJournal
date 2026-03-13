@@ -36,14 +36,14 @@ struct CancelConcertConfirmationView: View {
             .padding(.bottom, 20)
 
             // Title
-            Text("Konzert verwerfen?")
+            Text(TextKey.cancelcreationTitle.localized)
                 .font(.custom("PlayfairDisplay-Bold", size: 22))
                 .multilineTextAlignment(.center)
                 .opacity(appeared ? 1 : 0)
                 .offset(y: appeared ? 0 : 8)
 
             // Subtitle
-            Text("Deine Eingaben gehen verloren,\nwenn du jetzt abbrichst.")
+            Text(TextKey.cancelcreationMessage.localized)
                 .font(.cjBody)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -57,7 +57,7 @@ struct CancelConcertConfirmationView: View {
                 Button(role: .destructive) {
                     onDiscard()
                 } label: {
-                    Text("Verwerfen")
+                    Text(TextKey.cancelcreationButtonCancel.localized)
                         .font(.cjTitle2)
                         .frame(maxWidth: .infinity)
                 }
@@ -67,7 +67,7 @@ struct CancelConcertConfirmationView: View {
                 Button {
                     onContinue()
                 } label: {
-                    Text("Weiter bearbeiten")
+                    Text(TextKey.cancelcreationButtonKeep.localized)
                         .font(.cjBody)
                         .frame(maxWidth: .infinity)
                 }

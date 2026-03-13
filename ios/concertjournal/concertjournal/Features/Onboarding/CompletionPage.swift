@@ -52,11 +52,11 @@ struct CompletionPage: View {
                 }
 
                 // Title
-                Text(TextKey.confirmReady.localized)
+                Text(TextKey.onboardingCompletionTitle.localized)
                     .font(.custom("PlayfairDisplay-Bold", size: 36))
                 
                 // Description
-                Text(TextKey.onboardingReady.localized)
+                Text(TextKey.onboardingCompletionDesc.localized)
                     .font(.cjBody)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
@@ -67,7 +67,7 @@ struct CompletionPage: View {
                 // Get Started Button
                 Button(action: { manager.completeOnboarding() }) {
                     HStack {
-                        Text(TextKey.letsGo.localized)
+                        Text(TextKey.onboardingCompletionButton.localized)
                             .font(.cjTitle2)
                         Image(systemName: "arrow.right")
                     }

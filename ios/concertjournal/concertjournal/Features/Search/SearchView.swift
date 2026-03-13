@@ -39,7 +39,7 @@ struct SearchView: View {
             .navigationDestination(for: NavigationRoute.self) { route in
                 navigationDestination(for: route)
             }
-            .navigationTitle("Durchsuchen")
+            .navigationTitle(TextKey.searchTitle.localized)
         }
     }
 

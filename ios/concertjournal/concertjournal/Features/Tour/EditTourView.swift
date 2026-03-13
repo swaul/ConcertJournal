@@ -42,35 +42,35 @@ struct EditTourView: View {
                 if let viewModel {
                     ScrollView {
                         VStack(alignment: .leading) {
-                            Text("Tour Informationen")
+                            Text(TextKey.edittourSectionInfo.localized)
                                 .font(.cjHeadline)
                             
-                            TextField("Tour Name", text: $title)
+                            TextField(TextKey.edittourName.localized, text: $title)
                                 .font(.cjBody)
                                 .padding()
                                 .glassEffect()
                                 .disabled(viewModel.isLoading)
                             
-                            DatePicker("Startdatum", selection: $startDate, displayedComponents: .date)
+                            DatePicker(TextKey.edittourStartDate.localized, selection: $startDate, displayedComponents: .date)
                                 .font(.cjBody)
                                 .padding()
                                 .glassEffect()
                                 .disabled(viewModel.isLoading)
                             
-                            DatePicker("Enddatum", selection: $endDate, displayedComponents: .date)
+                            DatePicker(TextKey.edittourEndDate.localized, selection: $endDate, displayedComponents: .date)
                                 .font(.cjBody)
                                 .padding()
                                 .glassEffect()
                                 .disabled(viewModel.isLoading)
                             
-                            TextField("Beschreibung (optional)", text: $tourDescription, axis: .vertical)
+                            TextField(TextKey.edittourDesc.localized, text: $tourDescription, axis: .vertical)
                                 .lineLimit(3...5)
                                 .font(.cjBody)
                                 .padding()
                                 .rectangleGlass()
                                 .disabled(viewModel.isLoading)
                             
-                            Text("Künstler")
+                            Text(TextKey.edittourSelectArtist.localized)
                                 .font(.cjBody)
                             
                             Button {
@@ -104,7 +104,7 @@ struct EditTourView: View {
                             Button {
                                 saveTourUpdates()
                             } label: {
-                                Text("Speichern")
+                                Text(TextKey.genericSave.localized)
                             }
                         }
                     }
@@ -120,7 +120,7 @@ struct EditTourView: View {
                                               tourRepository: dependencies.offlineTourRepository,
                                               tourSyncManager: dependencies.tourSyncManager)
             }
-            .navigationTitle("Tour bearbeiten")
+            .navigationTitle(TextKey.edittourTitle.localized)
         }
     }
     

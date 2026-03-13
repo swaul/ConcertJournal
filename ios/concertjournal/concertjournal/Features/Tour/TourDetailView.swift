@@ -40,7 +40,7 @@ struct TourDetailView: View {
                     // Tour Beschreibung
                     if let description = tour.tourDescription, !description.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Beschreibung")
+                            Text(TextKey.tourdetailDescription.localized)
                                 .font(.cjHeadline)
                             Text(description)
                                 .font(.cjBody)
@@ -51,7 +51,7 @@ struct TourDetailView: View {
                     // Konzerte dieser Tour
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Text("Konzerte (\(tour.concertCount))")
+                            Text(TextKey.tourdetailConcertCount.localized(with: String(tour.concertCount)))
                                 .font(.cjHeadline)
                             
                             Spacer()
@@ -62,7 +62,7 @@ struct TourDetailView: View {
                         }
                         
                         if tour.concertsArray.isEmpty {
-                            Text("Keine Konzerte dieser Tour zugeordnet")
+                            Text(TextKey.tourdetailNoConcerts.localized)
                                 .font(.cjBody)
                                 .foregroundStyle(.secondary)
                         } else {
@@ -76,7 +76,7 @@ struct TourDetailView: View {
                     .padding()
                 }
             }
-            .navigationTitle("Tour")
+            .navigationTitle(TextKey.tourdetailTitle.localized)
             .toolbar {
                 Button(action: { showEditTour = true }) {
                     Image(systemName: "pencil.circle.fill")

@@ -24,7 +24,7 @@ struct HTMLTermsView: View {
                 if isLoading {
                     VStack(spacing: 12) {
                         FlowerLoading()
-                        Text("Loading Terms of Service...")
+                        Text(TextKey.legalTosLoading.localized)
                             .font(.cjBody)
                             .foregroundStyle(.secondary)
                     }
@@ -33,9 +33,9 @@ struct HTMLTermsView: View {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .font(.system(size: 48))
                             .foregroundStyle(.orange)
-                        Text("Could not load Terms of Service")
+                        Text(TextKey.legalTosLoadingFailed.localized)
                             .font(.cjBody)
-                        Button("Try Again") {
+                        Button(TextKey.genericRetry.localized) {
                             Task {
                                 await loadTerms()
                             }
@@ -47,7 +47,7 @@ struct HTMLTermsView: View {
                         .ignoresSafeArea()
                 }
             }
-            .navigationTitle("Terms of Service")
+            .navigationTitle(TextKey.legalTosTitle.localized)
         }
         .task {
             await loadTerms()
@@ -100,7 +100,7 @@ struct HTMLPrivacyView: View {
                 if isLoading {
                     VStack(spacing: 12) {
                         FlowerLoading()
-                        Text("Loading Privacy Policy...")
+                        Text(TextKey.legalPrivacyLoading.localized)
                             .font(.cjBody)
                             .foregroundStyle(.secondary)
                     }
@@ -109,9 +109,9 @@ struct HTMLPrivacyView: View {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .font(.system(size: 48))
                             .foregroundStyle(.orange)
-                        Text("Could not load Privacy Policy")
+                        Text(TextKey.legalPrivacyLoadingFailed.localized)
                             .font(.cjBody)
-                        Button("Try Again") {
+                        Button(TextKey.genericRetry.localized) {
                             Task {
                                 await loadPrivacy()
                             }
@@ -123,7 +123,7 @@ struct HTMLPrivacyView: View {
                         .ignoresSafeArea()
                 }
             }
-            .navigationTitle("Privacy Policy")
+            .navigationTitle(TextKey.legalPrivacyTitle.localized)
         }
         .task {
             await loadPrivacy()

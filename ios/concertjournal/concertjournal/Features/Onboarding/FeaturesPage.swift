@@ -14,6 +14,7 @@ enum FeatureInfo: CaseIterable {
     case spotify
     case photo
     case map
+    case buddies
 
     var icon: String {
         switch self {
@@ -25,32 +26,38 @@ enum FeatureInfo: CaseIterable {
             "photo.on.rectangle"
         case .map:
             "map"
+        case .buddies:
+            "person.3"
         }
     }
 
     var title: String {
         switch self {
         case .calendar:
-            "Konzerte dokumentieren"
+            TextKey.onboardingFeaturesCalendarTitle.localized
         case .spotify:
-            "Spotify Integration"
+            TextKey.onboardingFeaturesSpotifyTitle.localized
         case .photo:
-            "Fotos & Erinnerungen"
+            TextKey.onboardingFeaturesPhotosTitle.localized
         case .map:
-            "Konzert-Karte"
+            TextKey.onboardingFeaturesMapTitle.localized
+        case .buddies:
+            TextKey.onboardingFeaturesBuddiesTitle.localized
         }
     }
 
     var description: String {
         switch self {
         case .calendar:
-            "Halte alle deine Konzertbesuche mit Datum, Ort und Setlist fest"
+            TextKey.onboardingFeaturesCalendarDesc.localized
         case .spotify:
-            "Erstelle Playlists direkt aus deinen Setlists, oder importiere sie"
+            TextKey.onboardingFeaturesSpotifyDesc.localized
         case .photo:
-            "Füge Fotos hinzu und erstelle dein persönliches Konzertarchiv"
+            TextKey.onboardingFeaturesPhotosDesc.localized
         case .map:
-            "Sieh alle besuchten Locations auf einer Karte"
+            TextKey.onboardingFeaturesMapDesc.localized
+        case .buddies:
+            TextKey.onboardingFeaturesBuddiesDesc.localized
         }
     }
 }
@@ -76,7 +83,7 @@ struct FeaturesPage: View {
             .ignoresSafeArea()
 
             VStack(spacing: 40) {
-                Text(TextKey.welcome.localized)
+                Text(TextKey.onboardingFeaturesTitle.localized)
                     .font(.custom("PlayfairDisplay-Bold", size: 36))
                     .padding(.top, 60)
 
@@ -99,7 +106,7 @@ struct FeaturesPage: View {
                 Button {
                     manager.getNextStep()
                 } label: {
-                    Text(TextKey.keepGoing.localized)
+                    Text(TextKey.onboardingPermissionNext.localized)
                         .frame(maxWidth: .infinity)
                         .font(.cjTitle2)
                 }

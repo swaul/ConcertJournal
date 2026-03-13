@@ -165,7 +165,7 @@ struct CreateConcertVisitView: View {
                 notificationService: dependencies.buddyNotificationService
             )
         }
-        .navigationTitle("New Concert")
+        .navigationTitle(TextKey.createconcertTitle.localized)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { toolbarContent }
         .applySheets(
@@ -188,7 +188,7 @@ struct CreateConcertVisitView: View {
                 HapticManager.shared.buttonTap()
                 sheets.selectArtist = true
             } label: {
-                Text(TextKey.selectArtist.localized)
+                Text(TextKey.createconcertSelectArtist.localized)
                     .font(.cjBody)
             }
             .buttonStyle(.glassProminent)
@@ -231,7 +231,7 @@ struct CreateConcertVisitView: View {
                     noteEditorFocused = false
                     titleFocused = false
                 } label: {
-                    Text(TextKey.done.localized)
+                    Text(TextKey.genericDone.localized)
                 }
             }
         }
@@ -240,13 +240,13 @@ struct CreateConcertVisitView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
-            Button("Cancel") {
+            Button(TextKey.genericCancel.localized) {
                 sheets.confirmCancel = true
             }
             .font(.cjBody)
         }
         ToolbarItem(placement: .confirmationAction) {
-            Button("Save") { save() }
+            Button(TextKey.genericSave.localized) { save() }
                 .font(.cjBody)
         }
     }
@@ -263,7 +263,7 @@ struct CreateConcertVisitView: View {
                 sheets.savingConcert = false
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                     HapticManager.shared.success()
-                    sheets.confirmation = ConfirmationMessage(message: TextKey.concertCreated.localized) {
+                    sheets.confirmation = ConfirmationMessage(message: TextKey.createconcertConcertCreated.localized) {
                         navigationManager.popToRoot()
                     }
                     sheets.confirmationPresenting = true
@@ -271,7 +271,7 @@ struct CreateConcertVisitView: View {
             } catch {
                 sheets.savingConcert = false
                 HapticManager.shared.error()
-                sheets.error = ErrorMessage(message: TextKey.concertCreate.localized)
+                sheets.error = ErrorMessage(message: TextKey.createconcertConcertCreationFailed.localized)
                 sheets.errorPresenting = true
             }
         }
@@ -395,7 +395,7 @@ private struct ConcertSheetsModifier: ViewModifier {
                     VStack {
                         FlowerLoading()
                             .tint(dependencies.colorThemeManager.appTint)
-                        Text(TextKey.save.localized)
+                        Text(TextKey.genericSave.localized)
                             .font(.cjBody)
                     }
                 }
@@ -435,18 +435,18 @@ struct ConcertTimeSection: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            CJDivider(title: TextKey.times.localized, image: nil)
+            CJDivider(title: TextKey.createconcertSectionTimes.localized, image: nil)
                 .padding(.horizontal)
-            DatePicker(TextKey.date.localized, selection: $draft.date, displayedComponents: [.date])
+            DatePicker(TextKey.createconcertDate.localized, selection: $draft.date, displayedComponents: [.date])
                 .padding(.horizontal)
                 .font(.cjBody)
-            DatePicker(TextKey.admission.localized, selection: $openingTime, displayedComponents: [.hourAndMinute])
+            DatePicker(TextKey.createconcertAdmission.localized, selection: $openingTime, displayedComponents: [.hourAndMinute])
                 .padding(.horizontal)
                 .font(.cjBody)
                 .onChange(of: openingTime) { _, newValue in
                     draft.openingTime = newValue
                 }
-            TextField(TextKey.titleOptional.localized, text: $draft.title)
+            TextField(TextKey.createconcertConcertTitle.localized, text: $draft.title)
                 .focused(titleFocused)
                 .textInputAutocapitalization(.words)
                 .font(.cjBody)
@@ -464,7 +464,7 @@ struct ConcertTourSection: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            CJDivider(title: "Tour", image: nil)
+            CJDivider(title: TextKey.createconcertSectionTour.localized, image: nil)
                 .padding(.horizontal)
 
             if let artist = draft.artist, let tourName = draft.tourName {
@@ -478,7 +478,7 @@ struct ConcertTourSection: View {
             Button {
                 onSelect()
             } label: {
-                Text("Tour hinzufügen")
+                Text(TextKey.createconcertAddTour.localized)
                     .font(.cjBody)
             }
             .padding()
@@ -494,7 +494,7 @@ struct ConcertSupportActsSection: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            CJDivider(title: TextKey.supportActs.localized, image: nil)
+            CJDivider(title: TextKey.createconcertSectionSupportActs.localized, image: nil)
                 .padding(.horizontal)
             if !draft.supportActs.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -514,7 +514,7 @@ struct ConcertSupportActsSection: View {
             Button {
                 onAdd()
             } label: {
-                Text(TextKey.addSupportAct.localized)
+                Text(TextKey.createconcertAddSupportActs.localized)
                     .font(.cjBody)
             }
             .padding()
@@ -530,7 +530,7 @@ struct ConcertVenueSection: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            CJDivider(title: TextKey.sectionLocation.localized, image: nil)
+            CJDivider(title: TextKey.createconcertSectionLocation.localized, image: nil)
                 .padding(.horizontal)
             if !draft.venueName.isEmpty {
                 VStack(alignment: .leading) {
@@ -544,7 +544,7 @@ struct ConcertVenueSection: View {
             Button {
                 onSelect()
             } label: {
-                Text(TextKey.selectVenue.localized).font(.cjBody)
+                Text(TextKey.createconcertAddVenue.localized).font(.cjBody)
             }
             .padding()
             .glassEffect()
@@ -559,7 +559,7 @@ struct ConcertTravelSection: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            CJDivider(title: TextKey.travel.localized, image: nil)
+            CJDivider(title: TextKey.createconcertSectionTravel.localized, image: nil)
                 .padding(.horizontal)
 
             if let travel = draft.travel {
@@ -568,16 +568,16 @@ struct ConcertTravelSection: View {
                         travelTypeLabel(travelType)
                     }
                     if let duration = travel.travelDuration {
-                        Text(TextKey.durationWas.localized(with: DurationParser.format(duration))).font(.cjBody)
+                        Text(TextKey.createconcertTravelDuration.localized(with: DurationParser.format(duration))).font(.cjBody)
                     }
                     if let distance = travel.travelDistance {
-                        Text(TextKey.distanceWas.localized(with: DistanceParser.format(distance))).font(.cjBody)
+                        Text(TextKey.createconcertTravelDistance.localized(with: DistanceParser.format(distance))).font(.cjBody)
                     }
                     if let expenses = travel.travelExpenses {
-                        Text(TextKey.costWas.localized(with: expenses.formatted)).font(.cjBody)
+                        Text(TextKey.createconcertTravelCost.localized(with: expenses.formatted)).font(.cjBody)
                     }
                     if let hotel = travel.hotelExpenses {
-                        Text(TextKey.hotelCost.localized(with: hotel.formatted)).font(.cjBody)
+                        Text(TextKey.createconcertHotelCost.localized(with: hotel.formatted)).font(.cjBody)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -590,7 +590,8 @@ struct ConcertTravelSection: View {
                 HapticManager.shared.buttonTap()
                 onEdit()
             } label: {
-                Text(draft.travel == nil ? TextKey.addTravelInfo.localized : TextKey.changeTravelInfo.localized)
+                // TODO: ADD EDIT
+                Text(TextKey.createconcertAddTravel.localized)
                     .font(.cjBody)
             }
             .padding()
@@ -602,11 +603,11 @@ struct ConcertTravelSection: View {
     @ViewBuilder
     private func travelTypeLabel(_ type: TravelType) -> some View {
         switch type {
-        case .car:   Text(TextKey.modeCar.localized).font(.cjBody)
-        case .plane: Text(TextKey.modePlane.localized).font(.cjBody)
-        case .bike:  Text(TextKey.modeBike.localized).font(.cjBody)
-        case .foot:  Text(TextKey.modeWalking.localized).font(.cjBody)
-        default:     Text(TextKey.modeTrain.localized).font(.cjBody)
+        case .car:   Text(TextKey.createconcertTravelModeCar.localized).font(.cjBody)
+        case .plane: Text(TextKey.createconcertTravelModePlane.localized).font(.cjBody)
+        case .bike:  Text(TextKey.createconcertTravelModeBike.localized).font(.cjBody)
+        case .foot:  Text(TextKey.createconcertTravelModeWalking.localized).font(.cjBody)
+        default:     Text(TextKey.createconcertTravelModeTrain.localized).font(.cjBody)
         }
     }
 }
@@ -617,7 +618,7 @@ struct ConcertTicketSection: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            CJDivider(title: TextKey.ticket.localized, image: nil)
+            CJDivider(title: TextKey.createconcertSectionTicket.localized, image: nil)
                 .padding(.horizontal)
             if let ticket = draft.ticket {
                 ticketDetails(ticket)
@@ -626,7 +627,7 @@ struct ConcertTicketSection: View {
                 HapticManager.shared.buttonTap()
                 onEdit()
             } label: {
-                Text(TextKey.infoAdd.localized).font(.cjBody)
+                Text(TextKey.createconcertAddTicket.localized).font(.cjBody)
             }
             .padding()
             .glassEffect()
@@ -651,9 +652,9 @@ struct ConcertTicketSection: View {
             case .seated:
                 Grid {
                     GridRow {
-                        if ticket.seatBlock != nil { Text(TextKey.block.localized).font(.cjHeadline) }
-                        if ticket.seatRow != nil   { Text(TextKey.row.localized).font(.cjHeadline) }
-                        if ticket.seatNumber != nil { Text(TextKey.seat.localized).font(.cjHeadline) }
+                        if ticket.seatBlock != nil { Text(TextKey.createconcertTicketSeatedBlock.localized).font(.cjHeadline) }
+                        if ticket.seatRow != nil   { Text(TextKey.createconcertTicketSeatedRow.localized).font(.cjHeadline) }
+                        if ticket.seatNumber != nil { Text(TextKey.createconcertTicketSeatedSeat.localized).font(.cjHeadline) }
                     }
                     GridRow {
                         if let b = ticket.seatBlock  { Text(b).font(.cjTitle) }
@@ -680,7 +681,7 @@ struct ConcertBuddySection: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            CJDivider(title: "Mit dabei", image: nil)
+            CJDivider(title: TextKey.createconcertSectionBuddies.localized, image: nil)
                 .padding(.horizontal)
 
             if !draft.buddyAttendees.isEmpty {
@@ -704,7 +705,7 @@ struct ConcertBuddySection: View {
                 onSelect()
             } label: {
                 Label(
-                    draft.buddyAttendees.isEmpty ? "Begleiter hinzufügen" : "Begleiter bearbeiten",
+                    draft.buddyAttendees.isEmpty ? TextKey.createconcertAddBuddies.localized : TextKey.createconcertEditBuddies.localized,
                     systemImage: "person.badge.plus"
                 )
                 .font(.cjBody)
@@ -722,11 +723,11 @@ struct ConcertRatingSection: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            CJDivider(title: TextKey.sectionRating.localized, image: nil)
+            CJDivider(title: TextKey.createconcertSectionRating.localized, image: nil)
                 .padding(.horizontal)
             Stepper(value: $rating, in: 0...10) {
                 HStack {
-                    Text(TextKey.fieldRating.localized).font(.cjBody)
+                    Text(TextKey.createconcertRating.localized).font(.cjBody)
                     Spacer()
                     Text("\(rating)")
                         .monospacedDigit()
@@ -748,7 +749,7 @@ struct ConcertNoteSection: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            CJDivider(title: TextKey.myExperience.localized, image: nil)
+            CJDivider(title: TextKey.createconcertSectionExperience.localized, image: nil)
                 .padding(.horizontal)
             TextEditor(text: $draft.notes)
                 .background(Color.clear)
@@ -776,7 +777,7 @@ struct ConcertSetlistSection: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            CJDivider(title: TextKey.setlist.localized, image: nil)
+            CJDivider(title: TextKey.createconcertSectionSetlist.localized, image: nil)
                 .padding(.horizontal)
 
             if !draft.setlistItems.isEmpty {
@@ -788,7 +789,7 @@ struct ConcertSetlistSection: View {
                         HapticManager.shared.buttonTap()
                         onCreateSetlist()
                     } label: {
-                        Text(TextKey.editSetlist.localized)
+                        Text(TextKey.createconcertEditSetlist.localized)
                             .padding()
                             .glassEffect()
                             .font(.cjBody)
@@ -799,7 +800,7 @@ struct ConcertSetlistSection: View {
                 Button {
                     onCreateSetlist()
                 } label: {
-                    Text(TextKey.addSetlist.localized)
+                    Text(TextKey.createconcertAddSetlsit.localized)
                         .padding()
                         .glassEffect()
                         .font(.cjBody)
@@ -816,7 +817,7 @@ struct ConcertSetlistSection: View {
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(height: 38)
-                            Text(TextKey.importFromSpotify.localized)
+                            Text(TextKey.createconcertSetlistImportSpotify.localized)
                                 .font(.cjBody)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .foregroundStyle(.white)
@@ -880,7 +881,7 @@ struct ConcertImagesSection: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            CJDivider(title: TextKey.images.localized, image: nil)
+            CJDivider(title: TextKey.createconcertSectionPhotos.localized, image: nil)
                 .padding(.horizontal)
 
             PhotosPicker(
@@ -889,7 +890,7 @@ struct ConcertImagesSection: View {
                 matching: .images,
                 photoLibrary: .shared()
             ) {
-                Label(TextKey.addPhotos.localized, systemImage: "photo.on.rectangle.angled")
+                Label(TextKey.createconcertAddPhotos.localized, systemImage: "photo.on.rectangle.angled")
                     .font(.cjBody)
             }
             .padding()

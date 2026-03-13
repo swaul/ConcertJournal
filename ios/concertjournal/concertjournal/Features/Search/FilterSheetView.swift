@@ -38,11 +38,11 @@ struct FilterSheetView: View {
                     citySection
                 }
             }
-            .navigationTitle("Filter & Sortierung")
+            .navigationTitle(TextKey.searchFilterSheetTitle.localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(TextKey.done.localized) {
+                    Button(TextKey.genericDone.localized) {
                         dismiss()
                     }
                     .font(.cjBody)
@@ -50,7 +50,7 @@ struct FilterSheetView: View {
 
                 ToolbarItem(placement: .primaryAction) {
                     if filters.hasActiveFilters {
-                        Button("Zurücksetzen") {
+                        Button(TextKey.searchFilterSheetReset.localized) {
                             withAnimation {
                                 filters.reset()
                             }
@@ -68,7 +68,7 @@ struct FilterSheetView: View {
         // Sort Section
         Section {
             HStack {
-                Text(TextKey.sortColon.localized)
+                Text(TextKey.searchFilterSheetSorting.localized)
                     .font(.cjBody)
                 Menu {
                     ForEach(ConcertSortOption.allCases) { option in
@@ -105,7 +105,7 @@ struct FilterSheetView: View {
                 .buttonStyle(.glass)
             }
         } header: {
-            Text(TextKey.fieldSort.localized)
+            Text(TextKey.searchFilterSheetSectionSorting.localized)
                 .font(.cjCaption)
         }
     }
@@ -115,7 +115,7 @@ struct FilterSheetView: View {
         // Date Filter Section
         Section {
             HStack(alignment: .firstTextBaseline) {
-                Text(TextKey.timeRange.localized)
+                Text(TextKey.searchFilterSheetDate.localized)
 
                 VStack {
                     Menu {
@@ -154,7 +154,7 @@ struct FilterSheetView: View {
                     if filters.dateFilter == .custom {
                         VStack(alignment: .leading, spacing: 8) {
                             DatePicker(
-                                "Von",
+                                TextKey.searchFilterSheetDateFrom.localized,
                                 selection: Binding(
                                     get: { filters.customDateRange.start ?? Date() },
                                     set: { filters.customDateRange.start = $0 }
@@ -164,7 +164,7 @@ struct FilterSheetView: View {
                             .font(.cjBody)
 
                             DatePicker(
-                                "Bis",
+                                TextKey.searchFilterSheetDateUntil.localized,
                                 selection: Binding(
                                     get: { filters.customDateRange.end ?? Date() },
                                     set: { filters.customDateRange.end = $0 }
@@ -177,7 +177,7 @@ struct FilterSheetView: View {
                 }
             }
         } header: {
-            Text(TextKey.date.localized)
+            Text(TextKey.searchFilterSheetSectionDate.localized)
                 .font(.cjCaption)
         }
     }
@@ -187,7 +187,7 @@ struct FilterSheetView: View {
         // Rating Filter Section
         Section {
             HStack {
-                Text(TextKey.review.localized)
+                Text(TextKey.searchFilterSheetRating.localized)
                     .font(.cjBody)
 
                 Menu {
@@ -227,7 +227,7 @@ struct FilterSheetView: View {
                 .frame(maxWidth: .infinity, alignment: .trailing)
             }
         } header: {
-            Text(TextKey.review.localized)
+            Text(TextKey.searchFilterSheetSectionRating.localized)
                 .font(.cjCaption)
         }
     }
@@ -259,11 +259,11 @@ struct FilterSheetView: View {
             }
         } header: {
             HStack {
-                Text(TextKey.artist.localized)
+                Text(TextKey.searchFilterSheetSectionArtist.localized)
                     .font(.cjCaption)
                 Spacer()
                 if !filters.selectedArtists.isEmpty {
-                    Text("\(filters.selectedArtists.count) ausgewählt")
+                    Text(TextKey.searchFilterSheetArtistCount.localized(with: String(filters.selectedArtists.count)))
                         .font(.cjCaption)
                         .foregroundColor(.secondary)
                 }
@@ -298,11 +298,11 @@ struct FilterSheetView: View {
             }
         } header: {
             HStack {
-                Text(TextKey.cities.localized)
+                Text(TextKey.searchFilterSheetSectionCity.localized)
                     .font(.cjCaption)
                 Spacer()
                 if !filters.selectedCities.isEmpty {
-                    Text("\(filters.selectedCities.count) ausgewählt")
+                    Text(TextKey.searchFilterSheetCityCount.localized(with: String(filters.selectedCities.count)))
                         .font(.cjCaption)
                         .foregroundColor(.secondary)
                 }

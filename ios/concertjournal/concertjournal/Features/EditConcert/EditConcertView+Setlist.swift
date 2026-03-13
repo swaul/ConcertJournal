@@ -29,7 +29,7 @@ extension ConcertEditView {
                     editSeltistPresenting = CreateSetlistViewModel(currentSelection: setlistItems, spotifyRepository: dependencies.spotifyRepository, setlistRepository: dependencies.setlistRepository)
 
                 } label: {
-                    Text(TextKey.editSetlist.localized)
+                    Text(TextKey.editconcertEditSetlist.localized)
                         .font(.cjBody)
                 }
                 .padding()
@@ -39,7 +39,7 @@ extension ConcertEditView {
                     HapticManager.shared.buttonTap()
                     editSeltistPresenting = CreateSetlistViewModel(currentSelection: setlistItems, spotifyRepository: dependencies.spotifyRepository, setlistRepository: dependencies.setlistRepository)
                 } label: {
-                    Text(TextKey.addSetlist.localized)
+                    Text(TextKey.editconcertAddSetlsit.localized)
                         .font(.cjBody)
                 }
                 .padding()

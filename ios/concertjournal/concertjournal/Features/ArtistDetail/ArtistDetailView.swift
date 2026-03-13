@@ -78,7 +78,7 @@ struct ArtistDetailView: View {
 
             VStack {
                 HStack {
-                    Text(TextKey.concertsThisYear.localized)
+                    Text(TextKey.artistDetailConcertsThisYear.localized)
                         .font(.cjBody)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Text(String(artistInfo.totalPastConcerts))
@@ -86,7 +86,7 @@ struct ArtistDetailView: View {
                 }
                 if artistInfo.futureConcerts != 0 {
                     HStack {
-                        Text(TextKey.plannedThisYear.localized)
+                        Text(TextKey.artistDetailPlannedThisYear.localized)
                             .font(.cjBody)
                             .frame(maxWidth: .infinity, alignment: .leading)
                         Text(String(artistInfo.futureConcerts))
@@ -96,14 +96,14 @@ struct ArtistDetailView: View {
                 }
                 if artistInfo.hasAnyTravelInfos {
                     HStack {
-                        Text(TextKey.summary.localized)
+                        Text(TextKey.artistDetailTravelSummary.localized)
                             .font(.cjBody)
                     }
                     .padding(.top, 8)
 
                     if let moneySpentOnTravel = artistInfo.moneySpentOnTravel {
                         HStack {
-                            Text(TextKey.spentTotal.localized)
+                            Text(TextKey.artistDetailTravelExpenses.localized)
                                 .font(.cjBody)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             Text(moneySpentOnTravel.formatted)
@@ -113,7 +113,7 @@ struct ArtistDetailView: View {
                     }
                     if let moneySpentOnHotels = artistInfo.moneySpentOnHotels {
                         HStack {
-                            Text(TextKey.spentHotels.localized)
+                            Text(TextKey.artistDetailTravelSpentHotels.localized)
                                 .font(.cjBody)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             Text(moneySpentOnHotels.formatted)
@@ -123,7 +123,7 @@ struct ArtistDetailView: View {
                     }
                     if let travelDistance = artistInfo.travelDistance {
                         HStack {
-                            Text(TextKey.total.localized)
+                            Text(TextKey.artistDetailTravelTotal.localized)
                                 .font(.cjBody)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             Text(DistanceParser.format(travelDistance))
@@ -133,7 +133,7 @@ struct ArtistDetailView: View {
                     }
                     if let travelDuration = artistInfo.travelDuration {
                         HStack {
-                            Text(TextKey.totalTime.localized)
+                            Text(TextKey.artistDetailTravelTime.localized)
                                 .font(.cjBody)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             Text(DurationParser.format(travelDuration))
@@ -143,7 +143,7 @@ struct ArtistDetailView: View {
                     }
                     if let waitedFor = artistInfo.waitedFor {
                         HStack {
-                            Text(TextKey.waiting.localized)
+                            Text(TextKey.artistDetailTravelWaiting.localized)
                                 .font(.cjBody)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             Text(DurationParser.format(waitedFor))
@@ -154,14 +154,14 @@ struct ArtistDetailView: View {
                 }
                 if artistInfo.hasAnyTicketInfos {
                     HStack {
-                        Text(TextKey.ticketsSummary.localized)
+                        Text(TextKey.artistDetailTicketsSummary.localized)
                             .font(.cjBody)
                     }
                     .padding(.top, 8)
 
                     if let ticketCategories = artistInfo.ticketCategories {
                         HStack {
-                            Text(TextKey.categories.localized)
+                            Text(TextKey.artistDetailTicketCategories.localized)
                                 .font(.cjBody)
                                 .padding(.top, 2)
                         }
@@ -181,7 +181,7 @@ struct ArtistDetailView: View {
                     }
                     if let ticketTypes = artistInfo.ticketTypes {
                         HStack {
-                            Text(TextKey.types.localized)
+                            Text(TextKey.artistDetailTicketTypes.localized)
                                 .font(.cjBody)
                                 .padding(.top, 2)
                         }
@@ -202,7 +202,7 @@ struct ArtistDetailView: View {
                     }
                     if let moneySpentOnTickets = artistInfo.moneySpentOnTickets {
                         HStack {
-                            Text(TextKey.spentTickets.localized)
+                            Text(TextKey.artistDetailTravelSpentTickets.localized)
                                 .font(.cjBody)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             Text(moneySpentOnTickets.formatted)
@@ -213,7 +213,7 @@ struct ArtistDetailView: View {
                 }
                 if let moneySpent = artistInfo.moneySpentTotal {
                     HStack {
-                        Text(TextKey.spentTotal.localized)
+                        Text(TextKey.artistDetailTravelSpentTotal.localized)
                             .font(.cjBody)
                             .frame(maxWidth: .infinity, alignment: .leading)
                         Text(moneySpent.formatted)
@@ -227,7 +227,7 @@ struct ArtistDetailView: View {
                 if let showShouldAddInfoLabel = artistInfo.showShouldAddInfoLabel {
                     HStack {
                         Spacer()
-                        Text("Fehlen hier infos?")
+                        Text(TextKey.artistDetailMissingInfos.localized)
                             .font(.cjFootnote)
                             .foregroundStyle(.secondary)
                         Button {
@@ -259,7 +259,7 @@ struct ShouldAddMoreInfoItem: Identifiable {
     let year: String
 
     var text: String {
-        "Du hast \(count) Konzerte im Jahr \(year) ohne info über dein Ticket oder deine Reise. Füge mehr infos hinzu, um hier eine bessere übersicht zu haben"
+        TextKey.artistDetailAddInfo.localized(with: String(count), year)
     }
 }
 
@@ -277,7 +277,7 @@ struct ShouldAddMoreInfoView: View {
                 Button {
                     dismiss()
                 } label: {
-                    Text(TextKey.ok.localized)
+                    Text(TextKey.genericOk.localized)
                         .font(.cjBody)
                 }
                 .buttonStyle(.glass)

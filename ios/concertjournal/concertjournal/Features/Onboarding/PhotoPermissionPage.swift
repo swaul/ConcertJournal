@@ -43,12 +43,12 @@ struct PhotoPermissionPage: View {
                 }
                 
                 // Title
-                Text(TextKey.photoAccess.localized)
+                Text(TextKey.onboardingPermissionsPhotosTitle.localized)
                     .font(.custom("PlayfairDisplay-Bold", size: 32))
                     .multilineTextAlignment(.center)
                 
                 // Description
-                Text(TextKey.photoHint.localized)
+                Text(TextKey.onboardingPermissionsPhotosDesc.localized)
                     .font(.cjBody)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
@@ -79,10 +79,10 @@ struct PhotoPermissionPage: View {
                             if isRequesting {
                                 FlowerLoading()
                                     .frame(width: 40, height: 40)
-                                Text(TextKey.queryRunning.localized)
+                                Text(TextKey.onboardingPermissionQueryRunning.localized)
                                     .font(.cjTitle2)
                             } else {
-                                Text(TextKey.nextStepExclamation.localized)
+                                Text(TextKey.onboardingPermissionNext.localized)
                                     .font(.cjTitle2)
                             }
                         }
@@ -98,7 +98,7 @@ struct PhotoPermissionPage: View {
                             UIApplication.shared.open(url)
                         }
                     } label: {
-                        Text(TextKey.openSettings.localized)
+                        Text(TextKey.onboardingOpenSettings.localized)
                             .font(.cjHeadline)
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -109,7 +109,7 @@ struct PhotoPermissionPage: View {
                         HapticManager.shared.navigationTap()
                         manager.getNextStep()
                     } label: {
-                        Text("Das passt so")
+                        Text(TextKey.onboardingPermissionFine.localized)
                             .font(.cjFootnote)
                             .padding()
                     }

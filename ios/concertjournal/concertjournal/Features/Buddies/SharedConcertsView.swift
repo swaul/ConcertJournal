@@ -35,7 +35,7 @@ struct SharedConcertsView: View {
                         Image(systemName: "music.note.list")
                             .font(.system(size: 48))
                             .foregroundStyle(.secondary)
-                        Text("Keine gemeinsamen Konzerte")
+                        Text(TextKey.sharedconcertsNoSharedConcerts.localized)
                             .font(.cjHeadline)
                             .foregroundStyle(.secondary)
                     }
@@ -55,7 +55,7 @@ struct SharedConcertsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(TextKey.done.localized) { dismiss() }
+                    Button(TextKey.genericDone.localized) { dismiss() }
                         .font(.cjBody)
                 }
             }
@@ -71,7 +71,7 @@ struct SharedConcertsView: View {
                     Text(buddy.displayName)
                         .font(.cjTitle2)
 
-                    Label("\(sharedConcerts.count) gemeinsame Konzerte", systemImage: "music.note.list")
+                    Label(TextKey.sharedconcertsSharedConcerts.localized(with: String(sharedConcerts.count)), systemImage: "music.note.list")
                         .font(.cjBody)
                         .foregroundStyle(.secondary)
                 }

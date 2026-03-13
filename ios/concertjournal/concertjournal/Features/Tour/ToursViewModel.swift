@@ -37,7 +37,7 @@ class ToursViewModel {
             errorMessage = nil
             isLoading = false
         } catch {
-            errorMessage = "Fehler beim Laden der Touren: \(error.localizedDescription)"
+            errorMessage = TextKey.toursLoadingError.localized
             isLoading = false
         }
     }
@@ -56,7 +56,7 @@ class ToursViewModel {
             try tourRepository.deleteTour(tour)
             loadTours()
         } catch {
-            errorMessage = "Fehler beim Löschen: \(error.localizedDescription)"
+            errorMessage = TextKey.toursDeleteError.localized
         }
     }
 

@@ -22,20 +22,20 @@ extension ConcertEditView {
                     }
                     if let travelDuration = travel.travelDuration {
                         let parsedDuration = DurationParser.format(travelDuration)
-                        Text(TextKey.durationWas.localized(with: parsedDuration))
+                        Text(TextKey.editconcertTravelDuration.localized(with: parsedDuration))
                     }
                     if let travelDistance = travel.travelDistance {
                         let parsedDistance = DistanceParser.format(travelDistance)
-                        Text(TextKey.distanceWas.localized(with: parsedDistance))
+                        Text(TextKey.editconcertTravelDistance.localized(with: parsedDistance))
                     }
                     if let arrivedAt = travel.arrivedAt {
-                        Text(TextKey.arrived.localized(with: arrivedAt.timeOnlyString))
+                        Text(TextKey.editconcertTravelArrivalTime.localized(with: arrivedAt.timeOnlyString))
                     }
                     if let travelExpenses = travel.travelExpenses {
-                        Text(TextKey.costWas.localized(with: travelExpenses.formatted))
+                        Text(TextKey.editconcertTravelCost.localized(with: travelExpenses.formatted))
                     }
                     if let hotelExpenses = travel.hotelExpenses {
-                        Text(TextKey.hotelCost.localized(with: hotelExpenses.formatted))
+                        Text(TextKey.editconcertHotelCost.localized(with: hotelExpenses.formatted))
                     }
                 }
                 .font(.cjBody)
@@ -46,7 +46,7 @@ extension ConcertEditView {
             Button {
                 editTravelPresenting = true
             } label: {
-                Text(TextKey.addTravelInfo.localized)
+                Text(TextKey.editconcertAddTravel.localized)
             }
             .padding()
             .glassEffect()

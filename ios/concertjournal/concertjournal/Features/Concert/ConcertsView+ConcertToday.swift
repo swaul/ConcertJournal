@@ -30,7 +30,7 @@ struct ConcertTodayView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "calendar.badge.clock")
                             .font(.title3)
-                        Text(TextKey.today.localized)
+                        Text(TextKey.homeTodaysConcert.localized)
                             .font(.cjHeadline)
                     }
                     .foregroundStyle(.white)
@@ -64,7 +64,7 @@ struct ConcertTodayView: View {
                             Image(systemName: "dot.radiowaves.left.and.right")
                                 .font(.caption)
                                 .symbolEffect(.rotate.byLayer, options: .repeat(.periodic(delay: 5.0)))
-                            Text("LIVE")
+                            Text(TextKey.homeConcertTodayLive.localized)
                                 .font(.system(size: 13, weight: .bold))
                         }
                         .foregroundStyle(.white)
@@ -198,7 +198,7 @@ struct ConcertTodayView: View {
                             Image(systemName: "dot.radiowaves.left.and.right")
                                 .font(.caption)
                                 .symbolEffect(.rotate.byLayer, options: .repeat(.periodic(delay: 5.0)))
-                            Text("LIVE")
+                            Text(TextKey.homeConcertTodayLive.localized)
                                 .font(.system(size: 13, weight: .bold))
                         }
                         .foregroundStyle(.white)
@@ -272,7 +272,7 @@ struct ConcertTodayView: View {
         let seconds = String(format: "%02d", s)
 
         if h == 0, m == 0 {
-            return "noch \(seconds) Sek!"
+            return TextKey.homeConcertTodayCountdownSeconds.localized(with: String(seconds))
         } else if h == 0 {
             return "\(minutes):\(seconds)"
         }

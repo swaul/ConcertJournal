@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /**
- * generate-textkey.js (Updated für Underscore-basierte Keys)
+ * generate-textkey.js (Updated für Underscore-basierte Keys + DocComments)
  *
  * Generates TextKey.swift from the source locale JSON.
  * - Groups cases under MARK sections based on the key prefix (now underscore-based)
  * - Derives a camelCase Swift identifier from the JSON key
  * - Automatically resolves name collisions by prepending prefix segments
  *   e.g. "loginview_emailfield_placeholder" → loginviewEmailfieldPlaceholder
+ * - Adds DocComments with actual string values for each case
  * - Appends the existing extension block (localized helpers) unchanged
  *
  * Usage:
@@ -71,6 +72,23 @@ function escape(name) {
 /** Pad a string on the right to a given length */
 function padRight(str, len) {
   return str + " ".repeat(Math.max(0, len - str.length));
+}
+
+/**
+ * Escape a string value for use in a Swift DocComment.
+ * - Escapes backslashes
+ * - Escapes double quotes
+ * - Handles newlines by converting them to "\n" representation
+ */
+function escapeForDocComment(value) {
+  let escaped = String(value);
+  // Escape backslashes first (before we add more)
+  escaped = escaped.replace(/\\/g, "\\\\");
+  // Escape double quotes
+  escaped = escaped.replace(/"/g, '\\"');
+  // Convert actual newlines to literal \n for readability
+  escaped = escaped.replace(/\n/g, "\\n");
+  return escaped;
 }
 
 /**
@@ -209,9 +227,10 @@ for (const [pfx, keys] of groups) {
   for (const key of keys) {
     const ident   = identMap[key];
     const value   = sourceObj[key];
-    const hasArgs = typeof value === "string" && value.includes("%");
-    const comment = hasArgs ? `  // "${value}"` : "";
-    lines.push(`    case ${padRight(ident, maxIdentLen)} = "${key}"${comment}`);
+    const docComment = escapeForDocComment(value);
+    
+    lines.push(`    /// "${docComment}"`);
+    lines.push(`    case ${padRight(ident, maxIdentLen)} = "${key}"`);
   }
 }
 

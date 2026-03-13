@@ -121,16 +121,15 @@ class ConcertsViewModel: NSObject {
             lastSyncDate = Date()
         } catch {
             isSyncing = false
-            errorMessage = ErrorMessage(message: "Sync failed: \(error.localizedDescription)")
+            errorMessage = ErrorMessage(message: TextKey.homeSyncFailed.localized)
         }
     }
 
     func deleteConcert(_ concert: Concert) async {
         do {
             try repository.deleteConcert(concert.objectID)
-            // UI aktualisiert sich automatisch via FRC Delegate
         } catch {
-            errorMessage = ErrorMessage(message: "Delete failed: \(error.localizedDescription)")
+            errorMessage = ErrorMessage(message: TextKey.homeDeletionFailed.localized)
         }
     }
 

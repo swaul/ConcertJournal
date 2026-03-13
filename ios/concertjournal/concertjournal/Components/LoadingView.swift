@@ -13,7 +13,7 @@ struct LoadingView: View {
     var body: some View {
         VStack(spacing: 24) {
             FlowerLoading()
-            Text(TextKey.stateLoading.localized)
+            Text(TextKey.genericLoading.localized)
                 .font(.cjTitle2)
                 .padding()
         }
@@ -61,7 +61,7 @@ struct SearchingView: View {
                 .frame(width: 48)
                 .foregroundStyle(dependencies.colorThemeManager.appTint)
 
-            Text("Suche \(searchContent)...")
+            Text(TextKey.loadingSearching.localized(with: searchContent))
                 .font(.cjTitle2)
                 .padding()
         }

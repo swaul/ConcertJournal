@@ -67,7 +67,10 @@ public struct CreateConcertTravelView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading) {
-                    Text(TextKey.transportQuestion.localized)
+                    Text(TextKey.createtravelDesc.localized)
+                        .font(.cjBody)
+                    
+                    Text(TextKey.createtravelTransport.localized)
                         .font(.cjBody)
 
                     HStack {
@@ -83,7 +86,7 @@ public struct CreateConcertTravelView: View {
                                 }
                             }
                         } label: {
-                            Text(TextKey.seatInfo.localized)
+                            Text(TextKey.createtravelTransportChooseOption.localized)
                                 .font(.cjBody)
                                 .padding(4)
                         }
@@ -106,18 +109,18 @@ public struct CreateConcertTravelView: View {
                         }
                     }
 
-                    Text(TextKey.durationQuestion.localized)
+                    Text(TextKey.createtravelDuration.localized)
                         .font(.cjBody)
                         .padding(.top)
 
                     DurationValidatedTextField("z.B.: 3h 27m", text: $durationText)
 
-                    Text(TextKey.distanceQuestion.localized)
+                    Text(TextKey.createtravelDistance.localized)
                         .font(.cjBody)
                         .padding(.top)
                     DistanceValidatedTextField("z.B.: 346,5km", text: $distanceText)
 
-                    Text(TextKey.arrivalTime.localized)
+                    Text(TextKey.createtravelArrivalTime.localized)
                         .font(.cjBody)
                         .padding(.top)
                     DatePicker("", selection: $arrivedAt)
@@ -125,12 +128,12 @@ public struct CreateConcertTravelView: View {
                             arrivedAtSetByUser = newValue
                         }
 
-                    Text(TextKey.travelCostQuestion.localized)
+                    Text(TextKey.createtravelCost.localized)
                         .font(.cjBody)
                         .padding(.top)
                     ExpensesValidatedTextField("z.B.: 38,99 €", text: $expensesText)
 
-                    Toggle("Bist du über Nacht geblieben?", isOn: $spentTheNight)
+                    Toggle(TextKey.createtravelStayedOverNight.localized, isOn: $spentTheNight)
                         .font(.cjBody)
                         .padding(.top)
                         .onChange(of: spentTheNight) { _, newValue in
@@ -139,7 +142,7 @@ public struct CreateConcertTravelView: View {
                             }
                         }
                     if animatedSpentTheNight {
-                        Text(TextKey.hotelCostQuestion.localized)
+                        Text(TextKey.createtravelHotelCost.localized)
                             .font(.cjBody)
                             .transition(.move(edge: .trailing).combined(with: .opacity))
                         ExpensesValidatedTextField("z.B.: 149,89 €", text: $hotelExpensesText)
@@ -150,14 +153,14 @@ public struct CreateConcertTravelView: View {
                 .padding()
             }
             .scrollBounceBehavior(.basedOnSize)
-            .navigationTitle("Reise infos")
+            .navigationTitle(TextKey.createtravelTitle.localized)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         HapticManager.shared.buttonTap()
                         saveValues()
                     } label: {
-                        Text(TextKey.save.localized)
+                        Text(TextKey.genericSave.localized)
                             .font(.cjBody)
                     }
                 }
@@ -227,14 +230,14 @@ struct DistanceValidatedTextField: View {
                 }
 
             if !isValid {
-                Text(TextKey.invalidFormat.localized)
+                Text(TextKey.createtravelInvalidFormat.localized)
                     .font(.cjCaption)
                     .foregroundStyle(.red)
                     .transition(.move(edge: .top).combined(with: .opacity))
             } else if let previewLabel {
                 HStack {
                     Spacer()
-                    Text(TextKey.previewLabel.localized)
+                    Text(TextKey.createtravelPreview.localized)
                         .font(.cjCaption)
                     Text(previewLabel)
                         .font(.cjCaption)
@@ -273,14 +276,14 @@ struct DurationValidatedTextField: View {
                 }
 
             if !isValid {
-                Text(TextKey.invalidFormat.localized)
+                Text(TextKey.createtravelInvalidFormat.localized)
                     .font(.cjCaption)
                     .foregroundStyle(.red)
                     .transition(.move(edge: .top).combined(with: .opacity))
             } else if let previewLabel {
                 HStack {
                     Spacer()
-                    Text(TextKey.previewLabel.localized)
+                    Text(TextKey.createtravelPreview.localized)
                         .font(.cjCaption)
                     Text(previewLabel)
                         .font(.cjCaption)
@@ -319,16 +322,16 @@ struct ExpensesValidatedTextField: View {
                 }
 
             if !isValid {
-                Text(TextKey.invalidFormat.localized)
+                Text(TextKey.createtravelInvalidFormat.localized)
                     .font(.cjCaption)
                     .foregroundStyle(.red)
                     .transition(.move(edge: .top).combined(with: .opacity))
             } else if let previewLabel {
-                Text(TextKey.previewLabel.localized + " \(previewLabel)")
+                Text(TextKey.createtravelPreview.localized + " \(previewLabel)")
                     .font(.cjFootnote)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             } else {
-                Text(TextKey.previewLabel.localized)
+                Text(TextKey.createtravelPreview.localized)
                     .font(.cjFootnote)
                     .foregroundStyle(.clear)
             }
@@ -361,7 +364,7 @@ struct EmailValidatedTextField: View {
                 }
 
             if !isValid {
-                Text(TextKey.invalidFormat.localized)
+                Text(TextKey.createtravelInvalidFormat.localized)
                     .font(.cjCaption)
                     .foregroundStyle(.red)
                     .transition(.move(edge: .top).combined(with: .opacity))

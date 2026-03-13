@@ -37,42 +37,42 @@ struct ExtractedTicketInfoCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(TextKey.recognized.localized)
+            Text(TextKey.createconcertImportRecognized.localized)
                 .font(.cjCaption)
                 .foregroundColor(.secondary)
             
             VStack(alignment: .leading, spacing: 8) {
-                InfoRow(icon: "music.mic", title: "Künstler", value: $artistName, extractedText: extractedText)
+                InfoRow(icon: "music.mic", title: TextKey.createconcertImportArtist.localized, value: $artistName, extractedText: extractedText)
 
                 if !venueName.isEmpty {
-                    InfoRow(icon: "building.2", title: "Location", value: $venueName, extractedText: extractedText)
+                    InfoRow(icon: "building.2", title: TextKey.createconcertImportLocation.localized, value: $venueName, extractedText: extractedText)
                 }
                 
                 if !city.isEmpty {
-                    InfoRow(icon: "location.fill", title: "Stadt", value: $city, extractedText: extractedText)
+                    InfoRow(icon: "location.fill", title: TextKey.createconcertImportCity.localized, value: $city, extractedText: extractedText)
                 }
                 
                 if !dateString.isEmpty {
-                    InfoRow(icon: "calendar", title: "Datum", value: $dateString, extractedText: extractedText)
+                    InfoRow(icon: "calendar", title: TextKey.createconcertImportDate.localized, value: $dateString, extractedText: extractedText)
                 }
                 
                 if !price.isEmpty {
-                    InfoRow(icon: "eurosign", title: "Preis", value: $price, extractedText: extractedText)
+                    InfoRow(icon: "eurosign", title: TextKey.createconcertImportPrice.localized, value: $price, extractedText: extractedText)
                 }
                 
                 if !seatInfo.isEmpty {
-                    InfoRow(icon: "ticket", title: "Ticket art", value: $seatInfo, extractedText: extractedText)
+                    InfoRow(icon: "ticket", title: TextKey.createconcertImportTicketType.localized, value: $seatInfo, extractedText: extractedText)
                 }
                 
                 if !ticketProvider.isEmpty {
-                    InfoRow(icon: "building.columns", title: "Anbieter", value: $ticketProvider, extractedText: extractedText)
+                    InfoRow(icon: "building.columns", title: TextKey.createconcertImportVendor.localized, value: $ticketProvider, extractedText: extractedText)
                 }
             }
 
             Button {
                 confirmInfo()
             } label: {
-                Text(TextKey.createConcert.localized)
+                Text(TextKey.createconcertImportCreateConcert.localized)
                     .font(.cjHeadline)
                     .frame(maxWidth: .infinity)
                     .padding(4)
@@ -119,9 +119,9 @@ struct InfoRow: View {
     var body: some View {
         VStack {
             if focusedAnimated {
-                Text(TextKey.errorSomethingWrong.localized)
+                Text(TextKey.genericError.localized)
                     .font(.cjFootnote)
-                Text("Vielleicht ist hier etwas dabei:")
+                Text(TextKey.createconcertImportAlternativeOptions.localized)
                     .font(.cjCaption)
                 ScrollView(.horizontal) {
                     HStack {

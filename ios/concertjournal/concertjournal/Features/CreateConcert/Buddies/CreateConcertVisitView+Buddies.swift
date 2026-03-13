@@ -146,11 +146,11 @@ struct BuddyAttendeePickerSheet: View {
                 }
                 .scrollIndicators(.hidden)
             }
-            .navigationTitle("Mit dabei")
+            .navigationTitle(TextKey.createconcertBuddiesTitle.localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(TextKey.done.localized) {
+                    Button(TextKey.genericDone.localized) {
                         onSave(selectedAttendees)
                         isPresented = false
                     }
@@ -167,7 +167,7 @@ struct BuddyAttendeePickerSheet: View {
     @ViewBuilder
     private func buddiesSection() -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("Concert Buddies", systemImage: "person.2.fill")
+            Label(TextKey.createconcertSectionBuddies.localized, systemImage: "person.2.fill")
                 .font(.cjHeadline)
                 .padding(.leading, 4)
             
@@ -214,7 +214,7 @@ struct BuddyAttendeePickerSheet: View {
                             Text(buddy.displayName)
                                 .font(.cjHeadline)
                                 .foregroundStyle(.primary)
-                            Label("\(buddy.sharedConcerts) gemeinsame Konzerte", systemImage: "music.note.list")
+                            Label(TextKey.createconcertBuddiesSharedConcerts.localized(with: String(buddy.sharedConcerts)), systemImage: "music.note.list")
                                 .font(.cjFootnote)
                                 .foregroundStyle(.secondary)
                         }

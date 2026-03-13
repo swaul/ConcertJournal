@@ -82,7 +82,7 @@ struct MapView: View {
                             position = defaultPosition
                         }
                     } label: {
-                        Text(TextKey.showAll.localized)
+                        Text(TextKey.mapShowAll.localized)
                             .font(.cjBody)
                     }
                 }
@@ -145,7 +145,7 @@ struct MapView: View {
                         selectedItem = nil
                     }
                 } label: {
-                    Text(TextKey.close.localized)
+                    Text(TextKey.genericClose.localized)
                         .font(.cjBody)
                 }
                 .buttonStyle(.glass)

@@ -58,15 +58,15 @@ struct NotificationStatusView: View {
     private var statusText: String {
         switch status {
         case .authorized:
-            return "Benachrichtigungen erlaubt"
+            return TextKey.onboardingPermissionsNotificationsAllowed.localized
         case .ephemeral:
-            return "Benachrichtigungen Erlaubt für limitierte zeit"
+            return TextKey.onboardingPermissionsNotificationsLimited.localized
         case .denied:
-            return "Benachrichtigungen verweigert"
+            return TextKey.onboardingPermissionsNotificationsDenied.localized
         case .provisional:
-            return "Benachrichtigungen provisorisch erlaubt"
+            return TextKey.onboardingPermissionsNotificationsProvisional.localized
         case .notDetermined:
-            return "Noch nicht entschieden"
+            return TextKey.onboardingPermissionsNotificationsNotDetermined.localized
         @unknown default:
             return "Unbekannt"
         }

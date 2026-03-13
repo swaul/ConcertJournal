@@ -49,7 +49,7 @@ extension ConcertEditView {
         Button {
             buddyPickerPresenting = true
         } label: {
-            Text(buddyAttendees.isEmpty ? "Begleiter hinzufügen" : "Begleiter bearbeiten")
+            Text(buddyAttendees.isEmpty ? TextKey.editconcertAddBuddies.localized : TextKey.editconcertEditBuddies.localized)
                 .font(.cjBody)
         }
         .padding()

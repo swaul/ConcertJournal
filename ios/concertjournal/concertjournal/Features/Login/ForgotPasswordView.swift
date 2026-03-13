@@ -26,11 +26,11 @@ struct ForgotPasswordView: View {
         NavigationStack {
             VStack(alignment: .leading) {
                 
-                Text(TextKey.forgotPasswordDesc.localized)
+                Text(TextKey.forgotpasswordDesc.localized)
                     .font(.cjBody)
                     .padding()
                 
-                EmailValidatedTextField("E-Mail", text: $email)
+                EmailValidatedTextField(TextKey.forgotpasswordEmail.localized, text: $email)
                     .frame(maxWidth: .infinity)
                     .padding()
                 
@@ -40,7 +40,7 @@ struct ForgotPasswordView: View {
                 Button {
                     initiatePasswordReset()
                 } label: {
-                    Text(TextKey.sendResetLink.localized)
+                    Text(TextKey.forgotpasswordSend.localized)
                         .font(.cjBody)
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -54,7 +54,7 @@ struct ForgotPasswordView: View {
                 }
             }
             .sheet(isPresented: $savingConcertPresenting) {
-                LoadingSheet(message: "Email versenden..")
+                LoadingSheet(message: TextKey.forgotpasswordSending.localized)
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -62,12 +62,12 @@ struct ForgotPasswordView: View {
                         HapticManager.shared.navigationTap()
                         dismiss()
                     } label: {
-                        Text(TextKey.cancel.localized)
+                        Text(TextKey.genericCancel.localized)
                             .font(.cjBody)
                     }
                 }
             }
-            .navigationTitle("Passwort vergessen")
+            .navigationTitle(TextKey.forgotpasswordTitle.localized)
         }
     }
     

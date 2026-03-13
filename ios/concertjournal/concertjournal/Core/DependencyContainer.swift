@@ -168,7 +168,6 @@ extension View {
 }
 
 extension Notification.Name {
-    static let syncingProblem = Notification.Name("SyncingProblem")
     static let resetAppState = Notification.Name("ResetAppState")
     static let loggedInChanged = Notification.Name("LoggedInChanged")
     static let openBuddies = Notification.Name("openBuddies")

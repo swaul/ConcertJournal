@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Supabase
 
 struct TermsUpdatedView: View {
     
@@ -29,18 +30,20 @@ struct TermsUpdatedView: View {
     var body: some View {
         NavigationStack {
             VStack {
-                Text("Wir haben unsere Richtlinien geändert. Bitte überprüfe diese erneut.")
+                Text(TextKey.termsUpdatedMessage.localized)
                     .font(.cjTitleF)
                 
                 Spacer()
                 
                 HStack {
                     Image(systemName: "arrow.down")
-                    Text("Lesen")
+                    Text(TextKey.termsUpdatedView.localized)
+                        .font(.cjBody)
                     
                     Spacer()
                     
-                    Text("Akzeptieren")
+                    Text(TextKey.termsUpdatedAccept.localized)
+                        .font(.cjBody)
                     Image(systemName: "arrow.down")
                 }
                 
@@ -48,7 +51,7 @@ struct TermsUpdatedView: View {
                     Button {
                         showPrivacySheet = true
                     } label: {
-                        Text("Datenschutz")
+                        Text(TextKey.termsUpdatedPrivacy.localized)
                             .font(.cjBody)
                             .underline()
                     }
@@ -62,7 +65,7 @@ struct TermsUpdatedView: View {
                     Button {
                         showTermsSheet = true
                     } label: {
-                        Text("AGB")
+                        Text(TextKey.termsUpdatedTerms.localized)
                             .font(.cjBody)
                             .underline()
                     }
@@ -76,7 +79,7 @@ struct TermsUpdatedView: View {
                     HapticManager.shared.navigationTap()
                     handleAccept()
                 } label: {
-                    Text(TextKey.confirm.localized)
+                    Text(TextKey.genericConfirm.localized)
                         .font(.cjHeadline)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding()
@@ -86,7 +89,7 @@ struct TermsUpdatedView: View {
                 .disabled(termsAccepted == false || privacyAccepted == false)
             }
             .padding()
-            .navigationTitle("Updates")
+            .navigationTitle(TextKey.termsUpdatedTitle.localized)
             .sheet(isPresented: $showTermsSheet) {
                 HTMLTermsView()
             }

@@ -58,15 +58,15 @@ struct PermissionStatusView: View {
     private var statusText: String {
         switch status {
         case .authorized:
-            return "Zugriff erlaubt"
+            return TextKey.onboardingPermissionsStatusAuthorized.localized
         case .limited:
-            return "Eingeschränkter Zugriff"
+            return TextKey.onboardingPermissionsStatusRestricted.localized
         case .denied:
-            return "Zugriff verweigert"
+            return TextKey.onboardingPermissionsStatusDenied.localized
         case .restricted:
-            return "Zugriff eingeschränkt"
+            return TextKey.onboardingPermissionsStatusLimited.localized
         case .notDetermined:
-            return "Noch nicht entschieden"
+            return TextKey.onboardingPermissionsStatusNotDetermined.localized
         @unknown default:
             return "Unbekannt"
         }

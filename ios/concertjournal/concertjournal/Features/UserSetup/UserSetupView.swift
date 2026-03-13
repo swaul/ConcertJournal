@@ -59,11 +59,11 @@ private struct UserSetupContent: View {
                 
                 // ── Header ────────────────────────────────────────────
                 VStack(spacing: 12) {
-                    Text(TextKey.almostDone.localized)
+                    Text(TextKey.usersetupAlmostDone.localized)
                         .font(.custom("PlayfairDisplay-Bold", size: 36))
                         .multilineTextAlignment(.center)
                     
-                    Text(TextKey.nameQuestion.localized)
+                    Text(TextKey.usersetupSetupDisplayName.localized)
                         .font(.cjBody)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -90,7 +90,7 @@ private struct UserSetupContent: View {
                         Button {
                             nameFocused = false
                         } label: {
-                            Text(TextKey.addPhotoLater.localized)
+                            Text(TextKey.usersetupSkipPhoto.localized)
                                 .font(.cjFootnote)
                                 .foregroundStyle(.secondary)
                         }
@@ -121,19 +121,19 @@ private struct UserSetupContent: View {
                     HStack(spacing: 10) {
                         FlowerLoading()
                             .frame(width: 40, height: 40)
-                        Text("Speichern…").font(.cjTitle2)
+                        Text(TextKey.profileEditSaving.localized).font(.cjTitle2)
                     }
                     .frame(maxWidth: .infinity)
                 } else if case .success = viewModel.state {
                     HStack(spacing: 10) {
                         Image(systemName: "checkmark.circle.fill")
-                        Text(TextKey.updatesSaved.localized).font(.cjTitle2)
+                        Text(TextKey.usersetupUpdatesSaved.localized).font(.cjTitle2)
                     }
                     .frame(maxWidth: .infinity)
                     .foregroundStyle(.green)
                 } else {
                     HStack {
-                        Text(TextKey.letsGo.localized)
+                        Text(TextKey.usersetupLetsGo.localized)
                             .font(.cjTitle2)
                         Image(systemName: "arrow.right")
                     }
@@ -204,7 +204,7 @@ private struct AvatarPickerSection: View {
                                     Image(systemName: "person.fill")
                                         .font(.system(size: 36))
                                         .foregroundStyle(.secondary)
-                                    Text(TextKey.photo.localized)
+                                    Text(TextKey.usersetupPhoto.localized)
                                         .font(.cjFootnote)
                                         .foregroundStyle(.secondary)
                                 }
@@ -251,7 +251,7 @@ private struct NameInputSection: View {
         VStack(alignment: .leading, spacing: 8) {
             // Label
             HStack {
-                Text(TextKey.displayName.localized)
+                Text(TextKey.usersetupDisplayName.localized)
                     .font(.cjHeadline)
                 Spacer()
                 Text("\(characterCount)/\(maxLength)")
@@ -267,7 +267,7 @@ private struct NameInputSection: View {
                     .foregroundStyle(.secondary)
                     .font(.system(size: 16))
                 
-                TextField("z.B. Max Mustermann", text: $viewModel.displayName)
+                TextField(TextKey.usersetupDisplayNamePlaceholder.localized, text: $viewModel.displayName)
                     .font(.cjBody)
                     .focused(nameFocused)
                     .submitLabel(.done)
@@ -301,7 +301,7 @@ private struct NameInputSection: View {
             }
             
             // Hinweis
-            Text(TextKey.displayNameHint.localized)
+            Text(TextKey.usersetupDisplayNameHint.localized)
                 .font(.cjFootnote)
                 .foregroundStyle(.tertiary)
                 .padding(.horizontal, 4)

@@ -55,13 +55,13 @@ struct TrackingStatusView: View {
     private var statusText: String {
         switch status {
         case .authorized:
-            return "Tracking erlaubt"
+            return TextKey.onboardingPermissionsTrackingStatusAuthorized.localized
         case .denied:
-            return "Tracking verweigert"
+            return TextKey.onboardingPermissionsTrackingStatusDenied.localized
         case .restricted:
-            return "Tracking eingeschränkt"
+            return TextKey.onboardingPermissionsTrackingStatusRestricted.localized
         case .notDetermined:
-            return "Noch nicht entschieden"
+            return TextKey.onboardingPermissionsTrackingStatusNotDetermined.localized
         @unknown default:
             return "Unbekannt"
         }

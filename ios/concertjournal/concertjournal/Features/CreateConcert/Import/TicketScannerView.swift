@@ -42,7 +42,7 @@ struct TicketScannerView: View {
                             // Scanning State
                             VStack(spacing: 16) {
                                 FlowerLoading()
-                                Text(TextKey.scanning.localized)
+                                Text(TextKey.createconcertScannerScanning.localized)
                                     .font(.cjBody)
                                     .foregroundColor(.secondary)
                             }
@@ -91,14 +91,14 @@ struct TicketScannerView: View {
         }
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                Button("Abbrechen") {
+                Button(TextKey.genericCancel.localized) {
                     navigationManager.popToRoot()
                 }
             }
             
             if selectedImage != nil && extractedInfo == nil && !isScanning {
                 ToolbarItem(placement: .primaryAction) {
-                    Button("Manuell eingeben") {
+                    Button(TextKey.createconcertScannerEnterManually.localized) {
                         // Fallback: Manual entry
                         navigationManager.push(.createConcert)
                     }
@@ -142,7 +142,7 @@ struct TicketScannerView: View {
             extractedInfo = info
             
         } catch {
-            errorMessage = "Konnte Ticket nicht lesen. Bitte versuche es erneut oder gib die Daten manuell ein."
+            errorMessage = TextKey.createconcertScannerError.localized
             logError("Ticket scan failed", error: error, category: .import)
         }
         
@@ -235,10 +235,10 @@ struct TicketScannerView: View {
                 .font(.system(size: 80))
                 .foregroundColor(.accentColor)
             
-            Text(TextKey.scanTicket.localized)
+            Text(TextKey.createconcertScannerScanTicket.localized)
                 .font(.cjTitle2)
             
-            Text(TextKey.scanTicket.localized)
+            Text(TextKey.createconcertScannerScanTicketAuto.localized)
                 .font(.cjBody)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -248,7 +248,7 @@ struct TicketScannerView: View {
                 Button {
                     showCamera = true
                 } label: {
-                    Label("Kamera öffnen", systemImage: "camera")
+                    Label(TextKey.createconcertScannerOpenCamera.localized, systemImage: "camera")
                         .font(.cjHeadline)
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -260,7 +260,7 @@ struct TicketScannerView: View {
                 Button {
                     showImagePicker = true
                 } label: {
-                    Label("Aus Galerie wählen", systemImage: "photo.on.rectangle")
+                    Label(TextKey.createconcertScannerChooseImage.localized, systemImage: "photo.on.rectangle")
                         .font(.cjBody)
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -502,13 +502,13 @@ enum TicketScanError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidImage:
-            return "Ungültiges Bild"
+            return TextKey.createconcertScannerErrorInvalidImage.localized
         case .noTextFound:
-            return "Kein Text im Bild gefunden"
+            return TextKey.createconcertScannerErrorNoText.localized
         case .noArtistFound:
-            return "Konnte Künstlernamen nicht erkennen"
+            return TextKey.createconcertScannerErrorNoArtist.localized
         case .parsingFailed:
-            return "Konnte Ticket-Informationen nicht extrahieren"
+            return TextKey.createconcertScannerError.localized
         }
     }
 }

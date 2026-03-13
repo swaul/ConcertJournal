@@ -26,7 +26,7 @@ struct ConcertImportView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     // Preview Card
                     VStack(alignment: .leading, spacing: 12) {
-                        Text(TextKey.imported.localized)
+                        Text(TextKey.createconcertImport.localized)
                             .font(.cjCaption)
                             .foregroundColor(.secondary)
 
@@ -111,7 +111,7 @@ struct ConcertImportView: View {
                     Link(destination: URL(string: extractedInfo.originalURL)!) {
                         HStack {
                             Image(systemName: "link")
-                            Text(TextKey.openOriginalLink.localized)
+                            Text(TextKey.createconcertImportOriginalLink.localized)
                                 .font(.cjFootnote)
                         }
                         .foregroundColor(.accentColor)
@@ -132,11 +132,11 @@ struct ConcertImportView: View {
             .background {
                 Color.background
             }
-            .navigationTitle("Konzert importieren")
+            .navigationTitle(TextKey.createconcertImport.localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Abbrechen") {
+                    Button(TextKey.genericCancel.localized) {
                         dismiss()
                     }
                 }
@@ -151,7 +151,7 @@ struct ConcertImportView: View {
                         if isImporting {
                             FlowerLoading()
                         } else {
-                            Text(TextKey.`import`.localized)
+                            Text(TextKey.createconcertImport.localized)
                                 .bold()
                         }
                     }
@@ -181,7 +181,7 @@ struct ConcertImportView: View {
                 artistName: extractedInfo.artistName,
                 city: extractedInfo.city,
                 rating: nil,
-                notes: "Importiert von \(extractedInfo.platform ?? "Link")",
+                notes: TextKey.createconcertImportSource.localized(with: extractedInfo.platform ?? "Link"),
                 title: nil
             )
 
@@ -189,7 +189,7 @@ struct ConcertImportView: View {
             onImport(concert)
 
         } catch {
-            errorMessage = "Import fehlgeschlagen: \(error.localizedDescription)"
+            errorMessage = TextKey.createconcertImportFailed.localized
         }
 
         isImporting = false

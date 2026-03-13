@@ -31,11 +31,11 @@ struct PasswordResetView: View {
         NavigationStack {
             VStack(alignment: .leading) {
 
-                Text(TextKey.newPasswordDesc.localized)
+                Text(TextKey.passwordresetDesc.localized)
                     .font(.cjBody)
                     .padding()
 
-                SecureField("Neues Passwort", text: $newPasswordText)
+                SecureField(TextKey.passwordresetNewPassword.localized, text: $newPasswordText)
                     .font(.cjBody)
                     .textContentType(.newPassword)
                     .focused($newPasswordTextField)
@@ -46,7 +46,7 @@ struct PasswordResetView: View {
                         repeatNewPasswordTextField = true
                     }
 
-                SecureField("Neues Passwort Wiederholen", text: $repeatNewPasswordText)
+                SecureField(TextKey.passwordresetRepeatPassword.localized, text: $repeatNewPasswordText)
                     .font(.cjBody)
                     .textContentType(.newPassword)
                     .focused($repeatNewPasswordTextField)
@@ -67,7 +67,7 @@ struct PasswordResetView: View {
                 Button {
                     resetPassword()
                 } label: {
-                    Text(TextKey.changePassword.localized)
+                    Text(TextKey.passwordresetChangePassword.localized)
                         .font(.cjBody)
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -85,7 +85,7 @@ struct PasswordResetView: View {
                 }
             }
             .sheet(isPresented: $loadingPasswordChangePresenting) {
-                LoadingSheet(message: "Password wird geändert..")
+                LoadingSheet(message: TextKey.passwordresetChanging.localized)
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -93,12 +93,12 @@ struct PasswordResetView: View {
                         HapticManager.shared.buttonTap()
                         dismiss()
                     } label: {
-                        Text(TextKey.cancel.localized)
+                        Text(TextKey.genericCancel.localized)
                             .font(.cjBody)
                     }
                 }
             }
-            .navigationTitle("Neues Passwort")
+            .navigationTitle(TextKey.passwordresetTitle.localized)
             .interactiveDismissDisabled()
         }
     }
@@ -108,7 +108,7 @@ struct PasswordResetView: View {
             let _ = try await dependencies.supabaseClient.client.auth.exchangeCodeForSession(authCode: passwordResetRequest.code)
             logSuccess("Code verified, session created")
         } catch {
-            errorMessage = "Reset-Link ist ungültig oder abgelaufen"
+            errorMessage = TextKey.passwordresetLinkInvalid.localized
             logError("Code verification failed", error: error)
         }
     }
@@ -116,12 +116,12 @@ struct PasswordResetView: View {
     func resetPassword() {
         Task {
             guard newPasswordText == repeatNewPasswordText else {
-                errorMessage = "Passwörter stimmen nicht überein"
+                errorMessage = TextKey.passwordresetNotMatching.localized
                 return
             }
 
             guard newPasswordText.count >= 6 else {
-                errorMessage = "Passwort muss mindestens 6 Zeichen lang sein"
+                errorMessage = TextKey.passwordresetTooShort.localized
                 return
             }
 
@@ -132,7 +132,7 @@ struct PasswordResetView: View {
                 try await dependencies.supabaseClient.client.auth.update(user: UserAttributes(password: newPasswordText))
 
                 loadingPasswordChangePresenting = false
-                confirmationText = ConfirmationMessage(message: "Passwort geändert! 🎉") {
+                confirmationText = ConfirmationMessage(message: TextKey.passwordresetChanged.localized) {
                     dismiss()
                 }
                 confirmationTextPresenting = true

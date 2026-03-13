@@ -42,16 +42,16 @@ struct WelcomePage: View {
                     .padding(.bottom, 20)
                 
                 // Title
-                Text(TextKey.welcome.localized)
+                Text(TextKey.onboardingWelcomeTitle.localized)
                     .font(.cjTitle2)
                     .foregroundColor(.secondary)
                 
-                Text(TextKey.name.localized)
+                Text(TextKey.onboardingWelcomeAppName.localized)
                     .font(.cjLargeTitle)
                     .multilineTextAlignment(.center)
                 
                 // Subtitle
-                Text(TextKey.tagline.localized)
+                Text(TextKey.onboardingWelcomeTagline.localized)
                     .font(.cjBody)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
@@ -62,7 +62,7 @@ struct WelcomePage: View {
                 Button {
                     manager.getNextStep()
                 } label: {
-                    Text(TextKey.letsGoExclamation.localized)
+                    Text(TextKey.onboardingWelcomeLetsGo.localized)
                         .frame(maxWidth: .infinity)
                         .font(.cjTitle2)
                 }

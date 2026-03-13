@@ -43,12 +43,12 @@ struct TrackingPermissionPage: View {
                 }
                 
                 // Title
-                Text(TextKey.improveApp.localized)
+                Text(TextKey.onboardingPermissionsTrackingTitle.localized)
                     .font(.custom("PlayfairDisplay-Bold", size: 32))
                     .multilineTextAlignment(.center)
                 
                 // Description
-                Text(TextKey.analyticsHint.localized)
+                Text(TextKey.onboardingPermissionsTrackingDesc.localized)
                     .font(.cjBody)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
@@ -59,7 +59,7 @@ struct TrackingPermissionPage: View {
                     Image(systemName: "lock.shield")
                         .foregroundColor(.accentColor)
                     
-                    Text(TextKey.privacyHint.localized)
+                    Text(TextKey.onboardingPermissionsLegalHint.localized)
                         .lineLimit(nil)
                         .multilineTextAlignment(.leading)
                         .font(.cjFootnote)
@@ -96,10 +96,10 @@ struct TrackingPermissionPage: View {
                             if isRequesting {
                                     FlowerLoading()
                                     .frame(width: 40, height: 40)
-                                    Text(TextKey.queryRunning.localized)
+                                    Text(TextKey.onboardingPermissionQueryRunning.localized)
                                         .font(.cjTitle2)
                             } else {
-                                Text(TextKey.allow.localized)
+                                Text(TextKey.onboardingPermissionNext.localized)
                                     .font(.cjTitle2)
                             }
                         }
@@ -115,7 +115,7 @@ struct TrackingPermissionPage: View {
                             UIApplication.shared.open(url)
                         }
                     } label: {
-                        Text(TextKey.openSettings.localized)
+                        Text(TextKey.onboardingOpenSettings.localized)
                             .font(.cjHeadline)
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -126,7 +126,7 @@ struct TrackingPermissionPage: View {
                         HapticManager.shared.navigationTap()
                         manager.getNextStep()
                     } label: {
-                        Text("Das passt so")
+                        Text(TextKey.onboardingPermissionFine.localized)
                             .font(.cjFootnote)
                             .padding()
                     }

@@ -24,10 +24,10 @@ struct ToursView: View {
             if let viewModel {
                 // Picker
                 Picker("", selection: $selectedTab) {
-                    Text("Kommend").tag(TourTab.upcoming)
-                    Text("Aktuell").tag(TourTab.ongoing)
-                    Text("Beendet").tag(TourTab.past)
-                    Text("Alle").tag(TourTab.all)
+                    Text(TextKey.toursStatusUpcoming.localized).tag(TourTab.upcoming)
+                    Text(TextKey.toursStatusCurrent.localized).tag(TourTab.ongoing)
+                    Text(TextKey.toursStatusPast.localized).tag(TourTab.past)
+                    Text(TextKey.toursStatusAll.localized).tag(TourTab.all)
                 }
                 .pickerStyle(.segmented)
                 .padding()
@@ -44,7 +44,7 @@ struct ToursView: View {
                                 }
                             }
                         } else {
-                            Text("Keine Tours!")
+                            Text(TextKey.toursNoTours.localized)
                                 .font(.cjBody)
                         }
                     }
@@ -81,7 +81,7 @@ struct ToursView: View {
                 selectedTab = .all
             }
         }
-        .navigationTitle("Touren")
+        .navigationTitle(TextKey.toursTitle.localized)
         .toolbar {
             Button(action: { showCreateTour = true }) {
                 Image(systemName: "plus.circle.fill")
@@ -131,7 +131,7 @@ struct TourCard: View {
             // Dates und Concerts
             HStack(spacing: 20) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Dauer")
+                    Text(TextKey.toursDuration.localized)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Text(tour.duration)
@@ -142,7 +142,7 @@ struct TourCard: View {
                     .frame(height: 30)
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Konzerte")
+                    Text(TextKey.toursConcerts.localized)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Text("\(tour.concertCount)")
@@ -173,9 +173,9 @@ struct TourStatusBadge: View {
     
     private var statusText: String {
         switch status {
-        case .upcoming: return "Kommend"
-        case .ongoing: return "Aktuell"
-        case .finished: return "Beendet"
+        case .upcoming: return TextKey.toursStatusUpcoming.localized
+        case .ongoing: return TextKey.toursStatusCurrent.localized
+        case .finished: return TextKey.toursStatusPast.localized
         }
     }
     

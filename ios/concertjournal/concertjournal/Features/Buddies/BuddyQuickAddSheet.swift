@@ -36,7 +36,7 @@ struct BuddyQuickAddSheet: View {
                 case .loading:
                     FlowerLoading()
 
-                    Text(TextKey.searchUser.localized)
+                    Text(TextKey.buddiesSearchUser.localized)
                         .font(.cjBody).foregroundStyle(.secondary)
                     
                 case .found:
@@ -48,9 +48,9 @@ struct BuddyQuickAddSheet: View {
                     Image(systemName: "person.fill.questionmark")
                         .font(.system(size: 52)).foregroundStyle(.secondary)
 
-                    Text(TextKey.userNotFound.localized)
+                    Text(TextKey.buddiesUserNotFound.localized)
                         .font(.cjTitle2).fontWeight(.semibold)
-                    Text(TextKey.codeNotFound.localized(with: code.code))
+                    Text(TextKey.buddiesCodeNotFound.localized(with: code.code))
                         .font(.cjBody).foregroundStyle(.secondary)
                         .multilineTextAlignment(.center).padding(.horizontal, 32)
                     
@@ -59,21 +59,21 @@ struct BuddyQuickAddSheet: View {
                         .font(.system(size: 52)).foregroundStyle(.tint)
                     Text(TextKey.buddiesRequestSent.localized)
                         .font(.cjTitle2).fontWeight(.semibold)
-                    Text(TextKey.afterAccept.localized(with: result?.displayName ?? "der Nutzer"))
+                    Text(TextKey.buddiesAfterAccept.localized(with: result?.displayName ?? "der Nutzer"))
                         .font(.cjBody).foregroundStyle(.secondary)
                         .multilineTextAlignment(.center).padding(.horizontal, 32)
                     
                 case .error:
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.system(size: 52)).foregroundStyle(.orange)
-                    Text(TextKey.errorSomethingWrong.localized)
+                    Text(TextKey.genericError.localized)
                         .font(.cjBody).foregroundStyle(.secondary)
                 }
                 
                 Spacer()
                 
                 // Dismiss
-                Button(TextKey.close.localized) { dismiss() }
+                Button(TextKey.genericClose.localized) { dismiss() }
                     .font(.cjBody).foregroundStyle(.secondary)
                     .padding(.bottom, 32)
             }
@@ -105,7 +105,7 @@ struct BuddyQuickAddSheet: View {
                 Button {
                     Task { await sendRequest(to: result.id) }
                 } label: {
-                    Label(TextKey.sendFriendRequest.localized, systemImage: "person.badge.plus")
+                    Label(TextKey.buddiesButtonSendFriendRequest.localized, systemImage: "person.badge.plus")
                         .font(.cjBody).fontWeight(.semibold)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 4)
@@ -114,11 +114,11 @@ struct BuddyQuickAddSheet: View {
                 .padding(.horizontal, 32)
                 
             case .pending:
-                Label(TextKey.requestAlreadySent.localized, systemImage: "clock")
+                Label(TextKey.buddiesButtonRequestAlreadySent.localized, systemImage: "clock")
                     .font(.cjBody).foregroundStyle(.secondary)
                 
             case .alreadyFriends:
-                Label(TextKey.alreadyBuddies.localized, systemImage: "checkmark.circle.fill")
+                Label(TextKey.buddiesButtonAlreadyBuddies.localized, systemImage: "checkmark.circle.fill")
                     .font(.cjBody).foregroundStyle(.green)
             }
         }

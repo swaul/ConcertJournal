@@ -52,9 +52,9 @@ struct ProfileView: View {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .font(.system(size: 48))
                             .foregroundStyle(.orange)
-                        Text(TextKey.profileLoadError.localized)
+                        Text(TextKey.profileLoadingError.localized)
                             .font(.cjBody)
-                        Button("Erneut versuchen") {
+                        Button(TextKey.genericRetry.localized) {
                             Task { await viewModel.load() }
                         }
                         .buttonStyle(.glassProminent)
@@ -74,7 +74,7 @@ struct ProfileView: View {
         .background {
             Color.background.ignoresSafeArea()
         }
-        .navigationTitle("Profil")
+        .navigationTitle(TextKey.profileTitle.localized)
         .onReceive(NotificationCenter.default.publisher(for: .loggedInChanged)) { _ in
             updateLoggedInState()
         }
@@ -95,10 +95,10 @@ struct ProfileView: View {
                     .font(.system(size: 60))
                     .foregroundStyle(.red)
                 
-                Text(TextKey.logOut.localized)
+                Text(TextKey.profileLogoutDialogLogoutTitle.localized)
                     .font(.cjTitle)
                 
-                Text("Do you want to sign out?")
+                Text(TextKey.profileLogoutDialogLogoutMessage.localized)
                     .font(.cjBody)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
@@ -111,7 +111,7 @@ struct ProfileView: View {
                         HapticManager.shared.success()
                         signOutShowing = false
                     } label: {
-                        Text(TextKey.logOut.localized)
+                        Text(TextKey.profileLogoutDialogLogoutConfirm.localized)
                                 .font(.cjHeadline)
                     }
                     .frame(maxWidth: .infinity)
@@ -124,7 +124,7 @@ struct ProfileView: View {
                         HapticManager.shared.impact(.light)
                         signOutShowing = false
                     } label: {
-                        Text(TextKey.cancel.localized)
+                        Text(TextKey.genericCancel.localized)
                             .font(.cjHeadline)
                     }
                     .buttonStyle(ModernButtonStyle(style: .glass, color: dependencies.colorThemeManager.appTint))
@@ -189,7 +189,7 @@ struct ProfileView: View {
                         navigationManager.push(.faq)
                     } label: {
                         HStack {
-                            Label("FAQ", systemImage: "questionmark.circle")
+                            Label(TextKey.profileFaq.localized, systemImage: "questionmark.circle")
                                 .font(.cjBody)
                             Spacer()
                             Image(systemName: "chevron.right")
@@ -205,7 +205,7 @@ struct ProfileView: View {
                         navigationManager.push(.colorPicker)
                     } label: {
                         HStack {
-                            Label("Farbe", systemImage: "paintpalette")
+                            Label(TextKey.profileColor.localized, systemImage: "paintpalette")
                                 .font(.cjBody)
                             Spacer()
                             Circle()
@@ -257,7 +257,7 @@ struct ProfileView: View {
                             navigationManager.push(.accountSettings)
                         } label: {
                             HStack {
-                                Label("Account", systemImage: "person")
+                                Label(TextKey.profileAccount.localized, systemImage: "person")
                                     .font(.cjBody)
                                 Spacer()
                                 Image(systemName: "chevron.right")
@@ -277,7 +277,7 @@ struct ProfileView: View {
                 if isOffline {
                     HStack(spacing: 8) {
                         Image(systemName: "wifi.slash")
-                        Text(TextKey.offlineWarning.localized)
+                        Text(TextKey.profileOfflineWarning.localized)
                             .font(.cjFootnote)
                     }
                     .foregroundStyle(.white)
@@ -292,7 +292,7 @@ struct ProfileView: View {
                         HapticManager.shared.buttonTap()
                         signOutShowing = true
                     } label: {
-                        Label("Abmelden", systemImage: "rectangle.portrait.and.arrow.right")
+                        Label(TextKey.profileLogout.localized, systemImage: "rectangle.portrait.and.arrow.right")
                             .font(.cjBody)
                             .padding(8)
                     }
@@ -349,17 +349,17 @@ struct ProfileView: View {
                 .frame(width: 64, height: 64)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(TextKey.notLoggedIn.localized)
+                    Text(TextKey.profileNotLoggedIn.localized)
                         .font(.cjTitle2)
                         .fontWeight(.semibold)
-                    Text(TextKey.savedLocally.localized)
+                    Text(TextKey.profileNotLoggedInHint.localized)
                         .font(.cjBody)
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
             }
 
-            Text(TextKey.loginSync.localized)
+            Text(TextKey.profileNotLoggedInDesc.localized)
                 .font(.cjFootnote)
                 .foregroundStyle(.secondary)
                 .padding(.top, 4)
@@ -368,7 +368,7 @@ struct ProfileView: View {
                 HapticManager.shared.buttonTap()
                 showLoginSheet = true
             } label: {
-                Label("Anmelden / Registrieren", systemImage: "person.badge.plus")
+                Label(TextKey.profileNotLoggedInRegisterOrLogin.localized, systemImage: "person.badge.plus")
                     .font(.cjBody)
                     .frame(maxWidth: .infinity)
             }
@@ -386,14 +386,14 @@ struct ProfileView: View {
             Image(systemName: "wifi.slash")
                 .font(.system(size: 48))
                 .foregroundStyle(.secondary)
-            Text(TextKey.offlineWarning.localized)
+            Text(TextKey.profileOfflineWarning.localized)
                 .font(.cjTitle2)
                 .fontWeight(.semibold)
-            Text(TextKey.cannotLoad.localized)
+            Text(TextKey.profileLoadingError.localized)
                 .font(.cjBody)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-            Button("Erneut versuchen") {
+            Button(TextKey.genericRetry.localized) {
                 Task { await viewModel?.load() }
             }
             .buttonStyle(.glassProminent)
@@ -412,7 +412,7 @@ struct SettingsFooter: View {
     
     var appVersion: String {
         if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
-            return "Version \(version)"
+            return TextKey.profileFooterVersion.localized(with: version)
         }
         return "Version unknown"
     }
@@ -422,13 +422,13 @@ struct SettingsFooter: View {
             Divider()
             
             HStack(spacing: 16) {
-                Button("Datenschutz") { showDatenschutz = true }
+                Button(TextKey.profileFooterPrivacy.localized) { showDatenschutz = true }
                     .font(.cjCaption)
                     .foregroundColor(dependencies.colorThemeManager.appTint.opacity(0.5))
 
                 Text("•").opacity(0.5)
                 
-                Button("AGB") { showAGB = true }
+                Button(TextKey.profileFooterTerms.localized) { showAGB = true }
                     .font(.cjCaption)
                     .foregroundColor(dependencies.colorThemeManager.appTint.opacity(0.5))
                 

@@ -92,9 +92,9 @@ struct LoginView: View, KeyboardReadable {
         VStack {
             if !isKeyboardVisible {
                 Spacer()
-                Text(TextKey.name.localized)
+                Text(TextKey.loginviewAppName.localized)
                     .font(.cjLargeTitle)
-                Text(TextKey.clouds.localized)
+                Text(TextKey.loginviewTagline.localized)
                     .font(.cjBody)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -174,7 +174,7 @@ struct LoginView: View, KeyboardReadable {
                         HapticManager.shared.buttonTap()
                         passwordResetPresenting = true
                     } label: {
-                        Text(TextKey.authForgotPassword.localized)
+                        Text(TextKey.loginviewForgotPassword.localized)
                             .font(.cjFootnote)
                             .underline()
                     }
@@ -189,20 +189,20 @@ struct LoginView: View, KeyboardReadable {
             }
             
             VStack {
-                Text("Mit Anmelden akzeptierst du unsere")
+                Text(TextKey.loginviewTermsHint.localized)
                     .font(.cjCaption)
                 
                 HStack(spacing: 12) {
                     Spacer()
-                    Button("AGB") { showTerms = true }
+                    Button(TextKey.loginviewTermsOfService.localized) { showTerms = true }
                         .font(.cjCaption)
                         .underline()
                         .contentShape(Rectangle())
                     
-                    Text("und")
+                    Text(TextKey.loginviewAnd.localized)
                         .font(.cjCaption)
                     
-                    Button("Datenschutz") { showPrivacy = true }
+                    Button(TextKey.loginviewPrivacyPolicy.localized) { showPrivacy = true }
                         .font(.cjCaption)
                         .underline()
                         .contentShape(Rectangle())
@@ -225,7 +225,7 @@ struct LoginView: View, KeyboardReadable {
 
         ZStack {
             if showPassword {
-                TextField("Passwort", text: $viewModel.password)
+                TextField(TextKey.loginviewPassword.localized, text: $viewModel.password)
                     .textInputAutocapitalization(.never)
                     .focused($passwordTextField)
                     .submitLabel(loginType == .login ? .go : .next)
@@ -235,7 +235,7 @@ struct LoginView: View, KeyboardReadable {
                         else { newPasswordRepeatTextField = true }
                     }
             } else {
-                SecureField("Passwort", text: $viewModel.password)
+                SecureField(TextKey.loginviewPassword.localized, text: $viewModel.password)
                     .textContentType(loginType == .login ? .password : .newPassword)
                     .focused($passwordTextField)
                     .submitLabel(loginType == .login ? .go : .next)
@@ -261,7 +261,7 @@ struct LoginView: View, KeyboardReadable {
 
         ZStack {
             if showPassword {
-                TextField("Passwort wiederholen", text: $viewModel.newPasswordRepeat)
+                TextField(TextKey.loginviewRepeatPassword.localized, text: $viewModel.newPasswordRepeat)
                     .textInputAutocapitalization(.never)
                     .focused($newPasswordRepeatTextField)
                     .submitLabel(.go)
@@ -272,7 +272,7 @@ struct LoginView: View, KeyboardReadable {
                         }
                     }
             } else {
-                SecureField("Passwort wiederholen", text: $viewModel.newPasswordRepeat)
+                SecureField(TextKey.loginviewRepeatPassword.localized, text: $viewModel.newPasswordRepeat)
                     .textContentType(.newPassword)
                     .focused($newPasswordRepeatTextField)
                     .submitLabel(.go)
@@ -312,10 +312,10 @@ struct LoginView: View, KeyboardReadable {
                 Group {
                     switch loginTypeAnimated {
                     case .login:
-                        Text(TextKey.authLogin.localized)
+                        Text(TextKey.loginviewLogin.localized)
                             .transition(.move(edge: .bottom).combined(with: .opacity))
                     case .register:
-                        Text(TextKey.authRegister.localized)
+                        Text(TextKey.loginviewRegister.localized)
                             .transition(.move(edge: .top).combined(with: .opacity))
                     }
                 }
@@ -338,7 +338,7 @@ struct LoginView: View, KeyboardReadable {
                     Image("Spotify")
                         .resizable().aspectRatio(contentMode: .fit)
                         .frame(height: 38)
-                    Text(TextKey.loginWithSpotify.localized)
+                    Text(TextKey.loginviewLoginWithSpotify.localized)
                         .font(.cjBody)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .foregroundStyle(.white)
@@ -378,7 +378,7 @@ struct LoginView: View, KeyboardReadable {
             if showLoading {
                 VStack {
                     ProgressView().padding()
-                    Text(TextKey.stateLoading.localized).font(.cjTitle)
+                    Text(TextKey.genericLoading.localized).font(.cjTitle)
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 250)
@@ -407,8 +407,8 @@ struct LoginView: View, KeyboardReadable {
         case login, register
         var label: String {
             switch self {
-            case .login:    return "Anmelden"
-            case .register: return "Registrieren"
+            case .login:    return TextKey.loginviewLogin.localized
+            case .register: return TextKey.loginviewRegister.localized
             }
         }
     }

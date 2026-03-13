@@ -48,7 +48,7 @@ struct CreateConcertSelectArtistView: View {
             .background {
                 Color.background.ignoresSafeArea()
             }
-            .navigationTitle("Select an Artist")
+            .navigationTitle(TextKey.createartistTitle.localized)
             .task {
                 viewModel = CreateConcertSelectArtistViewModel(spotifyRepository: dependencies.spotifyRepository,
                                                                offlineConcertRepository: dependencies.offlineConcertRepository)
@@ -61,7 +61,7 @@ struct CreateConcertSelectArtistView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
                 if isSearchingAnimated {
-                    SearchingView(searchContent: "Künstler")
+                    SearchingView(searchContent: TextKey.createartistSearchArtist.localized)
                 } else if let errorMessage = viewModel.errorMessage {
                     Text(errorMessage)
                         .font(.cjBody)
@@ -110,7 +110,7 @@ struct CreateConcertSelectArtistView: View {
                         HapticManager.shared.buttonTap()
                         selectArtist(viewModel: viewModel)
                     } label: {
-                        Text(TextKey.save.localized)
+                        Text(TextKey.genericSave.localized)
                             .font(.cjBody)
                     }
                 }
@@ -119,7 +119,7 @@ struct CreateConcertSelectArtistView: View {
         .safeAreaInset(edge: .bottom) {
             HStack {
                 TextField(text: $artistName) {
-                    Text(TextKey.selectArtist.localized)
+                    Text(TextKey.createartistNameOfArtist.localized)
                         .font(.cjBody)
                 }
                 .focused($textFieldFocused)
@@ -143,7 +143,7 @@ struct CreateConcertSelectArtistView: View {
                         HapticManager.shared.buttonTap()
                         textFieldFocused = false
                     } label: {
-                        Text(TextKey.done.localized)
+                        Text(TextKey.genericDone.localized)
                             .font(.cjBody)
                     }
                     .buttonStyle(.glass)
@@ -157,7 +157,7 @@ struct CreateConcertSelectArtistView: View {
                         textFieldFocused = false
                         didSearch = true
                     } label: {
-                        Text("Search")
+                        Text(TextKey.genericSearch.localized)
                             .font(.cjBody)
                     }
                     .buttonStyle(.glassProminent)
@@ -198,7 +198,7 @@ struct CreateConcertSelectArtistView: View {
                 Text(artist.name)
                     .font(.cjBody)
                     .bold()
-                Text("Follower: \(artist.followers?.total ?? 0)")
+                Text(TextKey.createartistFollowers.localized(with: artist.followers?.total ?? 0))
                     .font(.cjBody)
             }
             .padding(.vertical)

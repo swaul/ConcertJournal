@@ -93,7 +93,7 @@ extension ConcertEditView {
                 matching: .images,
                 photoLibrary: .shared()
             ) {
-                Label("Fotos hinzufügen", systemImage: "photo.on.rectangle.angled")
+                Label(TextKey.editconcertAddPhotos.localized, systemImage: "photo.on.rectangle.angled")
                     .font(.cjBody)
             }
             .onChange(of: selectedPhotoItems) { _, newItems in

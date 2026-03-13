@@ -78,11 +78,11 @@ private struct EditProfileContent: View {
                 
                 // ── Header ────────────────────────────────────────────
                 VStack(spacing: 12) {
-                    Text("Profil bearbeiten")
+                    Text(TextKey.profileEditProfile.localized)
                         .font(.custom("PlayfairDisplay-Bold", size: 36))
                         .multilineTextAlignment(.center)
                     
-                    Text("Aktualisiere dein Profilbild und den Namen, den andere Nutzer sehen wenn sie dich markieren.")
+                    Text(TextKey.profileEditProfileDesc.localized)
                         .font(.cjBody)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -136,13 +136,13 @@ private struct EditProfileContent: View {
                 } else if case .success = viewModel.state {
                     HStack(spacing: 10) {
                         Image(systemName: "checkmark.circle.fill")
-                        Text(TextKey.updatesSaved.localized).font(.cjTitle2)
+                        Text(TextKey.profileEditSaved.localized).font(.cjTitle2)
                     }
                     .frame(maxWidth: .infinity)
                     .foregroundStyle(.green)
                 } else {
                     HStack {
-                        Text(TextKey.save.localized)
+                        Text(TextKey.profileEditSave.localized)
                             .font(.cjTitle2)
                         Image(systemName: "checkmark")
                     }
@@ -223,7 +223,7 @@ private struct AvatarPickerSection: View {
                                     Image(systemName: "person.fill")
                                         .font(.system(size: 36))
                                         .foregroundStyle(.secondary)
-                                    Text(TextKey.photo.localized)
+                                    Text(TextKey.profileEditPhoto.localized)
                                         .font(.cjFootnote)
                                         .foregroundStyle(.secondary)
                                 }
@@ -270,7 +270,7 @@ private struct NameInputSection: View {
         VStack(alignment: .leading, spacing: 8) {
             // Label
             HStack {
-                Text(TextKey.displayName.localized)
+                Text(TextKey.profileEditDisplayName.localized)
                     .font(.cjHeadline)
                 Spacer()
                 Text("\(characterCount)/\(maxLength)")
@@ -286,7 +286,7 @@ private struct NameInputSection: View {
                     .foregroundStyle(.secondary)
                     .font(.system(size: 16))
                 
-                TextField("z.B. Max Mustermann", text: $viewModel.displayName)
+                TextField(TextKey.profileEditDisplayNamePlaceholder.localized, text: $viewModel.displayName)
                     .font(.cjBody)
                     .focused(nameFocused)
                     .submitLabel(.done)
@@ -320,7 +320,7 @@ private struct NameInputSection: View {
             }
             
             // Hinweis
-            Text(TextKey.displayNameHint.localized)
+            Text(TextKey.profileEditDisplayNameHint.localized)
                 .font(.cjFootnote)
                 .foregroundStyle(.tertiary)
                 .padding(.horizontal, 4)
