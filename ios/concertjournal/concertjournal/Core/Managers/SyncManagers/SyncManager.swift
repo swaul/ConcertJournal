@@ -8,6 +8,7 @@ import Foundation
 import Combine
 import Auth
 
+@Observable
 class SyncManager {
 
     let coreData = CoreDataStack.shared
@@ -49,7 +50,7 @@ class SyncManager {
         }
 
         isSyncing = true
-        NotificationCenter.default.post(name: .syncInProgress, object: true)
+        NotificationCenter.default.post(name: .syncInProgress, object: nil, userInfo: ["isSyncing": true])
 
         await resetOldErrorStates()
         
@@ -60,13 +61,13 @@ class SyncManager {
             try await pullChanges()
             try await pushChanges()
         } catch {
-            NotificationCenter.default.post(name: .syncInProgress, object: false)
+            NotificationCenter.default.post(name: .syncInProgress, object: nil, userInfo: ["isSyncing": false])
             throw error
         }
         logSuccess("Full sync completed", category: .sync)
         
         isSyncing = false
-        NotificationCenter.default.post(name: .syncInProgress, object: false)
+        NotificationCenter.default.post(name: .syncInProgress, object: nil, userInfo: ["isSyncing": false])
     }
 
     func resetOldErrorStates() async {

@@ -198,7 +198,7 @@ struct CreateConcertSelectArtistView: View {
                 Text(artist.name)
                     .font(.cjBody)
                     .bold()
-                Text(TextKey.createartistFollowers.localized(with: artist.followers?.total ?? 0))
+                Text(TextKey.createartistFollowers.localized(with: String(artist.followers?.total ?? 0)))
                     .font(.cjBody)
             }
             .padding(.vertical)

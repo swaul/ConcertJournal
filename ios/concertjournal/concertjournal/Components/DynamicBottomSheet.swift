@@ -47,7 +47,6 @@ struct AdaptiveSheetModifier<SheetContent: View>: ViewModifier {
                                          ? [.height(subHeight)]
                                          : [.medium])
             }
-            .id(subHeight)
     }
 }
 

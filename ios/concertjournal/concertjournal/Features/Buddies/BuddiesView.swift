@@ -75,6 +75,7 @@ struct BuddiesView: View {
                     userProvider: dependencies.userSessionManager
                 )
                 await viewModel?.load()
+                try? await UNUserNotificationCenter.current().setBadgeCount(0)
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -256,11 +257,11 @@ struct BuddiesView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     // TODO: LOCALIZATION
                     if viewModel.incomingRequests.count == 1 {
-                        Text(TextKey.buddiesNewRequest.localized(with: viewModel.incomingRequests.count))
+                        Text(TextKey.buddiesNewRequest.localized(with: String(viewModel.incomingRequests.count)))
                             .font(.cjHeadline)
                             .foregroundStyle(.primary)
                     } else {
-                        Text(TextKey.buddiesNewRequests.localized(with: viewModel.incomingRequests.count))
+                        Text(TextKey.buddiesNewRequests.localized(with: String(viewModel.incomingRequests.count)))
                             .font(.cjHeadline)
                             .foregroundStyle(.primary)
                     }
@@ -509,7 +510,7 @@ private struct BuddyRow: View {
                     .font(.cjHeadline)
                     .foregroundStyle(.primary)
                 // TODO: LOCALIZATION
-                Label(TextKey.buddiesSharedConcerts.localized(with: buddy.sharedConcerts), systemImage: "music.note.list")
+                Label(TextKey.buddiesSharedConcerts.localized(with: String(buddy.sharedConcerts)), systemImage: "music.note.list")
                     .font(.cjFootnote)
                     .foregroundStyle(.secondary)
             }

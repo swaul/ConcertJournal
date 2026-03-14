@@ -56,9 +56,9 @@ struct TourDetailView: View {
                             
                             Spacer()
                             
-                            Button(action: { showAddConcert = true }) {
-                                Image(systemName: "plus.circle.fill")
-                            }
+//                            Button(action: { showAddConcert = true }) {
+//                                Image(systemName: "plus.circle.fill")
+//                            }
                         }
                         
                         if tour.concertsArray.isEmpty {

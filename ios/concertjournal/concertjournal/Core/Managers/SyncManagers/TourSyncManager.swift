@@ -10,6 +10,7 @@ import Supabase
 import CoreData
 import Combine
 
+@Observable
 class TourSyncManager {
     
     let coreData = CoreDataStack.shared
@@ -49,7 +50,7 @@ class TourSyncManager {
         }
         
         isSyncing = true
-        NotificationCenter.default.post(name: .tourSyncInProgress, object: true)
+        NotificationCenter.default.post(name: .tourSyncInProgress, object: nil, userInfo: ["isSyncing": true])
         
         await resetOldErrorStates()
         
@@ -60,13 +61,13 @@ class TourSyncManager {
             try await pushChanges()
         } catch {
             logError("Full tour sync failed", error: error, category: .sync)
-            NotificationCenter.default.post(name: .tourSyncInProgress, object: false)
+            NotificationCenter.default.post(name: .tourSyncInProgress, object: nil, userInfo: ["isSyncing": false])
             throw error
         }
         
         logSuccess("Full tour sync completed", category: .sync)
         isSyncing = false
-        NotificationCenter.default.post(name: .tourSyncInProgress, object: false)
+        NotificationCenter.default.post(name: .tourSyncInProgress, object: nil, userInfo: ["isSyncing": false])
     }
     
     func resetOldErrorStates() async {

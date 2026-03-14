@@ -17,6 +17,7 @@ struct ConcertsView: View {
     @Environment(\.navigationManager) var navigationManager
 
     @Bindable var viewModel: ConcertsViewModel
+    @Bindable var dependencyContainer: DependencyContainer
 
     @State private var chooseCreateFlowPresenting: Bool = false
     @State var concertToDelete: Concert? = nil
@@ -115,15 +116,7 @@ struct ConcertsView: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
                 }
             }
-            .onReceive(
-                Publishers.CombineLatest(
-                    NotificationCenter.default.publisher(for: .syncInProgress)
-                        .map { $0.object as? Bool ?? false },
-                    NotificationCenter.default.publisher(for: .tourSyncInProgress)
-                        .map { $0.object as? Bool ?? false }
-                )
-                .map { concert, tour in concert || tour }
-            ) { isSyncing in
+            .onChange(of: dependencyContainer.isAnySyncing) { _, isSyncing in
                 withAnimation(.bouncy) {
                     self.isSyncingWithServer = isSyncing
                 }

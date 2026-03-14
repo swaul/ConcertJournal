@@ -43,6 +43,10 @@ class DependencyContainer {
     // Local repositories
     let faqRepository: FAQRepositoryProtocol
 
+    var isAnySyncing: Bool {
+        syncManager.isSyncing || tourSyncManager.isSyncing
+    }
+    
     var needsSetup: Bool = false
 
     private var cancellables = Set<AnyCancellable>()

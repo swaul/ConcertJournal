@@ -29,7 +29,7 @@ struct MainAppView: View {
 
         TabView(selection: $navigationManager.selectedTab) {
             Tab(TextKey.tabsConcerts.localized, systemImage: "music.note.list", value: NavigationRoute.concerts) {
-                ConcertsView(viewModel: viewModel)
+                ConcertsView(viewModel: viewModel, dependencyContainer: dependencyContainer)
             }
 
             Tab(TextKey.tabsMap.localized, systemImage: "map", value: NavigationRoute.map) {
