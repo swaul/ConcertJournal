@@ -3,6 +3,7 @@ import AuthenticationServices
 import Combine
 import Supabase
 import SwiftUI
+import CryptoKit
 
 // MARK: - Auth View Model
 
@@ -18,7 +19,7 @@ final class AuthViewModel {
     var isLoading: Bool = false
     var errorMessage: String?
 
-    var currentNonce: String?
+    var currentNonce: String
 
     // MARK: - Dependencies
 
@@ -33,6 +34,7 @@ final class AuthViewModel {
     ) {
         self.supabaseClient = supabaseClient
         self.userSessionManager = userSessionManager
+        currentNonce = Self.randomNonceString()
     }
 
     // MARK: - Email Authentication
@@ -118,32 +120,33 @@ final class AuthViewModel {
             errorMessage = TextKey.authenticationSpotifyLoginFailed.localized
         }
     }
-
+    
+    // In deiner ViewModel-Klasse
+    func sha256(_ input: String) -> String {
+        let inputData = Data(input.utf8)
+        let hashedData = SHA256.hash(data: inputData)
+        return hashedData.compactMap { String(format: "%02x", $0) }.joined()
+    }
+    
     func handleAppleSignIn(result: Result<ASAuthorization, Error>) async {
         do {
             let authorization = try result.get()
 
-            guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential else {
+            guard let credentials = authorization.credential as? ASAuthorizationAppleIDCredential else {
                 self.errorMessage = "Ungültige Apple Credentials"
                 return
             }
-
-            guard let nonce = currentNonce else {
-                self.errorMessage = "Nonce nicht verfügbar"
-                return
-            }
-
-            guard let identityTokenData = appleIDCredential.identityToken,
-                  let identityToken = String(data: identityTokenData, encoding: .utf8) else {
-                self.errorMessage = "ID Token konnte nicht dekodiert werden"
+            
+            guard let idToken = credentials.identityToken.flatMap({ String(data: $0, encoding: .utf8) }) else {
                 return
             }
 
             self.isLoading = true
 
-            let session = try await supabaseClient.client
-                .auth.signInWithIdToken(credentials: OpenIDConnectCredentials(provider: .apple, idToken: identityToken))
+            _ = try await supabaseClient.client
+                .auth.signInWithIdToken(credentials: OpenIDConnectCredentials(provider: .apple, idToken: idToken, nonce: currentNonce))
 
+            try await userSessionManager.start()
             self.isLoading = false
         } catch {
             self.errorMessage = TextKey.authenticationAppleLoginFailed.localized
@@ -152,12 +155,7 @@ final class AuthViewModel {
         }
     }
 
-    // Für Nonce-Generierung
-    func generateNonce() {
-        currentNonce = randomNonceString()
-    }
-
-    private nonisolated func randomNonceString(length: Int = 32) -> String {
+    static private func randomNonceString(length: Int = 32) -> String {
         precondition(length > 0)
         var randomBytes = [UInt8](repeating: 0, count: length)
         let errorCode = SecRandomCopyBytes(kSecRandomDefault, randomBytes.count, &randomBytes)

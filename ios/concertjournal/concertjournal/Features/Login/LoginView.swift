@@ -351,12 +351,8 @@ struct LoginView: View, KeyboardReadable {
             .disabled(viewModel.isLoading)
 
             SignInWithAppleButton { request in
-                // Nonce generieren
-                viewModel.generateNonce()
-
                 request.requestedScopes = [.fullName, .email]
-                request.nonce = viewModel.currentNonce
-
+                request.nonce = viewModel.sha256(viewModel.currentNonce)
             } onCompletion: { result in
                 Task {
                     await viewModel.handleAppleSignIn(result: result)

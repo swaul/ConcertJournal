@@ -288,16 +288,18 @@ struct ProfileView: View {
             }
             .safeAreaInset(edge: .bottom) {
                 VStack {
-                    Button(role: .destructive) {
-                        HapticManager.shared.buttonTap()
-                        signOutShowing = true
-                    } label: {
-                        Label(TextKey.profileLogout.localized, systemImage: "rectangle.portrait.and.arrow.right")
-                            .font(.cjBody)
-                            .padding(8)
+                    if isLoggedIn {
+                        Button(role: .destructive) {
+                            HapticManager.shared.buttonTap()
+                            signOutShowing = true
+                        } label: {
+                            Label(TextKey.profileLogout.localized, systemImage: "rectangle.portrait.and.arrow.right")
+                                .font(.cjBody)
+                                .padding(8)
+                        }
+                        .accessibilityIdentifier("signOutButton")
+                        .buttonStyle(.glass)
                     }
-                    .accessibilityIdentifier("signOutButton")
-                    .buttonStyle(.glass)
                     
                     SettingsFooter()
                 }
